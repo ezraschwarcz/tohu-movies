@@ -136,6 +136,46 @@
       footer .foot-brand span{color:var(--accent)}
       footer .foot-copy{font-size:12.5px;color:var(--ink2)}
       footer strong{color:var(--ink)}
+      .foot-links{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 8px;margin-top:12px;font-size:13px;font-weight:600}
+      .foot-links a{color:var(--ink2);text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb, var(--accent) 55%, transparent);padding:6px 4px;border-radius:4px}
+      .foot-links a:hover{color:var(--accent)}
+      .foot-links .sep{color:var(--line);font-weight:400}
+
+      .legal-page{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch}
+      .legal-page.open{display:block}
+      .legal-wrap{max-width:820px;margin:0 auto;padding:28px 22px 64px}
+      .legal-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:28px;flex-wrap:wrap}
+      .legal-brand{display:inline-flex;align-items:center;gap:9px;font-weight:900;font-size:15px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink);text-decoration:none}
+      .legal-brand span{color:var(--accent)}
+      .legal-back{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:9px 16px;font-size:13.5px;font-weight:700;text-decoration:none}
+      .legal-back:hover{border-color:var(--accent);color:var(--accent)}
+      .legal-page h1{font-size:36px;line-height:1.05;font-weight:900;letter-spacing:-.01em;margin:0 0 10px;text-wrap:balance}
+      .legal-meta{color:var(--ink2);font-size:13.5px;font-weight:600;line-height:1.6;margin:0 0 28px}
+      .legal-intro{font-size:17px;line-height:1.65;color:var(--ink);margin:0 0 28px;max-width:68ch}
+      .legal-page h2{font-size:19px;font-weight:800;text-transform:none;letter-spacing:0;margin:32px 0 10px;line-height:1.3}
+      .legal-page h3{font-size:15.5px;font-weight:800;margin:22px 0 8px;line-height:1.4}
+      .legal-page p,.legal-page li{font-size:15.5px;line-height:1.75;color:var(--ink2)}
+      .legal-page p{margin:0 0 14px;max-width:70ch}
+      .legal-page ul{margin:8px 0 16px;padding-left:22px}
+      .legal-page li{margin-bottom:8px;max-width:68ch}
+      .legal-page li::marker{color:var(--accent)}
+      .legal-page a{color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:3px;overflow-wrap:break-word}
+      .legal-callout{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:20px 0}
+      .legal-callout p:last-child{margin-bottom:0}
+      .legal-callout strong{color:var(--ink)}
+      .cookie-list{display:grid;gap:12px;margin:16px 0 20px}
+      .cookie-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+      .cookie-item h3{margin:0 0 6px;font-size:15px}
+      .cookie-item p{margin:0;font-size:14.5px}
+      .cookie-item .cookie-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+      .legal-footer-note{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;line-height:1.7;color:var(--ink2)}
+      @media (max-width:640px){
+        .legal-wrap{padding:20px 20px 56px}
+        .legal-page h1{font-size:31px}
+        .legal-intro{font-size:16px}
+        .legal-top{margin-bottom:22px;padding-bottom:16px}
+        .foot-links{gap:4px 6px}
+      }
 
       .overlay{position:fixed;inset:0;z-index:80;background:#0a0908;display:none;overflow-y:auto}
       .overlay.open{display:block}
@@ -252,7 +292,201 @@
         <p class="foot-brand">Tohu<span> Movies</span></p>
         <p class="foot-promo">Independent cinema, handpicked for people who love film. Bold voices, unforgettable stories, and a new favorite waiting for you tonight, streaming free, always.</p>
         <p class="foot-copy">&copy; 2027 Tohu Movies. All rights reserved. &middot; tohumovies.com</p>
+        <nav class="foot-links" aria-label="Legal">
+          <a href="#privacy" data-legal="privacy">Privacy Policy</a><span class="sep" aria-hidden="true">&middot;</span>
+          <a href="#terms" data-legal="terms">Terms of Service</a><span class="sep" aria-hidden="true">&middot;</span>
+          <a href="#cookies" data-legal="cookies">Cookie Notice</a>
+        </nav>
       </footer>
+    </div>
+
+    <!-- Privacy Policy -->
+    <div class="legal-page" id="page-privacy" role="dialog" aria-modal="true" aria-labelledby="privacy-title" hidden>
+      <div class="legal-wrap">
+        <div class="legal-top">
+          <a class="legal-brand" href="#" data-close-legal>Tohu<span>&nbsp;Movies</span></a>
+          <a class="legal-back" href="#" data-close-legal>&larr; Back to films</a>
+        </div>
+        <h1 id="privacy-title">Privacy Policy</h1>
+        <p class="legal-meta">Tohu Movies &middot; Last updated November 9, 2026 &middot; Contact: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
+        <p class="legal-intro">Tohu Movies operates tohumovies.com, a free, ad supported streaming service for independent films. This policy explains what information is collected when you watch, how it is used, and the choices you have. You do not need an account to watch, and we do not ask you to sign up.</p>
+
+        <h2>1. Who we are</h2>
+        <p>The operator of this site is <strong>Tohu Movies</strong> (&ldquo;Tohu Movies,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;). If you have a privacy question, email us at <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a>.</p>
+
+        <h2>2. Information we collect</h2>
+        <h3>Information you give us</h3>
+        <p>Watching is free with no account required, so we do not collect a name, password, or payment details for viewing. If you email us, we receive your email address and the contents of your message so we can reply.</p>
+        <h3>Information collected automatically</h3>
+        <p>When you visit or play a film, our systems and our service providers may automatically collect device and usage information, such as your IP address, browser type and version, device type, operating system, pages and films viewed, time spent watching, referring page, and approximate location derived from IP address. This helps us operate the player, understand what is watched, prevent abuse, and keep the service working.</p>
+        <h3>Cookies and similar technologies</h3>
+        <p>We and our advertising partners use cookies, web beacons, pixels, and similar technologies. See our <a href="#cookies" data-legal="cookies">Cookie Notice</a> for a fuller explanation and how to manage them.</p>
+
+        <h2>3. Advertising: Google AdSense and Google Ad Manager</h2>
+        <div class="legal-callout">
+          <p><strong>Tohu Movies is free because it is supported by advertising.</strong> We use Google Ad Manager to manage and serve ads on this site, and Google AdSense (including through Ad Manager) as a source of ads to fill those placements.</p>
+        </div>
+        <p>Third party vendors, including Google, use cookies to serve ads based on your prior visits to this website or other websites on the internet.</p>
+        <p>Google&rsquo;s use of advertising cookies enables Google and its partners to serve ads to you based on your visit to this site and / or other sites on the internet. Those ads may include personalized ads, meaning ads selected based on your interests, demographics, and browsing activity as inferred by Google and its partners.</p>
+        <p>Google and its partners may collect and use information such as cookie identifiers, device identifiers, IP address, and browsing activity on this and other sites to measure ad performance, prevent fraud, limit how often you see the same ad, and serve personalized advertising where permitted.</p>
+        <p>For details on how Google uses data from sites that use its services, see Google&rsquo;s <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">How Google uses information from sites or apps that use our services</a> and <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Google Advertising Policies and Technologies</a>.</p>
+
+        <h2>4. How to opt out of personalized advertising</h2>
+        <p>You may opt out of personalized advertising by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google Ads Settings</a> at adssettings.google.com. There, you can turn off ad personalization for your Google account or browser.</p>
+        <p>You can also opt out of some third party vendors&rsquo; use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">aboutads.info/choices</a>. Opting out does not mean you will see no ads. You will still see ads on Tohu Movies, but they may be less personalized.</p>
+        <p>You can also block or delete cookies in your browser settings. See the <a href="#cookies" data-legal="cookies">Cookie Notice</a> for instructions by browser.</p>
+
+        <h2>5. How we use information</h2>
+        <ul>
+          <li>To provide, operate, and maintain free film streaming.</li>
+          <li>To serve, measure, and improve advertising through Google Ad Manager and Google AdSense.</li>
+          <li>To understand viewing and site performance, and to improve our catalog and player.</li>
+          <li>To protect the service, prevent fraud and abuse, and enforce our <a href="#terms" data-legal="terms">Terms of Service</a>.</li>
+          <li>To respond to messages you send us and comply with legal obligations.</li>
+        </ul>
+
+        <h2>6. Sharing of information</h2>
+        <p>We do not sell your personal information for money. We share information with service providers who help us run the site, including video delivery and playback providers and Google for advertising as described above, and when required by law, to protect rights and safety, or in connection with a transfer of the service. Advertising partners such as Google collect information directly through cookies and similar technologies placed on your device when ads are served.</p>
+
+        <h2>7. Data retention and security</h2>
+        <p>We keep information only for as long as reasonably needed for the purposes in this policy, unless a longer period is required by law. We use reasonable administrative and technical measures to protect information, but no internet transmission or storage system can be guaranteed completely secure.</p>
+
+        <h2>8. Children&rsquo;s privacy</h2>
+        <p>Tohu Movies is a general audience film service and is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us personal information, contact <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a> and we will take appropriate steps to delete it.</p>
+
+        <h2>9. Your choices and rights</h2>
+        <p>Depending on where you live, you may have rights to access, correct, delete, or limit use of your personal information, and to opt out of personalized advertising as described above. To make a request, email <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a>. We will respond as required by applicable law.</p>
+
+        <h2>10. Changes to this policy</h2>
+        <p>We may update this Privacy Policy from time to time. We will post the updated version on this page and change the &ldquo;Last updated&rdquo; date above. Continued use of the site after a change means you accept the updated policy.</p>
+
+        <h2>11. Contact us</h2>
+        <p>Tohu Movies<br>Email: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a><br>Website: tohumovies.com</p>
+        <p class="legal-footer-note">See also our <a href="#terms" data-legal="terms">Terms of Service</a> and <a href="#cookies" data-legal="cookies">Cookie Notice</a>. <a href="#" data-close-legal>Back to films &rarr;</a></p>
+      </div>
+    </div>
+
+    <!-- Terms of Service -->
+    <div class="legal-page" id="page-terms" role="dialog" aria-modal="true" aria-labelledby="terms-title" hidden>
+      <div class="legal-wrap">
+        <div class="legal-top">
+          <a class="legal-brand" href="#" data-close-legal>Tohu<span>&nbsp;Movies</span></a>
+          <a class="legal-back" href="#" data-close-legal>&larr; Back to films</a>
+        </div>
+        <h1 id="terms-title">Terms of Service</h1>
+        <p class="legal-meta">Tohu Movies &middot; Last updated November 9, 2026 &middot; Contact: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
+        <p class="legal-intro">These terms govern your use of tohumovies.com, operated by Tohu Movies. By visiting or watching a film on this site, you agree to these terms. If you do not agree, please do not use the site.</p>
+
+        <h2>1. The service</h2>
+        <p>Tohu Movies is a free, ad supported streaming service for independent films. Films are available to watch online through the player on this site. The catalog, availability, and features may change at any time, and individual films may be added or removed without notice.</p>
+
+        <h2>2. Free viewing, no account required</h2>
+        <p>Viewing is free. No account, registration, subscription, or payment is required to watch films on Tohu Movies. Because the service is free to viewers, it is supported by advertising. Ads may appear before and during films, including pre roll and mid roll ads served through Google Ad Manager and Google AdSense. See our <a href="#privacy" data-legal="privacy">Privacy Policy</a> and <a href="#cookies" data-legal="cookies">Cookie Notice</a> for how advertising works.</p>
+
+        <h2>3. Personal viewing only</h2>
+        <p>Films and other content on this site are provided for your personal, non commercial viewing only, in the player on this site, for so long as the film is made available here. You may not use the service or any film for a public performance, a commercial purpose, or for viewing by an audience outside your private, personal use.</p>
+
+        <h2>4. No redistribution or copying</h2>
+        <ul>
+          <li>You may not download, copy, record, rip, reproduce, redistribute, re upload, share, sell, rent, sublicense, publicly perform, publicly display, broadcast, or otherwise distribute any film or other content from this site, except as expressly permitted by these terms for personal streaming.</li>
+          <li>You may not circumvent, disable, or interfere with the player, advertising, access controls, or any technology used to protect content on this site.</li>
+          <li>You may not scrape, frame, or mirror the site or its catalog in a way that misrepresents the source or bypasses these terms.</li>
+        </ul>
+        <p>All films, artwork, posters, stills, text, logos, and other content on this site are owned by Tohu Movies or its licensors and are protected by copyright and other laws. No rights are transferred to you other than the limited right to stream for personal viewing as described above.</p>
+
+        <h2>5. Acceptable use</h2>
+        <p>You agree not to use the site in any unlawful way, not to interfere with its operation or security, not to attempt to gain unauthorized access, and not to use automated means to access the service except for standard search indexing. You are responsible for your internet connection, device, and any charges from your provider.</p>
+
+        <h2>6. Content provided &ldquo;as is&rdquo;</h2>
+        <p>The service and all content are provided <strong>&ldquo;as is&rdquo; and &ldquo;as available,&rdquo;</strong> without warranties of any kind, whether express or implied, including warranties of merchantability, fitness for a particular purpose, title, non infringement, uninterrupted or error free playback, or that a particular film will remain available. Streaming quality, captions, and availability may vary by device, browser, connection, and region. Ratings, runtimes, and descriptions are provided for information and may contain errors.</p>
+
+        <h2>7. Third party services and advertising</h2>
+        <p>The site uses third party services for video delivery and for advertising, including Google Ad Manager and Google AdSense. Your use of those features may also be subject to the providers&rsquo; own terms and policies. Tohu Movies is not responsible for third party ads, products, or websites linked from ads or from this site.</p>
+
+        <h2>8. Limitation of liability</h2>
+        <p>To the fullest extent permitted by law, Tohu Movies and its licensors will not be liable for any indirect, incidental, special, consequential, or punitive damages, or for lost profits, data, or goodwill, arising from your use of or inability to use the service. Nothing in these terms limits liability that cannot be limited under applicable law.</p>
+
+        <h2>9. Changes to the service and these terms</h2>
+        <p>We may change, suspend, or discontinue any part of the service at any time. We may also update these terms from time to time by posting the new version on this page and updating the date above. Continued use after a change means you accept the updated terms.</p>
+
+        <h2>10. Governing law</h2>
+        <p>These terms are governed by the laws of the State of Arkansas, United States, without regard to its conflict of law rules, except where applicable law requires otherwise.</p>
+
+        <h2>11. Contact</h2>
+        <p>Tohu Movies<br>Email: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a><br>Website: tohumovies.com</p>
+        <p class="legal-footer-note">See also our <a href="#privacy" data-legal="privacy">Privacy Policy</a> and <a href="#cookies" data-legal="cookies">Cookie Notice</a>. <a href="#" data-close-legal>Back to films &rarr;</a></p>
+      </div>
+    </div>
+
+    <!-- Cookie Notice -->
+    <div class="legal-page" id="page-cookies" role="dialog" aria-modal="true" aria-labelledby="cookies-title" hidden>
+      <div class="legal-wrap">
+        <div class="legal-top">
+          <a class="legal-brand" href="#" data-close-legal>Tohu<span>&nbsp;Movies</span></a>
+          <a class="legal-back" href="#" data-close-legal>&larr; Back to films</a>
+        </div>
+        <h1 id="cookies-title">Cookie Notice</h1>
+        <p class="legal-meta">Tohu Movies &middot; Last updated November 9, 2026 &middot; Contact: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
+        <p class="legal-intro">This notice explains what cookies Tohu Movies uses on tohumovies.com, why we use them, and how you can manage them. It should be read with our <a href="#privacy" data-legal="privacy">Privacy Policy</a>.</p>
+
+        <h2>What is a cookie?</h2>
+        <p>A cookie is a small text file placed on your device by a website you visit. Cookies are widely used to make sites work, remember preferences, understand how a site is used, and serve advertising. Similar technologies include local storage, pixels, web beacons, and device identifiers, which are covered by this notice where they serve a similar purpose.</p>
+
+        <h2>Cookies we use</h2>
+        <div class="cookie-list">
+          <div class="cookie-item">
+            <span class="cookie-tag">Essential</span>
+            <h3>Strictly necessary cookies</h3>
+            <p>Needed for the site and player to work and to stay secure, for example to load pages, play video, maintain a session, and prevent fraud and abuse. The site cannot function properly without these. They do not store personally identifiable information for marketing.</p>
+          </div>
+          <div class="cookie-item">
+            <span class="cookie-tag">Functional</span>
+            <h3>Functionality and preference cookies</h3>
+            <p>Remember choices you make, such as playback or display preferences, so you do not have to set them again on each visit. Disabling these may mean some preferences are not remembered.</p>
+          </div>
+          <div class="cookie-item">
+            <span class="cookie-tag">Performance</span>
+            <h3>Performance and analytics cookies</h3>
+            <p>Help us count visits, understand which films and pages are watched, and improve the player and catalog. Information is generally aggregated, but it may include device, browser, and usage data.</p>
+          </div>
+          <div class="cookie-item">
+            <span class="cookie-tag">Advertising &mdash; Google</span>
+            <h3>Advertising cookies from Google and its partners</h3>
+            <p>Tohu Movies uses Google Ad Manager to manage ads and Google AdSense as a source of ads. Google and its partners use advertising cookies, including the DoubleClick cookie where applicable, to serve ads based on your prior visits to this site and other sites, to personalize ads, to limit how often you see the same ad, to measure ad performance, and to detect fraud. Third party vendors, including Google, use cookies to serve ads based on your prior visits to this website or other websites.</p>
+          </div>
+        </div>
+
+        <h2>Personalized advertising</h2>
+        <p>Google&rsquo;s use of advertising cookies enables Google and its partners to serve ads to you based on your visit to this site and / or other sites on the internet. Those ads may be personalized ads.</p>
+        <div class="legal-callout">
+          <p><strong>Opt out of personalized ads:</strong> Visit <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google Ads Settings</a> to turn off personalized advertising. You can also opt out of some third party vendors&rsquo; cookies at <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">aboutads.info/choices</a>. You will still see ads after opting out, they just may be less personalized.</p>
+        </div>
+        <p>Learn more in Google&rsquo;s <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Advertising Technologies</a> explanation and <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">How Google uses information from sites that use its services</a>.</p>
+
+        <h2>How to manage cookies</h2>
+        <h3>In your browser</h3>
+        <p>Most browsers let you view, block, and delete cookies. You can usually find these controls in Settings under Privacy or Cookies. Blocking all cookies may break playback or other features. Guides are available from your browser maker:</p>
+        <ul>
+          <li>Google Chrome: Settings &rarr; Privacy and security &rarr; Cookies and other site data</li>
+          <li>Safari: Settings / Preferences &rarr; Privacy</li>
+          <li>Firefox: Settings &rarr; Privacy &amp; Security &rarr; Cookies and Site Data</li>
+          <li>Microsoft Edge: Settings &rarr; Cookies and site permissions</li>
+        </ul>
+        <h3>For advertising</h3>
+        <ul>
+          <li><a href="https://adssettings.google.com" target="_blank" rel="noopener">Google Ads Settings</a>: turn off ad personalization.</li>
+          <li><a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">aboutads.info/choices</a>: opt out of personalized ads from participating companies.</li>
+          <li>On mobile devices, check your device&rsquo;s ad privacy settings to limit ad tracking or reset your advertising identifier.</li>
+        </ul>
+        <p>If you clear cookies or use a different browser or device, you may need to set your choices again.</p>
+
+        <h2>Changes to this notice</h2>
+        <p>We may update this Cookie Notice from time to time as the cookies we use change. We will post the updated version here and change the date above.</p>
+
+        <h2>Contact</h2>
+        <p>Questions about cookies on Tohu Movies: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
+        <p class="legal-footer-note">See also our <a href="#privacy" data-legal="privacy">Privacy Policy</a> and <a href="#terms" data-legal="terms">Terms of Service</a>. <a href="#" data-close-legal>Back to films &rarr;</a></p>
+      </div>
     </div>
 
     <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="p-title">
@@ -668,6 +902,70 @@
           }, { rootMargin: "-38% 0px -55% 0px", threshold: 0 });
           sections.forEach(function(s){ io.observe(s); });
         }
+      })();
+    </script>
+    <script>
+      (function(){
+        var pages = {
+          privacy: document.getElementById("page-privacy"),
+          terms: document.getElementById("page-terms"),
+          cookies: document.getElementById("page-cookies")
+        };
+        var lastLegalFocus = null;
+        function closeAllLegal(push){
+          Object.keys(pages).forEach(function(k){
+            if (pages[k]){ pages[k].classList.remove("open"); pages[k].setAttribute("hidden",""); }
+          });
+          document.body.style.overflow = "";
+          if (push){
+            try { history.pushState("", document.title, window.location.pathname + window.location.search); } catch(e){}
+          }
+          if (lastLegalFocus && lastLegalFocus.focus) lastLegalFocus.focus();
+        }
+        function openLegal(name){
+          var page = pages[name];
+          if (!page) return;
+          lastLegalFocus = document.activeElement;
+          Object.keys(pages).forEach(function(k){
+            if (pages[k]){ pages[k].classList.remove("open"); pages[k].setAttribute("hidden",""); }
+          });
+          page.removeAttribute("hidden");
+          page.classList.add("open");
+          page.scrollTop = 0;
+          document.body.style.overflow = "hidden";
+          var h = page.querySelector("h1");
+          if (h){ h.setAttribute("tabindex","-1"); h.focus({preventScroll:true}); }
+          window.scrollTo(0,0);
+        }
+        // Footer and in-text legal links
+        document.querySelectorAll("[data-legal]").forEach(function(a){
+          a.addEventListener("click", function(e){
+            var name = a.getAttribute("data-legal");
+            if (pages[name]){
+              e.preventDefault();
+              try { history.pushState({legal:name}, "", "#" + name); } catch(err){}
+              openLegal(name);
+            }
+          });
+        });
+        document.querySelectorAll("[data-close-legal]").forEach(function(a){
+          a.addEventListener("click", function(e){
+            e.preventDefault();
+            closeAllLegal(true);
+          });
+        });
+        window.addEventListener("popstate", function(){
+          var h = (window.location.hash || "").replace("#","");
+          if (pages[h]) openLegal(h); else closeAllLegal(false);
+        });
+        document.addEventListener("keydown", function(e){
+          if (e.key === "Escape"){
+            var anyOpen = Object.keys(pages).some(function(k){ return pages[k] && pages[k].classList.contains("open"); });
+            if (anyOpen) closeAllLegal(true);
+          }
+        });
+        var initial = (window.location.hash || "").replace("#","");
+        if (pages[initial]) openLegal(initial);
       })();
     </script>
   </body>
