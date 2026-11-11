@@ -120,7 +120,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/video.js@8.24.1/dist/video-js.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/video.js@8.24.1/dist/video.min.js"></script>
+    <script src="https://src.litix.io/videojs/4/videojs-mux.js"></script>
     <style>
       :root{
         --bg:#f6f4ef; --bg2:#efece4; --panel:#ffffff; --panel2:#ece8de;
@@ -281,8 +283,28 @@
       .player-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
       .player-top h3{margin:0;font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:.02em;flex:1;line-height:1.2}
       .close-btn{background:rgba(247,242,231,.12);border:1px solid rgba(247,242,231,.3);color:#f7f2e7;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:700}
-      .video-box{background:#000;border-radius:8px;overflow:hidden;aspect-ratio:16/9}
-      video{width:100%;height:100%;display:block;background:#000}
+      .video-box{background:#16130e;border-radius:8px;overflow:hidden;position:relative}
+      .video-box video{width:100%;height:auto;aspect-ratio:16/9;display:block;background:#16130e}
+      /* Video.js player, themed to the site: ink #16130e, amber #e9a83a */
+      .video-js{width:100%;background:#16130e;color:#f7f2e7;font-family:inherit;font-size:10px}
+      .video-js .vjs-poster{background-size:cover}
+      .video-js .vjs-big-play-button{background-color:rgba(233,168,58,.94);border:0;border-radius:8px;color:#16130e;transition:background-color .2s ease,color .2s ease}
+      .video-js:hover .vjs-big-play-button,.video-js .vjs-big-play-button:focus{background-color:#e9a83a;color:#16130e}
+      .video-js .vjs-control-bar{background-color:rgba(22,19,14,.92)}
+      .video-js .vjs-control:focus{outline:2px solid #e9a83a;outline-offset:-2px}
+      .video-js .vjs-play-progress,.video-js .vjs-volume-level{background-color:#e9a83a}
+      .video-js .vjs-play-progress:before,.video-js .vjs-volume-level:before{color:#e9a83a}
+      .video-js .vjs-load-progress{background:rgba(247,242,231,.28)}
+      .video-js .vjs-load-progress div{background:rgba(247,242,231,.45)}
+      .video-js .vjs-slider{background-color:rgba(247,242,231,.18)}
+      .video-js .vjs-slider:focus{box-shadow:0 0 0 2px rgba(233,168,58,.55)}
+      .video-js .vjs-menu-button-popup .vjs-menu .vjs-menu-content{background-color:rgba(22,19,14,.96)}
+      .video-js .vjs-menu li{color:#f7f2e7}
+      .video-js .vjs-menu li.vjs-menu-item:focus,.video-js .vjs-menu li.vjs-menu-item:hover{background-color:rgba(233,168,58,.22);color:#f7f2e7}
+      .video-js .vjs-menu li.vjs-selected,.video-js .vjs-menu li.vjs-selected:focus,.video-js .vjs-menu li.vjs-selected:hover{background-color:#e9a83a;color:#16130e}
+      .video-js .vjs-text-track-cue > div{background-color:rgba(22,19,14,.82) !important;color:#f7f2e7 !important}
+      .video-js .vjs-spinner:before,.video-js .vjs-spinner:after{border-top-color:#e9a83a}
+      .video-js .vjs-mouse-display{background-color:rgba(22,19,14,.9)}
       .p-meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 12px}
       .p-meta .badge{background:rgba(247,242,231,.1)}
       .player-wrap p.syn{font-size:16px;line-height:1.6;color:#ddd6c4;max-width:75ch;margin:0 0 16px}
@@ -454,7 +476,7 @@
           <a class="legal-back" href="#" data-close-legal>&larr; Back to films</a>
         </div>
         <h1 id="privacy-title">Privacy Policy</h1>
-        <p class="legal-meta">Tohu Movies &middot; Last updated November 9, 2026 &middot; Contact: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
+        <p class="legal-meta">Tohu Movies &middot; Last updated November 11, 2026 &middot; Contact: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
         <p class="legal-intro">Tohu Movies operates tohumovies.com, a free, ad supported streaming service for independent films. This policy explains what information is collected when you watch, how it is used, and the choices you have. You do not need an account to watch, and we do not ask you to sign up.</p>
 
         <h2>1. Who we are</h2>
@@ -465,6 +487,7 @@
         <p>Watching is free with no account required, so we do not collect a name, password, or payment details for viewing. If you email us, we receive your email address and the contents of your message so we can reply.</p>
         <h3>Information collected automatically</h3>
         <p>When you visit or play a film, our systems and our service providers may automatically collect device and usage information, such as your IP address, browser type and version, device type, operating system, pages and films viewed, time spent watching, referring page, and approximate location derived from IP address. This helps us operate the player, understand what is watched, prevent abuse, and keep the service working.</p>
+        <p>We use Mux Data analytics to measure playback quality and viewer engagement, and it sets a cookie that holds an anonymized viewer ID and collects no personally identifiable information.</p>
         <h3>Cookies and similar technologies</h3>
         <p>We and our advertising partners use cookies, web beacons, pixels, and similar technologies. See our <a href="#cookies" data-legal="cookies">Cookie Notice</a> for a fuller explanation and how to manage them.</p>
 
@@ -572,7 +595,7 @@
           <a class="legal-back" href="#" data-close-legal>&larr; Back to films</a>
         </div>
         <h1 id="cookies-title">Cookie Notice</h1>
-        <p class="legal-meta">Tohu Movies &middot; Last updated November 9, 2026 &middot; Contact: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
+        <p class="legal-meta">Tohu Movies &middot; Last updated November 11, 2026 &middot; Contact: <a href="mailto:privacy@tohumovies.com">privacy@tohumovies.com</a></p>
         <p class="legal-intro">This notice explains what cookies Tohu Movies uses on tohumovies.com, why we use them, and how you can manage them. It should be read with our <a href="#privacy" data-legal="privacy">Privacy Policy</a>.</p>
 
         <h2>What is a cookie?</h2>
@@ -593,7 +616,7 @@
           <div class="cookie-item">
             <span class="cookie-tag">Performance</span>
             <h3>Performance and analytics cookies</h3>
-            <p>Help us count visits, understand which films and pages are watched, and improve the player and catalog. Information is generally aggregated, but it may include device, browser, and usage data.</p>
+            <p>Help us count visits, understand which films and pages are watched, and improve the player and catalog. Information is generally aggregated, but it may include device, browser, and usage data. We use Mux Data analytics to measure playback quality and viewer engagement, and it sets a cookie that holds an anonymized viewer ID and collects no personally identifiable information.</p>
           </div>
           <div class="cookie-item">
             <span class="cookie-tag">Advertising &mdash; Google</span>
@@ -659,7 +682,7 @@
           <button class="close-btn" id="close-btn">Close ✕</button>
         </div>
         <div class="video-box">
-          <video id="video" controls playsinline crossorigin="anonymous" poster=""></video>
+          <video id="video" class="video-js" controls playsinline crossorigin="anonymous" poster=""></video>
         </div>
         <div class="p-meta" id="p-meta"></div>
         <div id="p-rating"></div>
@@ -1485,9 +1508,109 @@
       });
 
       var overlay = document.getElementById("overlay");
-      var video = document.getElementById("video");
-      var hls = null;
+      var videoEl = document.getElementById("video");
       var lastFocus = null;
+
+      /* ---------- Video.js player with Mux Data (one player reused for all films) ---------- */
+      var player = null;
+      var muxStarted = false;
+      var playerLoadedOnce = false;
+      var MUX_ENV_KEY = "29p9bv2jmen9ll64po09ue8id";
+
+      function ensurePlayer(f){
+        if (player) return player;
+        if (typeof window.videojs === "undefined") return null;
+        player = window.videojs("video", {
+          controls: true,
+          playsinline: true,
+          preload: "auto",
+          fluid: true,
+          playbackRates: [0.5, 1, 1.25, 1.5, 2],
+          controlBar: {
+            children: [
+              "playToggle",
+              "volumePanel",
+              "currentTimeDisplay",
+              "timeDivider",
+              "durationDisplay",
+              "progressControl",
+              "playbackRateMenuButton",
+              "captionsButton",
+              "pictureInPictureToggle",
+              "fullscreenToggle"
+            ]
+          }
+        });
+        if (player && typeof player.mux === "function" && !muxStarted){
+          try {
+            player.mux({
+              debug: false,
+              data: {
+                env_key: MUX_ENV_KEY,
+                player_name: "Tohu Player",
+                video_id: f.id,
+                video_title: f.title,
+                video_stream_type: "on-demand"
+              }
+            });
+            muxStarted = true;
+          } catch(e){}
+        }
+        /* The Mux HLS manifest names some films' caption track "English"
+           (NAME="English", for example Jinn), so the Video.js captions
+           menu would show "English". Force the label to "English CC" as
+           each captions or subtitles track loads, for every film.
+           Setting a Video.js text track label fires "labelchange", which
+           makes Video.js rebuild the captions menu with the new label.
+           Only captions and subtitles tracks are renamed, so metadata
+           tracks keep their own labels. Tracks are watched on both the
+           player text track list and the remote text track list, since
+           HLS tracks arrive through the remote track path. */
+        function fixCaptionLabel(track){
+          if (!track) return;
+          if (track.kind !== "captions" && track.kind !== "subtitles") return;
+          try { if (track.label !== "English CC") track.label = "English CC"; } catch(e){}
+        }
+        function fixCaptionLabels(){
+          try {
+            var lists = [];
+            try { lists.push(player.textTracks()); } catch(e){}
+            try { if (typeof player.remoteTextTracks === "function") lists.push(player.remoteTextTracks()); } catch(e){}
+            lists.forEach(function(list){
+              if (!list) return;
+              for (var i = 0; i < list.length; i++) fixCaptionLabel(list[i]);
+            });
+          } catch(e){}
+        }
+        function watchCaptionTrackList(list){
+          if (!list || typeof list.addEventListener !== "function") return;
+          list.addEventListener("addtrack", function(e){
+            fixCaptionLabel(e && e.track);
+            fixCaptionLabels();
+          });
+        }
+        try { watchCaptionTrackList(player.textTracks()); } catch(e){}
+        try { if (typeof player.remoteTextTracks === "function") watchCaptionTrackList(player.remoteTextTracks()); } catch(e){}
+        player.on("loadedmetadata", fixCaptionLabels);
+        player.on("loadeddata", fixCaptionLabels);
+        return player;
+      }
+
+      /* Tell Mux Data a new film is starting, so each view is counted under its own
+         film. Uses the videojs-mux plugin API: player.mux.emit('videochange', ...),
+         sent before the new source is loaded so the new view captures startup. */
+      function updateMuxForFilm(f){
+        if (!player || !muxStarted || typeof player.mux !== "function") return;
+        if (typeof player.mux.emit !== "function") return;
+        try {
+          player.mux.emit("videochange", {
+            video_id: f.id,
+            video_title: f.title,
+            video_duration: (f.runtime || 0) * 60000,
+            video_stream_type: "on-demand"
+          });
+        } catch(e){}
+      }
 
       /* ---------- Age check for R rated films ---------- */
       var ageGate = document.getElementById("age-gate");
@@ -1573,19 +1696,21 @@
           '<span class="badge">HD 720p</span>' +
           (f.captions ? '<span class="badge">English captions</span>' : '');
         renderStarsInto(document.getElementById("p-rating"), f, true);
-        video.poster = thumb(f);
         var url = streamUrl(f);
-        if (window.Hls && Hls.isSupported()){
-          if (hls) hls.destroy();
-          hls = new Hls();
-          hls.loadSource(url);
-          hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, function(){ video.play().catch(function(){}); });
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")){
-          video.src = url;
-          video.addEventListener("loadedmetadata", function(){ video.play().catch(function(){}); }, { once: true });
+        var p = ensurePlayer(f);
+        if (p){
+          if (playerLoadedOnce) updateMuxForFilm(f);
+          playerLoadedOnce = true;
+          try { p.poster(thumb(f)); } catch(e){}
+          p.src({ src: url, type: "application/x-mpegURL" });
+          var pr = null;
+          try { pr = p.play(); } catch(e){}
+          if (pr && typeof pr.catch === "function") pr.catch(function(){});
         } else {
-          video.src = url;
+          /* Video.js did not load: fall back to the plain element (Safari plays HLS natively). */
+          videoEl.poster = thumb(f);
+          videoEl.src = url;
+          if (videoEl.play) { var fp = videoEl.play(); if (fp && typeof fp.catch === "function") fp.catch(function(){}); }
         }
         overlay.classList.add("open");
         pSynClamp.refresh();
@@ -1594,10 +1719,13 @@
       }
 
       function closePlayer(){
-        video.pause();
-        if (hls){ hls.destroy(); hls = null; }
-        video.removeAttribute("src");
-        video.load();
+        if (player){
+          try { player.pause(); } catch(e){}
+        } else {
+          videoEl.pause();
+          videoEl.removeAttribute("src");
+          videoEl.load();
+        }
         overlay.classList.remove("open");
         document.body.style.overflow = "";
         if (lastFocus) lastFocus.focus();
