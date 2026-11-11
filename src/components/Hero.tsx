@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -103,12 +102,16 @@ export default function Hero({ films }: { films: Film[] }) {
       onBlurCapture={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
     >
-      <Image
+      {/* Plain <img>, not next/image: the Mux still URL carries
+          ?width=...&time=... query params, which the /_next/image
+          optimizer rejects with HTTP 400. Mux already sizes the
+          still, so the optimizer adds nothing. The .hero img.bg CSS
+          rule carries the fill positioning next/image used to add. */}
+      <img
         className="bg"
         src={posterUrl(film, 1600)}
         alt=""
-        fill
-        priority
+        fetchPriority="high"
         sizes="100vw"
       />
       <div className="shade" aria-hidden="true" />

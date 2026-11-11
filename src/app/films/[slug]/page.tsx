@@ -10,9 +10,12 @@ import {
   posterUrl,
 } from "@/lib/films";
 import { SITE_URL } from "@/lib/site";
+import { getApprovedComments } from "@/lib/comments";
+import CommentsSection from "@/components/CommentsSection";
 import FilmCard from "@/components/FilmCard";
 import FilmPlayerSection from "@/components/FilmPlayerSection";
 import StarRating from "@/components/StarRating";
+import WatchlistButton from "@/components/WatchlistButton";
 
 /** Film detail page: /films/[slug]. One dynamic route, rendered from the
  *  Supabase films table. The 55 known slugs are pre-rendered at build
@@ -81,7 +84,11 @@ export default async function FilmPage({
   if (!film) {
     notFound();
   }
-  const [ratings, films] = await Promise.all([getRatings(), getFilms()]);
+  const [ratings, films, comments] = await Promise.all([
+    getRatings(),
+    getFilms(),
+    getApprovedComments(slug),
+  ]);
   const rating = ratings[film.slug] ?? null;
 
   // The two films whose warnings carry the 988 Suicide and Crisis Lifeline
@@ -129,6 +136,9 @@ export default async function FilmPage({
         </p>
         <p className="syn">{film.synopsis}</p>
         <StarRating filmSlug={film.slug} initial={rating} />
+        <p className="film-actions">
+          <WatchlistButton filmSlug={film.slug} filmTitle={film.title} />
+        </p>
         <dl className="film-facts">
           <div>
             <dt>Director</dt>
@@ -153,6 +163,8 @@ export default async function FilmPage({
           </p>
         )}
       </div>
+
+      <CommentsSection filmSlug={film.slug} initial={comments} />
 
       {more.length > 0 ? (
         <section className="more-films" aria-label="More films">

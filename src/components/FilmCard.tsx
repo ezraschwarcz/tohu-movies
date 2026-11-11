@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatRuntime, genresOf, posterUrl } from "@/lib/films";
 import type { Film, RatingSummary } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
 import StarRating from "./StarRating";
+import WatchlistButton from "./WatchlistButton";
 
 /** One film card: poster still (16:9, with play icon, runtime and CC
  *  badges), title, year/runtime/rating, genres, and shared star rating.
@@ -36,7 +36,11 @@ export default function FilmCard({
         onClick={open}
         aria-label={`Watch ${film.title}`}
       >
-        <Image
+        {/* Plain <img>, not next/image: the Mux still URL carries
+            ?width=...&time=... query params, which the /_next/image
+            optimizer rejects with HTTP 400. Mux already sizes the
+            still, so the optimizer adds nothing. */}
+        <img
           src={posterUrl(film, 800)}
           alt={`Still from ${film.title}`}
           width={800}
@@ -64,6 +68,7 @@ export default function FilmCard({
       </span>
       <span className="g">{genresOf(film).join(", ")}</span>
       <StarRating filmSlug={film.slug} initial={rating} />
+      <WatchlistButton filmSlug={film.slug} filmTitle={film.title} compact />
       {modal}
     </article>
   );

@@ -3,6 +3,7 @@ import { Archivo, Archivo_Narrow } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { AuthProvider } from "@/components/AuthProvider";
 import { SiteProvider } from "@/components/SiteProvider";
 import { ADSENSE_CLIENT, SITE_NAME, SITE_URL, TAGLINE } from "@/lib/site";
 
@@ -81,9 +82,11 @@ export default function RootLayout({
       </head>
       <body>
         <SiteProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <AuthProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </AuthProvider>
         </SiteProvider>
       </body>
     </html>

@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
+import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
 
 /** Top bar, matching the live site: sticky, shrinks on scroll, wordmark,
- *  "Free films, no sign up" tagline, Now Streaming link, and the search
- *  input. The search writes into the shared site context (the home grid
- *  reads it) and mirrors into ?q= so a search is shareable. */
+ *  "Free independent films, streaming now." tagline, Now Streaming link,
+ *  and the search input. The search writes into the shared site context
+ *  (the home grid reads it) and mirrors into ?q= so a search is
+ *  shareable. */
 
 function SearchBox() {
   const { query, setQuery } = useSiteSearch();
@@ -55,9 +57,42 @@ function SearchBox() {
   );
 }
 
+/** Sign-in state in the header. Signed out: a Sign in link. Signed in:
+ *  the display name, a Sign out button, and a My watchlist link (plus an
+ *  Admin link for admins). Watching stays free; this only gates comments,
+ *  watchlist, and continue watching. */
+function AuthArea() {
+  const { loading, user, profile, isAdmin, signOut } = useAuth();
+  if (loading) return <span className="auth-area" aria-hidden="true" />;
+  if (!user) {
+    return (
+      <span className="auth-area">
+        <Link className="nav-link auth-link" href="/login">
+          Sign in
+        </Link>
+      </span>
+    );
+  }
+  return (
+    <span className="auth-area">
+      <span className="auth-name" title={profile?.display_name ?? user.email ?? ""}>
+        {profile?.display_name || user.email}
+      </span>
+      <button
+        type="button"
+        className="nav-link auth-link auth-btn"
+        onClick={() => void signOut()}
+      >
+        Sign out
+      </button>
+    </span>
+  );
+}
+
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const { setQuery } = useSiteSearch();
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => {
     function onScroll() {
@@ -82,13 +117,24 @@ export default function Header() {
             Tohu<span> Movies</span>
           </span>
         </Link>
-        <span className="tagline">Free films, no sign up</span>
+        <span className="tagline">Free independent films, streaming now.</span>
         <nav className="main-nav" aria-label="Primary">
           <Link className="nav-link" href="/#now-streaming">
             Now Streaming
           </Link>
+          {user ? (
+            <Link className="nav-link" href="/watchlist">
+              My watchlist
+            </Link>
+          ) : null}
+          {isAdmin ? (
+            <Link className="nav-link" href="/admin">
+              Admin
+            </Link>
+          ) : null}
         </nav>
         <SearchBox />
+        <AuthArea />
       </div>
     </header>
   );

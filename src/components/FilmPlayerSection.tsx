@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { isAgeVerified } from "@/lib/ageGate";
 import { posterUrl } from "@/lib/films";
@@ -32,12 +31,16 @@ export default function FilmPlayerSection({ film }: { film: Film }) {
   if (allowed === null) {
     return (
       <div className="player-placeholder">
-        <Image
+        {/* Plain <img>, not next/image: the Mux still URL carries
+            ?width=...&time=... query params, which the /_next/image
+            optimizer rejects with HTTP 400. Mux already sizes the
+            still, so the optimizer adds nothing. */}
+        <img
           src={posterUrl(film, 1280)}
           alt={`Still from ${film.title}`}
           width={1280}
           height={720}
-          priority
+          fetchPriority="high"
         />
       </div>
     );
@@ -47,12 +50,12 @@ export default function FilmPlayerSection({ film }: { film: Film }) {
     return (
       <>
         <div className="player-placeholder">
-          <Image
+          <img
             src={posterUrl(film, 1280)}
             alt={`Still from ${film.title}`}
             width={1280}
             height={720}
-            priority
+            fetchPriority="high"
           />
           <p className="gate-note">
             This film is rated R. Confirm you are 18 or older to watch it.

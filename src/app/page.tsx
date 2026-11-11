@@ -1,4 +1,5 @@
 import { getFilms, getRatings } from "@/lib/films";
+import ContinueWatching from "@/components/ContinueWatching";
 import Hero from "@/components/Hero";
 import FilmGrid from "@/components/FilmGrid";
 
@@ -15,6 +16,7 @@ export default async function HomePage() {
   return (
     <div className="wrap">
       <Hero films={films} />
+      <ContinueWatching />
       <FilmGrid films={films} ratings={ratings} />
     </div>
   );

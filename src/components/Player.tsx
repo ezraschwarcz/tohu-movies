@@ -5,7 +5,9 @@ import type VideoJsPlayer from "video.js/dist/types/player";
 import "video.js/dist/video-js.css";
 import { durationSeconds, muxStreamUrl, posterUrl } from "@/lib/films";
 import { MUX_DATA_ENV_KEY, MUX_PLAYER_NAME } from "@/lib/site";
+import { getBrowserSupabase } from "@/lib/supabase/client";
 import type { Film } from "@/lib/types";
+import { useAuth } from "./AuthProvider";
 
 /** Video.js 8 player with Mux Data, matching the live site.
  *
@@ -82,10 +84,91 @@ function forceEnglishCC(player: VideoJsPlayer) {
 
 export default function Player({ film }: { film: Film }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const { user } = useAuth();
+  // The signed-in user id, kept current so the player's event listeners
+  // (attached once at init) always save for the right user, even if the
+  // user signs in after the player mounted.
+  const userIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    userIdRef.current = user?.id ?? null;
+  }, [user?.id]);
 
   useEffect(() => {
     let cancelled = false;
     let player: VideoJsPlayer | null = null;
+    let lastSavedAt = 0;
+
+    /** Save the playback position for signed-in users only, throttled
+     *  to at most once every 15 seconds (plus a forced save on pause).
+     *  Anonymous viewers are never recorded. A failure never breaks
+     *  playback. */
+    async function savePosition(force: boolean) {
+      const userId = userIdRef.current;
+      if (!userId || !player || cancelled) return;
+      let current = 0;
+      let duration = 0;
+      try {
+        current = player.currentTime() ?? 0;
+        duration = player.duration() ?? 0;
+      } catch {
+        return;
+      }
+      if (!Number.isFinite(current) || !Number.isFinite(duration) || duration <= 0) return;
+      if (current < 5) return;
+      const now = Date.now();
+      if (!force && now - lastSavedAt < 15000) return;
+      lastSavedAt = now;
+      try {
+        await getBrowserSupabase()
+          .from("continue_watching")
+          .upsert(
+            {
+              user_id: userId,
+              film_slug: film.slug,
+              position_seconds: Math.floor(current),
+              duration_seconds: Math.floor(duration),
+            },
+            { onConflict: "user_id,film_slug" },
+          );
+      } catch {
+        // recording is best effort; playback continues
+      }
+    }
+
+    /** Resume where a signed-in user stopped, once, right after the
+     *  player loads. Skipped for very short positions and for films
+     *  that are nearly finished. */
+    async function resumeFromSaved(p: VideoJsPlayer) {
+      const userId = userIdRef.current;
+      if (!userId) return;
+      try {
+        const { data } = await getBrowserSupabase()
+          .from("continue_watching")
+          .select("position_seconds,duration_seconds")
+          .eq("user_id", userId)
+          .eq("film_slug", film.slug)
+          .maybeSingle();
+        if (cancelled || !data) return;
+        const pos = data.position_seconds as number;
+        const dur = data.duration_seconds as number;
+        if (pos > 15 && dur > 0 && pos < dur - 30) {
+          const seek = () => {
+            try {
+              p.currentTime(pos);
+            } catch {
+              // ignore
+            }
+          };
+          if (p.readyState() >= 1) {
+            seek();
+          } else {
+            p.one("loadedmetadata", seek);
+          }
+        }
+      } catch {
+        // resume is best effort; playback starts from the beginning
+      }
+    }
 
     async function init() {
       // Client-only: video.js touches the DOM at import time, so it is
@@ -121,11 +204,31 @@ export default function Player({ film }: { film: Film }) {
 
       forceEnglishCC(created);
       created.on("loadedmetadata", () => forceEnglishCC(created));
+
+      // Continue watching (signed-in users only): resume where they
+      // stopped, and record the position as they watch. Finishing a film
+      // removes it from Continue watching.
+      void resumeFromSaved(created);
+      created.on("timeupdate", () => void savePosition(false));
+      created.on("pause", () => void savePosition(true));
+      created.on("ended", () => {
+        const userId = userIdRef.current;
+        if (!userId) return;
+        void getBrowserSupabase()
+          .from("continue_watching")
+          .delete()
+          .eq("user_id", userId)
+          .eq("film_slug", film.slug)
+          .then(
+            () => {},
+            () => {},
+          );
+      });
     }
 
     init().catch(() => {
-      // If video.js itself fails to load, the video element stays usable
-      // as a plain <video> (the source is set below as a fallback).
+      // If video.js itself fails to load, the video element shows the
+      // poster but cannot play (the source is only set through video.js).
     });
 
     return () => {
@@ -152,10 +255,16 @@ export default function Player({ film }: { film: Film }) {
         preload="metadata"
         data-testid="tohu-player"
       >
-        {/* Fallback source: if video.js fails to initialise, the browser
-            still plays the HLS stream natively (Safari) or shows the
-            poster. video.js replaces this source on init. */}
-        <source src={muxStreamUrl(film.playback_id)} type="application/x-mpegURL" />
+        {/* No <source> child here, deliberately. The source is set only
+            through the `sources` option in the videojs() call, so it is
+            always routed through VHS (videojs-http-streaming). A <source>
+            child lets the browser start loading the HLS stream natively
+            before video.js initializes, and the player then adopts that
+            native source instead of VHS — VHS never runs, so it never
+            creates the subtitle TextTrack from the manifest's SUBTITLES
+            group and the captions button never appears. (Reproduced and
+            fixed Nov 11, 2026.) If video.js fails to load, the poster
+            still shows. */}
       </video>
     </div>
   );

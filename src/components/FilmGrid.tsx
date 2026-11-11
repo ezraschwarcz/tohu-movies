@@ -6,13 +6,13 @@ import type { Film, RatingsRecord, SortKey } from "@/lib/types";
 import { useSiteSearch } from "./SiteProvider";
 import FilmCard from "./FilmCard";
 
-/** The Now Streaming grid: genre filter chips with counts, a sort control,
- *  and the film cards. Search comes from the header (shared site context).
- *  Genre, sort, and search compose. No Most viewed option: the site has no
- *  view data yet, so there is nothing real to sort by. */
+/** The Now Streaming grid: genre filter chips (name only, no count),
+ *  a sort control, and the film cards. Search comes from the header
+ *  (shared site context). Genre, sort, and search compose. No Most
+ *  viewed option: the site has no view data yet, so there is nothing
+ *  real to sort by. */
 
 const SORT_LABELS: { key: SortKey; label: string }[] = [
-  { key: "default", label: "Default order" },
   { key: "newest", label: "Newest" },
   { key: "top-rated", label: "Top rated" },
   { key: "az", label: "A to Z" },
@@ -27,7 +27,7 @@ export default function FilmGrid({
 }) {
   const { query, setQuery } = useSiteSearch();
   const [genre, setGenre] = useState<string | null>(null);
-  const [sort, setSort] = useState<SortKey>("default");
+  const [sort, setSort] = useState<SortKey>("newest");
 
   const chips = useMemo(() => genreChips(films), [films]);
 
@@ -59,11 +59,11 @@ export default function FilmGrid({
     return list;
   }, [films, ratings, genre, sort, query]);
 
-  const filtered = genre !== null || sort !== "default" || query.trim() !== "";
+  const filtered = genre !== null || sort !== "newest" || query.trim() !== "";
 
   function reset() {
     setGenre(null);
-    setSort("default");
+    setSort("newest");
     setQuery("");
   }
 
@@ -72,7 +72,7 @@ export default function FilmGrid({
       <div className="section-head">
         <h2>Now Streaming</h2>
         <p className="now-count">
-          {visible.length} of {films.length} films streaming now
+          {visible.length} film{visible.length === 1 ? "" : "s"} streaming now
         </p>
       </div>
 
@@ -90,7 +90,7 @@ export default function FilmGrid({
           >
             All {films.length}
           </button>
-          {chips.map(({ genre: g, count }) => (
+          {chips.map(({ genre: g }) => (
             <button
               key={g}
               type="button"
@@ -98,7 +98,7 @@ export default function FilmGrid({
               aria-pressed={genre === g}
               onClick={() => setGenre(genre === g ? null : g)}
             >
-              {g} {count}
+              {g}
             </button>
           ))}
         </div>
