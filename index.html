@@ -122,6 +122,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/video.js@8.24.1/dist/video-js.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/video.js@8.24.1/dist/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js"></script>
     <script src="https://src.litix.io/videojs/4/videojs-mux.js"></script>
     <style>
       :root{
@@ -334,15 +335,18 @@
       @media (max-width:640px){ .hero-nav{width:38px;height:38px;top:12px;bottom:auto;transform:none} .hero-nav:active{transform:scale(.94)} .hero-nav.prev{left:auto;right:60px} .hero-nav.next{right:12px} .hero-dots{bottom:14px;right:16px} .hero-count{display:none} }
 
       /* Star ratings */
-      .stars{display:flex;align-items:center;gap:1px;margin-top:9px}
+      .stars{display:flex;align-items:center;flex-wrap:wrap;gap:1px;margin-top:9px}
       .stars .star-btn{background:none;border:none;padding:5px 3px;font-size:21px;line-height:1;color:var(--line);-webkit-tap-highlight-color:transparent;transition:color .15s ease,transform .12s ease}
       .stars .star-btn.filled{color:var(--accent)}
       .stars .star-btn:hover{transform:scale(1.18)}
       .stars .star-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:4px}
       .stars-label{font-size:12px;font-weight:600;color:var(--ink2);margin-left:7px;line-height:1.3}
+      .stars-avg{font-size:12px;font-weight:600;color:var(--ink2);margin-left:7px;line-height:1.3;white-space:nowrap}
+      .stars-avg::before{content:"·";margin-right:7px;opacity:.6}
       .stars.on-dark .star-btn{color:rgba(247,242,231,.28)}
       .stars.on-dark .star-btn.filled{color:#e9a83a}
       .stars.on-dark .stars-label{color:#a79f8d}
+      .stars.on-dark .stars-avg{color:#a79f8d}
       .thumb-btn{display:block;width:100%;background:none;border:none;padding:0;text-align:left;cursor:pointer}
       .thumb-btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
 
@@ -485,6 +489,7 @@
         <h2>2. Information we collect</h2>
         <h3>Information you give us</h3>
         <p>Watching is free with no account required, so we do not collect a name, password, or payment details for viewing. If you email us, we receive your email address and the contents of your message so we can reply.</p>
+        <p>Film ratings are anonymous: they are stored with a random browser id, with no account and no personally identifiable information.</p>
         <h3>Information collected automatically</h3>
         <p>When you visit or play a film, our systems and our service providers may automatically collect device and usage information, such as your IP address, browser type and version, device type, operating system, pages and films viewed, time spent watching, referring page, and approximate location derived from IP address. This helps us operate the player, understand what is watched, prevent abuse, and keep the service working.</p>
         <p>We use Mux Data analytics to measure playback quality and viewer engagement, and it sets a cookie that holds an anonymized viewer ID and collects no personally identifiable information.</p>
@@ -611,7 +616,7 @@
           <div class="cookie-item">
             <span class="cookie-tag">Functional</span>
             <h3>Functionality and preference cookies</h3>
-            <p>Remember choices you make, such as playback or display preferences, so you do not have to set them again on each visit. This includes your star ratings for films and your age confirmation for R rated films, which are stored only in your browser&rsquo;s local storage and are never sent to us. Disabling these may mean some preferences are not remembered.</p>
+            <p>Remember choices you make, such as playback or display preferences, so you do not have to set them again on each visit. This includes your age confirmation for R rated films, which is stored only in your browser&rsquo;s local storage. Film ratings are anonymous: they are stored with a random browser id, with no account and no personally identifiable information. Disabling these may mean some preferences are not remembered.</p>
           </div>
           <div class="cookie-item">
             <span class="cookie-tag">Performance</span>
@@ -1259,8 +1264,9 @@
       }
       function streamUrl(f){ return "https://stream.mux.com/" + f.playback + ".m3u8"; }
 
-      /* ---------- Star ratings (stored in this browser only) ---------- */
+      /* ---------- Star ratings: your own rating is kept in this browser; the average is shared ---------- */
       var RATINGS_KEY = "tohu-ratings-v1";
+      var VOTER_KEY = "tohu-voter-id-v1";
       var AGE_KEY = "tohu-age-verified-v1";
       function loadRatings(){
         try { return JSON.parse(localStorage.getItem(RATINGS_KEY)) || {}; } catch(e){ return {}; }
@@ -1268,6 +1274,127 @@
       var ratings = loadRatings();
       function saveRatings(){
         try { localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings)); } catch(e){}
+      }
+
+      /* ---------- Shared ratings via Supabase (anonymous, no account) ---------- */
+      var SUPABASE_URL = "https://fsyctibngbqjswizwuww.supabase.co";
+      var SUPABASE_ANON_KEY = "sb_publishable_APwY3mhnSdBlq1lAIOkA3Q_8CrpMsa5";
+      var sbClient = null;
+      try {
+        if (window.supabase && typeof window.supabase.createClient === "function"){
+          sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+      } catch(e){ sbClient = null; }
+
+      function makeUuid(){
+        if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
+        var bytes = new Array(16);
+        if (window.crypto && window.crypto.getRandomValues){
+          var arr = new Uint8Array(16);
+          window.crypto.getRandomValues(arr);
+          for (var i = 0; i < 16; i++) bytes[i] = arr[i];
+        } else {
+          for (var j = 0; j < 16; j++) bytes[j] = Math.floor(Math.random() * 256);
+        }
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        function hex(n){ return ("0" + n.toString(16)).slice(-2); }
+        return hex(bytes[0]) + hex(bytes[1]) + hex(bytes[2]) + hex(bytes[3]) + "-" +
+          hex(bytes[4]) + hex(bytes[5]) + "-" + hex(bytes[6]) + hex(bytes[7]) + "-" +
+          hex(bytes[8]) + hex(bytes[9]) + "-" +
+          hex(bytes[10]) + hex(bytes[11]) + hex(bytes[12]) + hex(bytes[13]) + hex(bytes[14]) + hex(bytes[15]);
+      }
+      function getVoterId(){
+        try {
+          var existing = localStorage.getItem(VOTER_KEY);
+          if (existing) return existing;
+          var id = makeUuid();
+          try { localStorage.setItem(VOTER_KEY, id); } catch(e){}
+          return id;
+        } catch(e){ return null; }
+      }
+      var voterId = getVoterId();
+
+      /* slug -> { avg: number, count: number }. Populated only after a successful fetch;
+         when sharedLoaded is false (offline / database unreachable) no average is shown
+         and the stars fall back to the local-only behavior. */
+      var sharedRatings = {};
+      var sharedLoaded = false;
+
+      function avgTextFor(slug){
+        if (!sharedLoaded) return "";
+        var s = sharedRatings[slug];
+        if (!s || !s.count) return "Be the first to rate";
+        return s.avg.toFixed(1) + " \u00b7 " + s.count + (s.count === 1 ? " rating" : " ratings");
+      }
+      function refreshAvgDisplays(){
+        var els = document.querySelectorAll("[data-avg-for]");
+        for (var i = 0; i < els.length; i++){
+          var slug = els[i].getAttribute("data-avg-for");
+          els[i].textContent = avgTextFor(slug);
+          els[i].hidden = !sharedLoaded;
+        }
+      }
+      function storeSharedAverage(slug, sum, count){
+        if (count > 0) sharedRatings[slug] = { avg: sum / count, count: count };
+        else delete sharedRatings[slug];
+      }
+      function loadSharedRatings(){
+        if (!sbClient) return;
+        try {
+          Promise.resolve(sbClient.from("ratings").select("film_slug, stars")).then(function(res){
+            if (!res || res.error || !res.data) return;
+            var sums = {}, counts = {};
+            for (var i = 0; i < res.data.length; i++){
+              var row = res.data[i];
+              if (!row || !row.film_slug || typeof row.stars !== "number") continue;
+              sums[row.film_slug] = (sums[row.film_slug] || 0) + row.stars;
+              counts[row.film_slug] = (counts[row.film_slug] || 0) + 1;
+            }
+            sharedRatings = {};
+            for (var slug in counts){
+              if (Object.prototype.hasOwnProperty.call(counts, slug)) storeSharedAverage(slug, sums[slug], counts[slug]);
+            }
+            sharedLoaded = true;
+            refreshAvgDisplays();
+          }).catch(function(){});
+        } catch(e){}
+      }
+      function refreshSharedForFilm(slug){
+        if (!sbClient) return;
+        try {
+          Promise.resolve(sbClient.from("ratings").select("stars").eq("film_slug", slug)).then(function(res){
+            if (!res || res.error || !res.data) return;
+            var sum = 0;
+            for (var i = 0; i < res.data.length; i++){
+              if (typeof res.data[i].stars === "number") sum += res.data[i].stars;
+            }
+            storeSharedAverage(slug, sum, res.data.length);
+            sharedLoaded = true;
+            refreshAvgDisplays();
+          }).catch(function(){});
+        } catch(e){}
+      }
+      function syncRatingToShared(slug, stars){
+        if (!sbClient || !voterId) return;
+        try {
+          Promise.resolve(sbClient.from("ratings").upsert(
+            { film_slug: slug, stars: stars, voter_id: voterId },
+            { onConflict: "film_slug,voter_id" }
+          )).then(function(res){
+            if (!res || res.error) return;
+            refreshSharedForFilm(slug);
+          }).catch(function(){});
+        } catch(e){}
+      }
+      function deleteSharedRating(slug){
+        if (!sbClient || !voterId) return;
+        try {
+          Promise.resolve(sbClient.from("ratings").delete().eq("film_slug", slug).eq("voter_id", voterId)).then(function(res){
+            if (!res || res.error) return;
+            refreshSharedForFilm(slug);
+          }).catch(function(){});
+        } catch(e){}
       }
       function filmById(id){
         for (var i = 0; i < FILMS.length; i++) if (FILMS[i].id === id) return FILMS[i];
@@ -1297,10 +1424,13 @@
             b.setAttribute("aria-checked", n === current ? "true" : "false");
             b.setAttribute("aria-label", "Rate " + film.title + " " + n + " of 5 stars");
             b.addEventListener("click", function(){
-              if ((ratings[film.id] || 0) === n) delete ratings[film.id];
+              var isClear = (ratings[film.id] || 0) === n;
+              if (isClear) delete ratings[film.id];
               else ratings[film.id] = n;
               saveRatings();
               refreshAllStars();
+              if (isClear) deleteSharedRating(film.id);
+              else syncRatingToShared(film.id, n);
             });
             b.addEventListener("mouseenter", function(){ paintStars(wrap, n); });
             b.addEventListener("focus", function(){ paintStars(wrap, n); });
@@ -1311,6 +1441,12 @@
         label.className = "stars-label";
         label.textContent = current ? ("Your rating: " + current + "/5") : "Rate this film";
         wrap.appendChild(label);
+        var avg = document.createElement("span");
+        avg.className = "stars-avg";
+        avg.setAttribute("data-avg-for", film.id);
+        avg.textContent = avgTextFor(film.id);
+        avg.hidden = !sharedLoaded;
+        wrap.appendChild(avg);
         wrap.addEventListener("mouseleave", function(){ paintStars(wrap, ratings[film.id] || 0); });
         wrap.addEventListener("focusout", function(){ paintStars(wrap, ratings[film.id] || 0); });
         container.appendChild(wrap);
@@ -1322,6 +1458,7 @@
           if (f) renderStarsInto(holders[i], f, holders[i].getAttribute("data-dark") === "1");
         }
       }
+      loadSharedRatings();
 
       /* ---------- Featured hero rotation (most recently added first) ---------- */
       var FEATURED = FILMS.slice(-6).reverse();
