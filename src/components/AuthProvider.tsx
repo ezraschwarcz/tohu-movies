@@ -27,6 +27,9 @@ type AuthContextValue = {
   profile: Profile | null;
   isAdmin: boolean;
   signOut: () => Promise<void>;
+  /** Re-read the profile row (after the user edits their display name
+   *  on the profile page, so the header updates at once). */
+  refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -35,6 +38,7 @@ const AuthContext = createContext<AuthContextValue>({
   profile: null,
   isAdmin: false,
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -99,6 +103,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.refresh();
   }, [router]);
 
+  const refreshProfile = useCallback(async () => {
+    const supabase = getBrowserSupabase();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session?.user) {
+      await loadProfile(session.user.id);
+    }
+  }, [loadProfile]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       loading,
@@ -106,8 +120,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       isAdmin: profile?.is_admin === true,
       signOut,
+      refreshProfile,
     }),
-    [loading, user, profile, signOut],
+    [loading, user, profile, signOut, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

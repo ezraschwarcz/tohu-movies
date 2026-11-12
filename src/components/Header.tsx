@@ -8,7 +8,7 @@ import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
 
 /** Top bar, matching the live site: sticky, shrinks on scroll, wordmark,
- *  "Free independent films, streaming now." tagline, Now Streaming link,
+ *  "Free independent movies." tagline, Now Streaming link,
  *  and the search input. The search writes into the shared site context
  *  (the home grid reads it) and mirrors into ?q= so a search is
  *  shareable. */
@@ -58,9 +58,9 @@ function SearchBox() {
 }
 
 /** Sign-in state in the header. Signed out: a Sign in link. Signed in:
- *  the display name, a Sign out button, and a My watchlist link (plus an
- *  Admin link for admins). Watching stays free; this only gates comments,
- *  watchlist, and continue watching. */
+ *  the display name (a link to the profile), a Sign out button, and a
+ *  My watchlist link (plus an Admin link for admins). Watching stays
+ *  free; this only gates comments, watchlist, and continue watching. */
 function AuthArea() {
   const { loading, user, profile, isAdmin, signOut } = useAuth();
   if (loading) return <span className="auth-area" aria-hidden="true" />;
@@ -75,9 +75,13 @@ function AuthArea() {
   }
   return (
     <span className="auth-area">
-      <span className="auth-name" title={profile?.display_name ?? user.email ?? ""}>
+      <Link
+        className="auth-name"
+        href="/profile"
+        title={profile?.display_name ?? user.email ?? ""}
+      >
         {profile?.display_name || user.email}
-      </span>
+      </Link>
       <button
         type="button"
         className="nav-link auth-link auth-btn"
@@ -117,7 +121,7 @@ export default function Header() {
             Tohu<span> Movies</span>
           </span>
         </Link>
-        <span className="tagline">Free independent films, streaming now.</span>
+        <span className="tagline">Free independent movies.</span>
         <nav className="main-nav" aria-label="Primary">
           <Link className="nav-link" href="/#now-streaming">
             Now Streaming

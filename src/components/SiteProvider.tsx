@@ -20,15 +20,24 @@ import {
 type SiteContextValue = {
   query: string;
   setQuery: (q: string) => void;
+  /** Hide R rated films from the home grid. A per-browser preference
+   *  (localStorage "tohu-hide-r-rated"), set on the profile page. */
+  hideRRated: boolean;
+  setHideRRated: (hide: boolean) => void;
 };
+
+const HIDE_R_KEY = "tohu-hide-r-rated";
 
 const SiteContext = createContext<SiteContextValue>({
   query: "",
   setQuery: () => {},
+  hideRRated: false,
+  setHideRRated: () => {},
 });
 
 export function SiteProvider({ children }: { children: ReactNode }) {
   const [query, setQueryState] = useState("");
+  const [hideRRated, setHideRRatedState] = useState(false);
 
   // Pick up a ?q= link on first mount (client side only).
   useEffect(() => {
@@ -42,11 +51,38 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Read the saved R-rated preference once on mount (client only).
+  useEffect(() => {
+    try {
+      setHideRRatedState(
+        window.localStorage.getItem(HIDE_R_KEY) === "1",
+      );
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const setQuery = useCallback((q: string) => {
     setQueryState(q);
   }, []);
 
-  const value = useMemo(() => ({ query, setQuery }), [query, setQuery]);
+  const setHideRRated = useCallback((hide: boolean) => {
+    setHideRRatedState(hide);
+    try {
+      if (hide) {
+        window.localStorage.setItem(HIDE_R_KEY, "1");
+      } else {
+        window.localStorage.removeItem(HIDE_R_KEY);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({ query, setQuery, hideRRated, setHideRRated }),
+    [query, setQuery, hideRRated, setHideRRated],
+  );
   return <SiteContext.Provider value={value}>{children}</SiteContext.Provider>;
 }
 

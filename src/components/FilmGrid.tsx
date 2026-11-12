@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { genreChips, genresOf } from "@/lib/films";
 import type { Film, RatingsRecord, SortKey } from "@/lib/types";
@@ -10,7 +11,9 @@ import FilmCard from "./FilmCard";
  *  a sort control, and the film cards. Search comes from the header
  *  (shared site context). Genre, sort, and search compose. No Most
  *  viewed option: the site has no view data yet, so there is nothing
- *  real to sort by. */
+ *  real to sort by. The "Hide R rated films" preference (set on the
+ *  profile page, kept in localStorage) filters the grid before any of
+ *  that: chips and counts describe what is actually shown. */
 
 const SORT_LABELS: { key: SortKey; label: string }[] = [
   { key: "newest", label: "Newest" },
@@ -25,15 +28,23 @@ export default function FilmGrid({
   films: Film[];
   ratings: RatingsRecord;
 }) {
-  const { query, setQuery } = useSiteSearch();
+  const { query, setQuery, hideRRated } = useSiteSearch();
   const [genre, setGenre] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>("newest");
 
-  const chips = useMemo(() => genreChips(films), [films]);
+  // The R-rated preference applies first, so chips, counts, and the
+  // grid all describe the same list.
+  const baseFilms = useMemo(
+    () =>
+      hideRRated ? films.filter((film) => film.rating !== "R") : films,
+    [films, hideRRated],
+  );
+
+  const chips = useMemo(() => genreChips(baseFilms), [baseFilms]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list = films.filter((film) => {
+    let list = baseFilms.filter((film) => {
       if (genre && !genresOf(film).includes(genre)) return false;
       if (q) {
         const hay = `${film.title} ${film.director} ${film.cast_text}`.toLowerCase();
@@ -47,7 +58,7 @@ export default function FilmGrid({
       list = [...list].sort((a, b) => {
         const ra = ratings[a.slug];
         const rb = ratings[b.slug];
-        if (!ra && !rb) return films.indexOf(a) - films.indexOf(b);
+        if (!ra && !rb) return baseFilms.indexOf(a) - baseFilms.indexOf(b);
         if (!ra) return 1;
         if (!rb) return -1;
         if (rb.average !== ra.average) return rb.average - ra.average;
@@ -57,7 +68,7 @@ export default function FilmGrid({
       list = [...list].sort((a, b) => a.title.localeCompare(b.title));
     }
     return list;
-  }, [films, ratings, genre, sort, query]);
+  }, [baseFilms, ratings, genre, sort, query]);
 
   const filtered = genre !== null || sort !== "newest" || query.trim() !== "";
 
@@ -88,7 +99,7 @@ export default function FilmGrid({
             aria-pressed={genre === null}
             onClick={() => setGenre(null)}
           >
-            All {films.length}
+            All {baseFilms.length}
           </button>
           {chips.map(({ genre: g }) => (
             <button
@@ -117,6 +128,13 @@ export default function FilmGrid({
           </select>
         </label>
       </div>
+
+      {hideRRated ? (
+        <p className="filter-note">
+          R rated films are hidden.{" "}
+          <Link href="/profile">Change this in your profile</Link>.
+        </p>
+      ) : null}
 
       {filtered ? (
         <p className="filter-note">
