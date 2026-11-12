@@ -8,10 +8,11 @@ import { useAgeGate } from "./AgeGate";
 import StarRating from "./StarRating";
 import WatchlistButton from "./WatchlistButton";
 
-/** One film card: poster still (16:9, with play icon, runtime and CC
- *  badges), title, year/runtime/rating, genres, and shared star rating.
- *  Clicking an R rated film runs the age gate first, then goes to the
- *  film page; other films navigate straight there. */
+/** One film card: portrait poster still (2:3, center crop of the 16:9
+ *  Mux frame, with play icon, runtime and CC badges), title, year /
+ *  runtime / rating, genres, and shared star rating. Clicking an R
+ *  rated film runs the age gate first, then goes to the film page;
+ *  other films navigate straight there. */
 
 export default function FilmCard({
   film,
@@ -43,10 +44,10 @@ export default function FilmCard({
         <img
           src={posterUrl(film, 800)}
           alt={`Still from ${film.title}`}
-          width={800}
-          height={450}
+          width={600}
+          height={900}
           loading="lazy"
-          sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 25vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1100px) 25vw, 16vw"
         />
         <span className="play-ic" aria-hidden="true">
           <span>

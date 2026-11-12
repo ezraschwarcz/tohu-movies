@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { getBrowserSupabase } from "@/lib/supabase/client";
+import {
+  isPasskeyDisabledError,
+  PASSKEY_DISABLED_MESSAGE,
+} from "@/lib/passkeyError";
 
 /** Create an account. Watching is free and needs no account; an account
  *  is only for comments, your watchlist, and continue watching. The
@@ -95,11 +99,15 @@ export default function SignupForm({ next }: { next: string }) {
       setPasskeyAdded(true);
       setMessage("Passkey added. Next time, sign in with Face ID or fingerprint.");
     } catch (err) {
-      const text = err instanceof Error ? err.message : "";
-      setError(
-        text ||
-          "Could not add a passkey. You can add one later from your profile.",
-      );
+      if (isPasskeyDisabledError(err)) {
+        setError(PASSKEY_DISABLED_MESSAGE);
+      } else {
+        const text = err instanceof Error ? err.message : "";
+        setError(
+          text ||
+            "Could not add a passkey. You can add one later from your profile.",
+        );
+      }
     } finally {
       setPasskeyBusy(false);
     }

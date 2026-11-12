@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const { userId, email, profile } = await getServerAuth();
+  const { userId, email, profile, isAdmin } = await getServerAuth();
 
   if (!userId) {
     redirect("/login?next=/profile");
@@ -35,6 +35,7 @@ export default async function ProfilePage() {
       email={email ?? ""}
       displayName={profile?.display_name ?? ""}
       watchlistCount={count ?? 0}
+      isAdmin={isAdmin}
     />
   );
 }

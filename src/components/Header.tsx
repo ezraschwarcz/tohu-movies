@@ -8,10 +8,13 @@ import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
 
 /** Top bar, matching the live site: sticky, shrinks on scroll, wordmark,
- *  "Free independent movies." tagline, Now Streaming link,
+ *  "Free independent movies." tagline, Movies link,
  *  and the search input. The search writes into the shared site context
  *  (the home grid reads it) and mirrors into ?q= so a search is
- *  shareable. */
+ *  shareable. The input has id "site-search" so the mobile tab bar can
+ *  focus it. On mobile the nav pills row is hidden (the bottom tab bar
+ *  covers navigation) and the header is logo + Sign in on row 1 and the
+ *  search input on row 2. */
 
 function SearchBox() {
   const { query, setQuery } = useSiteSearch();
@@ -47,6 +50,7 @@ function SearchBox() {
         <path d="M20 20l-3.8-3.8" />
       </svg>
       <input
+        id="site-search"
         type="search"
         placeholder="Search films"
         aria-label="Search films"
@@ -124,7 +128,7 @@ export default function Header() {
         <span className="tagline">Free independent movies.</span>
         <nav className="main-nav" aria-label="Primary">
           <Link className="nav-link" href="/#now-streaming">
-            Now Streaming
+            Movies
           </Link>
           {user ? (
             <Link className="nav-link" href="/watchlist">

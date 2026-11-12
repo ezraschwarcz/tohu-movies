@@ -86,8 +86,8 @@ export default function ContinueWatching() {
                 <img
                   src={posterUrl(film, 800)}
                   alt={`Still from ${film.title}`}
-                  width={800}
-                  height={450}
+                  width={600}
+                  height={900}
                   loading="lazy"
                 />
                 <span className="continue-progress" aria-hidden="true">

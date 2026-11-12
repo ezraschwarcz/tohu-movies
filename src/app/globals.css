@@ -573,7 +573,7 @@ button {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 22px 18px;
 }
 
@@ -606,7 +606,7 @@ button {
 }
 
 .card h3 {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   margin: 11px 0 4px;
   line-height: 1.25;
@@ -637,12 +637,17 @@ button {
   margin-top: 2px;
 }
 
+/* Portrait cards (Peacock-style): the still is a 16:9 video frame,
+ *  center-cropped to a 2:3 portrait with object-fit cover. The title is
+ *  not baked into the image, so it stays as text below. Plain <img>,
+ *  not next/image: the Mux still URL carries ?width=...&time=...
+ *  query params, which the /_next/image optimizer rejects. */
 .thumb {
   display: block;
   position: relative;
-  border-radius: 8px;
+  border-radius: 14px;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 3;
   background: #141310;
   box-shadow: var(--shadow);
 }
@@ -1420,6 +1425,8 @@ footer .foot-copy {
     flex-direction: column;
     justify-content: flex-end;
     align-items: stretch;
+    /* Peacock-style featured card: more rounded on mobile. */
+    border-radius: 20px;
   }
 
   .hero img.bg {
@@ -1555,23 +1562,11 @@ footer .foot-copy {
     max-width: none;
   }
 
+  /* The bottom tab bar covers navigation on mobile, so the header
+   *  nav pills row is hidden here. The header is logo + Sign in on
+   *  row 1 and the search input on row 2. Admin stays reachable on
+   *  mobile from the profile page (and on desktop from the nav). */
   .main-nav {
-    order: 4;
-    flex-basis: 100%;
-    margin-left: -16px;
-    margin-right: -16px;
-    padding: 2px 16px 4px;
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    scroll-snap-type: x proximity;
-  }
-
-  .main-nav::-webkit-scrollbar {
     display: none;
   }
 
@@ -1606,7 +1601,9 @@ footer .foot-copy {
   }
 
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    /* Two portrait columns on phones; three would squeeze the title
+     * text to ~99px a card at 360px, which reads badly. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px 12px;
   }
 
@@ -1893,6 +1890,22 @@ footer .foot-copy {
 .auth-foot a {
   color: var(--accent);
   font-weight: 700;
+}
+
+/* A text button that reads like a link (e.g. "Forgot password?"). */
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
 }
 
 /* ---------- Phase 3: passkey sign-in and profile ---------- */
@@ -2185,7 +2198,7 @@ footer .foot-copy {
 
 .continue-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 18px;
 }
 
@@ -2205,9 +2218,9 @@ footer .foot-copy {
 .continue-thumb {
   display: block;
   position: relative;
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 3;
   background: var(--panel2);
 }
 
@@ -2299,5 +2312,75 @@ footer .foot-copy {
   /* Star rating buttons: taller hit area on touch screens. */
   .stars .star-btn {
     padding: 12px 6px;
+  }
+}
+
+/* ---------- Phase 4: Peacock-style bottom tab bar (mobile only) ---------- */
+.tabbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* Clearance so the fixed tab bar never covers the footer or the
+   * last row of content. */
+  body {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .tabbar {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    z-index: 60;
+    width: min(420px, calc(100% - 32px));
+    align-items: stretch;
+    justify-content: space-around;
+    padding: 8px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--panel) 86%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .tabbar-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 2px 4px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink2);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 999px;
+  }
+
+  .tabbar-link svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .tabbar-link.active {
+    color: var(--accent);
+  }
+
+  .tabbar-link:active {
+    transform: scale(0.96);
   }
 }

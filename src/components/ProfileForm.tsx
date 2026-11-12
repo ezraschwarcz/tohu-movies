@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { getBrowserSupabase } from "@/lib/supabase/client";
+import {
+  isPasskeyDisabledError,
+  PASSKEY_DISABLED_MESSAGE,
+} from "@/lib/passkeyError";
 import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
 
@@ -36,11 +40,15 @@ export default function ProfileForm({
   email,
   displayName,
   watchlistCount,
+  isAdmin,
 }: {
   userId: string;
   email: string;
   displayName: string;
   watchlistCount: number;
+  /** Admins reach /admin from here on mobile, where the header nav
+   *  pills row is hidden behind the bottom tab bar. */
+  isAdmin: boolean;
 }) {
   const { signOut, refreshProfile } = useAuth();
   const { hideRRated, setHideRRated } = useSiteSearch();
@@ -48,6 +56,11 @@ export default function ProfileForm({
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [rated, setRated] = useState<RatedFilm[] | null>(null);
   const [passkeys, setPasskeys] = useState<PasskeyItem[] | null>(null);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
@@ -153,13 +166,49 @@ export default function ProfileForm({
       const { data } = await supabase.auth.passkey.list();
       setPasskeys(data ?? []);
     } catch (err) {
-      const text = err instanceof Error ? err.message : "";
-      setPasskeyError(
-        text || "Could not add a passkey. Try again.",
-      );
+      if (isPasskeyDisabledError(err)) {
+        setPasskeyError(PASSKEY_DISABLED_MESSAGE);
+      } else {
+        const text = err instanceof Error ? err.message : "";
+        setPasskeyError(
+          text || "Could not add a passkey. Try again.",
+        );
+      }
     } finally {
       setPasskeyBusy(false);
     }
+  }
+
+  /** Set (or change) a password while signed in. This is how a
+   *  magic-link-only account gets a password: updateUser adds one to
+   *  the account, and the visitor can sign in with it next time. */
+  async function onSetPassword(e: FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      setPasswordError("Your password needs at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("The two passwords do not match.");
+      return;
+    }
+    setPasswordBusy(true);
+    setPasswordError(null);
+    setPasswordSaved(null);
+    const supabase = getBrowserSupabase();
+    const { error: err } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    setPasswordBusy(false);
+    if (err) {
+      setPasswordError(err.message);
+      return;
+    }
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordSaved(
+      "Password set. You can sign in with it next time.",
+    );
   }
 
   async function onRemovePasskey(id: string, label: string) {
@@ -225,6 +274,63 @@ export default function ProfileForm({
           </button>
         </form>
       </section>
+
+      <section aria-label="Set a password">
+        <h2 className="profile-h2">Set a password</h2>
+        <p className="profile-line">
+          If you signed up with an email link, you have no password yet.
+          Set one here to sign in with a password as well.
+        </p>
+        <form className="auth-form" onSubmit={onSetPassword}>
+          <label className="field">
+            <span>New password</span>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              required
+              minLength={6}
+              autoComplete="new-password"
+            />
+          </label>
+          <label className="field">
+            <span>Confirm new password</span>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Type it again"
+              required
+              minLength={6}
+              autoComplete="new-password"
+            />
+          </label>
+          {passwordError ? (
+            <p className="form-error" role="alert">
+              {passwordError}
+            </p>
+          ) : null}
+          {passwordSaved ? (
+            <p className="form-note" role="status">
+              {passwordSaved}
+            </p>
+          ) : null}
+          <button type="submit" className="btn-primary" disabled={passwordBusy}>
+            {passwordBusy ? "Saving…" : "Set password"}
+          </button>
+        </form>
+      </section>
+
+      {isAdmin ? (
+        <section aria-label="Admin">
+          <h2 className="profile-h2">Admin</h2>
+          <p className="profile-line">
+            <Link href="/admin">Open the admin panel</Link> to moderate
+            comments and add films.
+          </p>
+        </section>
+      ) : null}
 
       <section aria-label="Preferences">
         <h2 className="profile-h2">Preferences</h2>

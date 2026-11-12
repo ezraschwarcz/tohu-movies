@@ -8,20 +8,22 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-/** Sign in / sign up page. A server component: it reads the search
- *  params (where to go after sign-in, and any error from the auth
- *  callback) and passes them to the form, so the form renders in the
- *  initial HTML instead of waiting on JavaScript. */
+/** Sign in page. A server component: it reads the search params
+ *  (where to go after sign-in, any error from the auth callback, and a
+ *  success note such as after a password reset) and passes them to the
+ *  form, so the form renders in the initial HTML instead of waiting on
+ *  JavaScript. */
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; message?: string }>;
 }) {
   const params = await searchParams;
   return (
     <LoginForm
       next={params.next ?? "/"}
       urlError={params.error ?? null}
+      urlMessage={params.message ?? null}
     />
   );
 }
