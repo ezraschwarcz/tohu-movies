@@ -573,7 +573,7 @@ button {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 22px 18px;
 }
 
@@ -637,17 +637,18 @@ button {
   margin-top: 2px;
 }
 
-/* Portrait cards (Peacock-style): the still is a 16:9 video frame,
- *  center-cropped to a 2:3 portrait with object-fit cover. The title is
- *  not baked into the image, so it stays as text below. Plain <img>,
- *  not next/image: the Mux still URL carries ?width=...&time=...
- *  query params, which the /_next/image optimizer rejects. */
+/* Landscape cards: the still is a 16:9 video frame shown as-is, with
+ *  14px rounded corners. The portrait (2:3) center crop was reverted
+ *  Nov 11, 2026 — it belongs on the hero on mobile only, not on the
+ *  cards. Plain <img>, not next/image: the Mux still URL carries
+ *  ?width=...&time=... query params, which the /_next/image optimizer
+ *  rejects. */
 .thumb {
   display: block;
   position: relative;
   border-radius: 14px;
   overflow: hidden;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 16 / 9;
   background: #141310;
   box-shadow: var(--shadow);
 }
@@ -1418,19 +1419,35 @@ footer .foot-copy {
   }
 
   .hero {
-    min-height: 380px;
+    /* Vertical featured card on mobile only (Peacock-style): a 2:3
+     * portrait of the poster with the text overlaid at the bottom.
+     * Desktop keeps the wide landscape banner (see the base .hero
+     * rule, untouched). min-height 0 lets the aspect ratio govern. */
+    aspect-ratio: 2 / 3;
+    min-height: 0;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
     flex-direction: column;
     justify-content: flex-end;
     align-items: stretch;
-    /* Peacock-style featured card: more rounded on mobile. */
     border-radius: 20px;
   }
 
   .hero img.bg {
     object-position: 50% 50%;
+  }
+
+  /* The shade is stronger low down on the portrait hero so the
+   * title, synopsis, and button stay legible over the poster. */
+  .hero .shade {
+    background: linear-gradient(
+      to top,
+      rgba(8, 7, 5, 0.96) 0%,
+      rgba(8, 7, 5, 0.78) 45%,
+      rgba(8, 7, 5, 0.2) 72%,
+      rgba(8, 7, 5, 0) 100%
+    );
   }
 
   .hero-in {
@@ -1601,8 +1618,8 @@ footer .foot-copy {
   }
 
   .grid {
-    /* Two portrait columns on phones; three would squeeze the title
-     * text to ~99px a card at 360px, which reads badly. */
+    /* Two landscape columns on phones; the cards are ~169px wide at
+     * 390px, which keeps the title text readable. */
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px 12px;
   }
@@ -2196,15 +2213,56 @@ footer .foot-copy {
   margin-top: 8px;
 }
 
+/* Horizontal cards: the landscape poster on the left, title, progress,
+ * and Resume on the right. Up to 3 per row on desktop, 1 per row on
+ * mobile. A single item is a substantial wide card, not a small
+ * thumbnail lost in empty space. */
 .continue-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 18px;
+}
+
+.continue-card {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.continue-thumb {
+  display: block;
+  flex: 0 0 200px;
+  width: 200px;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: var(--panel2);
+  align-self: flex-start;
+}
+
+.continue-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.continue-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .continue-card h3 {
   font-size: 16px;
-  margin: 10px 0 4px;
+  margin: 0;
 }
 
 .continue-card h3 a {
@@ -2215,29 +2273,17 @@ footer .foot-copy {
   color: var(--accent);
 }
 
-.continue-thumb {
-  display: block;
-  position: relative;
-  border-radius: 14px;
-  overflow: hidden;
-  aspect-ratio: 2 / 3;
-  background: var(--panel2);
-}
-
-.continue-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.continue-meta {
+  font-size: 13.5px;
+  color: var(--ink2);
+  margin: 0;
 }
 
 .continue-progress {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
   height: 5px;
-  background: rgba(0, 0, 0, 0.45);
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
 }
 
 .continue-progress-fill {
@@ -2246,10 +2292,25 @@ footer .foot-copy {
   background: var(--accent);
 }
 
-.continue-meta {
-  font-size: 13.5px;
-  color: var(--ink2);
-  margin: 0 0 10px;
+.continue-body .watchlist-btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+@media (max-width: 640px) {
+  .continue-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .continue-thumb {
+    flex-basis: 140px;
+    width: 140px;
+  }
+}
+
+/* Suggestions row under a sparse watchlist. */
+.suggest-row {
+  margin-top: 36px;
 }
 
 @media (max-width: 640px) {

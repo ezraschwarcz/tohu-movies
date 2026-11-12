@@ -8,11 +8,12 @@ import { useAgeGate } from "./AgeGate";
 import StarRating from "./StarRating";
 import WatchlistButton from "./WatchlistButton";
 
-/** One film card: portrait poster still (2:3, center crop of the 16:9
- *  Mux frame, with play icon, runtime and CC badges), title, year /
+/** One film card: landscape poster still (16:9 Mux frame), title, year /
  *  runtime / rating, genres, and shared star rating. Clicking an R
  *  rated film runs the age gate first, then goes to the film page;
- *  other films navigate straight there. */
+ *  other films navigate straight there. The thumb keeps the 14px
+ *  rounded corners; the portrait (2:3) treatment was reverted Nov 11,
+ *  2026 — it belongs on the hero on mobile only, not on the cards. */
 
 export default function FilmCard({
   film,
@@ -44,10 +45,10 @@ export default function FilmCard({
         <img
           src={posterUrl(film, 800)}
           alt={`Still from ${film.title}`}
-          width={600}
-          height={900}
+          width={800}
+          height={450}
           loading="lazy"
-          sizes="(max-width: 640px) 50vw, (max-width: 1100px) 25vw, 16vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 25vw"
         />
         <span className="play-ic" aria-hidden="true">
           <span>

@@ -56,7 +56,11 @@ export const THUMB_TIMES: Record<string, number> = {
   "hayride-2": 960,
   "missing-william": 900,
   "donner-pass": 840,
-  "a-true-story": 960,
+  // 3600, not 960: the 960s frame has its subject off-center left, so
+  // the mobile portrait hero crop cut his face at the left edge. The
+  // 3600s frame (two people on a street, both fully in frame) crops
+  // cleanly to 2:3. Changed Nov 11, 2026.
+  "a-true-story": 3600,
 };
 
 export function thumbTimeFor(slug: string): number {

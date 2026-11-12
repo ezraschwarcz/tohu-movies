@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { getRatings } from "@/lib/films";
+import { getFilms, getRatings } from "@/lib/films";
 import { createServerSupabase, getServerAuth } from "@/lib/supabase/server";
 import { embeddedOne } from "@/lib/types";
 import type { Film } from "@/lib/types";
 import FilmCard from "@/components/FilmCard";
+import WatchlistSuggestions from "@/components/WatchlistSuggestions";
 
 /** My watchlist: the signed-in user's saved films, most recently saved
  *  first. Signed-out visitors get a prompt to sign in (watching stays
@@ -35,17 +36,29 @@ export default async function WatchlistPage() {
   }
 
   const supabase = await createServerSupabase();
-  const [{ data: rows }, ratings] = await Promise.all([
+  const [{ data: rows }, ratings, allFilms] = await Promise.all([
     supabase
       .from("watchlist")
       .select("film_slug,created_at,films(*)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
     getRatings(),
+    getFilms(),
   ]);
   const films = ((rows ?? []) as unknown as WatchlistRow[])
     .map((r) => embeddedOne(r.films as unknown as Film | Film[] | null))
     .filter((f): f is Film => f !== null);
+
+  // Suggestions fill a sparse watchlist: the most recent films the
+  // user has not saved yet (up to 12 candidates; the client component
+  // applies the Hide R rated preference and shows up to 6). Shown
+  // whenever the list has fewer than 6 films, including when empty.
+  const savedSlugs = new Set(films.map((f) => f.slug));
+  const suggestions = [...allFilms]
+    .reverse()
+    .filter((f) => !savedSlugs.has(f.slug))
+    .slice(0, 12);
+  const showSuggestions = films.length < 6;
 
   return (
     <div className="wrap">
@@ -71,6 +84,9 @@ export default async function WatchlistPage() {
           ))}
         </div>
       )}
+      {showSuggestions ? (
+        <WatchlistSuggestions films={suggestions} ratings={ratings} />
+      ) : null}
     </div>
   );
 }

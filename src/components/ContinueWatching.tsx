@@ -11,7 +11,11 @@ import type { ContinueWatchingEntry, Film } from "@/lib/types";
 /** Continue watching row on the home page, for signed-in users only.
  *  Shows the films they stopped partway through, with a progress bar
  *  and a Resume button. The player picks up at the saved position when
- *  the film page opens. Signed-out visitors see nothing here. */
+ *  the film page opens. Signed-out visitors see nothing here.
+ *
+ *  Each item is a wide horizontal card: the landscape poster on the
+ *  left, title, progress, and Resume on the right. A single item is a
+ *  substantial card, not a small thumbnail lost in empty space. */
 
 function formatPosition(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -86,30 +90,40 @@ export default function ContinueWatching() {
                 <img
                   src={posterUrl(film, 800)}
                   alt={`Still from ${film.title}`}
-                  width={600}
-                  height={900}
+                  width={800}
+                  height={450}
                   loading="lazy"
+                  sizes="(max-width: 640px) 40vw, 220px"
                 />
-                <span className="continue-progress" aria-hidden="true">
+              </Link>
+              <div className="continue-body">
+                <h3>
+                  <Link href={`/films/${film.slug}`}>{film.title}</Link>
+                </h3>
+                <p className="continue-meta">
+                  {formatPosition(entry.position_seconds)} of{" "}
+                  {formatRuntime(film.runtime_minutes)} · {progress}% watched
+                </p>
+                <div
+                  className="continue-progress"
+                  role="progressbar"
+                  aria-valuenow={progress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${progress}% watched`}
+                >
                   <span
                     className="continue-progress-fill"
                     style={{ width: `${progress}%` }}
                   />
-                </span>
-              </Link>
-              <h3>
-                <Link href={`/films/${film.slug}`}>{film.title}</Link>
-              </h3>
-              <p className="continue-meta">
-                {formatPosition(entry.position_seconds)} of{" "}
-                {formatRuntime(film.runtime_minutes)} · {progress}% watched
-              </p>
-              <Link
-                href={`/films/${film.slug}`}
-                className="watchlist-btn saved"
-              >
-                Resume
-              </Link>
+                </div>
+                <Link
+                  href={`/films/${film.slug}`}
+                  className="watchlist-btn saved"
+                >
+                  Resume
+                </Link>
+              </div>
             </article>
           );
         })}
