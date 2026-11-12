@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatRuntime, genresOf, posterUrl } from "@/lib/films";
+import { posterZoomFor } from "@/lib/posterZoom";
 import type { Film, RatingSummary } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
 import StarRating from "./StarRating";
@@ -44,6 +45,11 @@ export default function FilmCard({
             still, so the optimizer adds nothing. */}
         <img
           src={posterUrl(film, 800)}
+          style={
+            {
+              "--poster-zoom": posterZoomFor(film.slug),
+            } as React.CSSProperties
+          }
           alt={`Still from ${film.title}`}
           width={800}
           height={450}

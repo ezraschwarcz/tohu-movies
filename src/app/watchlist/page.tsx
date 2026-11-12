@@ -5,6 +5,7 @@ import { embeddedOne } from "@/lib/types";
 import type { Film } from "@/lib/types";
 import FilmCard from "@/components/FilmCard";
 import WatchlistSuggestions from "@/components/WatchlistSuggestions";
+import ContinueWatching from "@/components/ContinueWatching";
 
 /** My watchlist: the signed-in user's saved films, most recently saved
  *  first. Signed-out visitors get a prompt to sign in (watching stays
@@ -62,6 +63,11 @@ export default async function WatchlistPage() {
 
   return (
     <div className="wrap">
+      {/* Continue watching lives here too: the watchlist page is the
+          signed-in "my stuff" hub, which is where Peacock, Netflix
+          and the others surface in-progress films. The component
+          renders nothing when there is nothing in progress. */}
+      <ContinueWatching />
       <div className="section-head">
         <h2>My watchlist</h2>
         <p className="now-count">

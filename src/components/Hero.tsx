@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { formatRuntime, posterUrl } from "@/lib/films";
+import { posterZoomFor } from "@/lib/posterZoom";
 import type { Film } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
 
@@ -30,6 +31,7 @@ export default function Hero({ films }: { films: Film[] }) {
   const [expanded, setExpanded] = useState(false);
   const [needsToggle, setNeedsToggle] = useState(false);
   const synRef = useRef<HTMLParagraphElement | null>(null);
+  const touchX = useRef<number | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
   const { ensureAllowed, modal } = useAgeGate();
@@ -100,7 +102,21 @@ export default function Hero({ films }: { films: Film[] }) {
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
-      onTouchStart={() => setPaused(true)}
+      onTouchStart={(e) => {
+        setPaused(true);
+        touchX.current = e.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(e) => {
+        // Swipe left/right on the hero moves between featured films,
+        // the gesture phone users expect from a carousel.
+        const start = touchX.current;
+        touchX.current = null;
+        const end = e.changedTouches[0]?.clientX;
+        if (start === null || end === undefined) return;
+        const dx = end - start;
+        if (Math.abs(dx) < 48) return;
+        goTo(dx < 0 ? index + 1 : index - 1);
+      }}
     >
       {/* Plain <img>, not next/image: the Mux still URL carries
           ?width=...&time=... query params, which the /_next/image
@@ -110,6 +126,11 @@ export default function Hero({ films }: { films: Film[] }) {
       <img
         className="bg"
         src={posterUrl(film, 1600)}
+        style={
+          {
+            "--poster-zoom": posterZoomFor(film.slug),
+          } as React.CSSProperties
+        }
         alt=""
         fetchPriority="high"
         sizes="100vw"
