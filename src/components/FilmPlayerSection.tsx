@@ -12,7 +12,14 @@ import Player from "./Player";
  *  localStorage after mount (never during prerendering, so there is no
  *  hydration mismatch). If the viewer cancels the gate, a button reopens
  *  it. */
-export default function FilmPlayerSection({ film }: { film: Film }) {
+export default function FilmPlayerSection({
+  film,
+  nextFilm = null,
+}: {
+  film: Film;
+  /** Up Next pick for the player's end screen. */
+  nextFilm?: Film | null;
+}) {
   const [allowed, setAllowed] = useState<boolean | null>(
     film.rating === "R" ? null : true,
   );
@@ -85,5 +92,5 @@ export default function FilmPlayerSection({ film }: { film: Film }) {
     );
   }
 
-  return <Player film={film} />;
+  return <Player film={film} nextFilm={nextFilm} />;
 }

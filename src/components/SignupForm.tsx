@@ -60,7 +60,11 @@ export default function SignupForm({ next }: { next: string }) {
         email: email.trim(),
         password,
         options: {
-          data: { display_name: name },
+          // password_set rides in the sign-up metadata so the profile
+          // completion checklist knows this account already has a
+          // password, even before the confirmation email is clicked
+          // (there is no session yet to updateUser on).
+          data: { display_name: name, password_set: true },
           emailRedirectTo: callbackUrl(),
         },
       });

@@ -81,7 +81,7 @@ export default function FilmGrid({
   return (
     <section id="now-streaming" aria-label="Now streaming">
       <div className="section-head">
-        <h2>Now Streaming</h2>
+        <h2>Browse all films</h2>
         <p className="now-count">
           {visible.length} film{visible.length === 1 ? "" : "s"} streaming now
         </p>

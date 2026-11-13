@@ -2076,6 +2076,10 @@ footer .foot-copy {
 
 .film-actions {
   margin: 16px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 .watchlist-btn {
@@ -2501,5 +2505,268 @@ footer .foot-copy {
 
   .tabbar-link:active {
     transform: scale(0.96);
+  }
+}
+
+/* ---------- Phase 5: prompts, discovery rows, profile hub, Up Next ---------- */
+
+/* One-at-a-time home prompts (HomePrompts.tsx). */
+.home-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin: 18px 0 4px;
+  padding: 16px 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.home-prompt-text {
+  flex: 1 1 260px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+.home-prompt-text strong {
+  color: var(--ink);
+}
+
+.home-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+/* Profile completion progress (home prompt + profile wizard). */
+.wizard-progress {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+  margin: 12px 0 4px;
+  max-width: 420px;
+}
+
+.wizard-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.wizard-steps {
+  list-style: none;
+  margin: 8px 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.wizard-steps a {
+  font-weight: 700;
+}
+
+/* Profile hub sub-navigation: sticky chip row. */
+.profile-nav {
+  position: sticky;
+  top: 10px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 6px;
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+}
+
+.profile-nav a {
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--chip-ink);
+  background: var(--chip);
+  white-space: nowrap;
+}
+
+.profile-nav a:hover {
+  color: var(--ink);
+}
+
+/* Anchored profile sections clear the sticky nav when jumped to. */
+.auth-wrap section[id] {
+  scroll-margin-top: 84px;
+}
+
+/* Discovery rows: horizontal rails of the standard landscape cards. */
+.discovery {
+  margin-top: 6px;
+}
+
+.discovery-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 26px 0 2px;
+}
+
+.discovery-hint {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.discovery-row {
+  scroll-margin-top: 84px;
+}
+
+.discovery-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(250px, 300px);
+  gap: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 2px 14px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.discovery-item {
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .discovery-rail {
+    grid-auto-columns: 68vw;
+  }
+}
+
+/* Up Next end screen, overlaid on the player. */
+.player-shell {
+  position: relative;
+}
+
+.up-next {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px;
+  background: rgba(8, 7, 5, 0.92);
+  color: #f7f2e7;
+}
+
+.up-next-poster {
+  width: min(42%, 320px);
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.up-next-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(var(--poster-zoom, 1));
+}
+
+@media (max-width: 640px) {
+  .up-next-poster {
+    width: 62%;
+  }
+}
+
+.up-next-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.up-next-label {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e9a83a;
+}
+
+.up-next h3 {
+  margin: 0;
+  font-size: clamp(20px, 3.4vw, 30px);
+}
+
+.up-next h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.up-next-count {
+  margin: 0;
+  font-size: 14.5px;
+  color: #cfc7b2;
+}
+
+.up-next-bar {
+  width: min(260px, 100%);
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(247, 242, 231, 0.25);
+  overflow: hidden;
+}
+
+.up-next-bar span {
+  display: block;
+  height: 100%;
+  background: #e9a83a;
+  transition: width 1s linear;
+}
+
+.up-next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.up-next-actions .btn-ghost {
+  color: #f7f2e7;
+  border-color: rgba(247, 242, 231, 0.4);
+}
+
+@media (max-width: 640px) {
+  .up-next {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .up-next-body {
+    justify-items: center;
+  }
+
+  .up-next-actions {
+    justify-content: center;
   }
 }

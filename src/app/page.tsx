@@ -1,7 +1,9 @@
 import { getFilms, getRatings } from "@/lib/films";
 import ContinueWatching from "@/components/ContinueWatching";
+import DiscoveryRows from "@/components/DiscoveryRows";
 import Hero from "@/components/Hero";
 import FilmGrid from "@/components/FilmGrid";
+import HomePrompts from "@/components/HomePrompts";
 
 /** Home page. Films and shared ratings come from Supabase at request
  *  time (cached 60s); a film added to the database appears within that
@@ -16,7 +18,9 @@ export default async function HomePage() {
   return (
     <div className="wrap">
       <Hero films={films} />
+      <HomePrompts films={films} />
       <ContinueWatching />
+      <DiscoveryRows films={films} ratings={ratings} />
       <FilmGrid films={films} ratings={ratings} />
     </div>
   );

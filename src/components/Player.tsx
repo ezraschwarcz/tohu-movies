@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type VideoJsPlayer from "video.js/dist/types/player";
 import "video.js/dist/video-js.css";
 import { durationSeconds, muxStreamUrl, posterUrl } from "@/lib/films";
+import { isAgeVerified } from "@/lib/ageGate";
+import { posterZoomFor } from "@/lib/posterZoom";
 import { MUX_DATA_ENV_KEY, MUX_PLAYER_NAME } from "@/lib/site";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import type { Film } from "@/lib/types";
 import { useAuth } from "./AuthProvider";
+import { useAgeGate } from "./AgeGate";
 
 /** Video.js 8 player with Mux Data, matching the live site.
  *
@@ -82,9 +87,65 @@ function forceEnglishCC(player: VideoJsPlayer) {
   }
 }
 
-export default function Player({ film }: { film: Film }) {
+const UP_NEXT_SECONDS = 15;
+
+export default function Player({
+  film,
+  nextFilm = null,
+}: {
+  film: Film;
+  /** The Up Next pick (first "More films" film on the page), or null
+   *  for no end screen. */
+  nextFilm?: Film | null;
+}) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const router = useRouter();
+  const { ensureAllowed, modal } = useAgeGate();
+  const [showUpNext, setShowUpNext] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(UP_NEXT_SECONDS);
+  const nextFilmRef = useRef<Film | null>(nextFilm);
+  useEffect(() => {
+    nextFilmRef.current = nextFilm;
+  }, [nextFilm]);
   const { user } = useAuth();
+  // Up Next countdown: runs only while the end screen is showing and
+  // the next film needs no age gate (or the viewer is already age
+  // verified). An R rated next film for an unverified viewer never
+  // auto-starts: the countdown holds and Play now runs the age gate.
+  const nextNeedsGate =
+    nextFilm !== null && nextFilm.rating === "R" && !isAgeVerified();
+  // isAgeVerified reads localStorage, so it is only meaningful after
+  // mount; the countdown effect below runs client side only anyway,
+  // and Play now re-checks through ensureAllowed regardless.
+  function playNextNow() {
+    if (!nextFilm) return;
+    setShowUpNext(false);
+    ensureAllowed(nextFilm, () => router.push(`/films/${nextFilm.slug}`));
+  }
+
+  useEffect(() => {
+    if (!showUpNext || !nextFilm) return;
+    if (nextFilm.rating === "R" && !isAgeVerified()) return;
+    if (secondsLeft <= 0) {
+      playNextNow();
+      return;
+    }
+    const t = window.setTimeout(
+      () => setSecondsLeft((s) => Math.max(0, s - 1)),
+      1000,
+    );
+    return () => window.clearTimeout(t);
+    // playNextNow is re-created each render; the timeout only needs
+    // the current secondsLeft and visibility state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showUpNext, secondsLeft, nextFilm]);
+
+  // A new film means a new end screen state.
+  useEffect(() => {
+    setShowUpNext(false);
+    setSecondsLeft(UP_NEXT_SECONDS);
+  }, [film.slug]);
+
   // The signed-in user id, kept current so the player's event listeners
   // (attached once at init) always save for the right user, even if the
   // user signs in after the player mounted.
@@ -184,7 +245,12 @@ export default function Player({ film }: { film: Film }) {
         preload: "metadata",
         playsinline: true,
         fluid: true,
-        playbackRates: [0.5, 1, 1.25, 1.5, 2],
+        playbackRates: [0.75, 1, 1.25, 1.5, 2],
+        controlBar: {
+          // Video.js built-in picture-in-picture toggle in the
+          // control bar (browsers that support PiP show it).
+          pictureInPictureToggle: true,
+        },
         sources: [
           { src: muxStreamUrl(film.playback_id), type: "application/x-mpegURL" },
         ],
@@ -212,6 +278,11 @@ export default function Player({ film }: { film: Film }) {
       created.on("timeupdate", () => void savePosition(false));
       created.on("pause", () => void savePosition(true));
       created.on("ended", () => {
+        // Up Next end screen (any viewer, signed in or not).
+        if (nextFilmRef.current) {
+          setSecondsLeft(UP_NEXT_SECONDS);
+          setShowUpNext(true);
+        }
         const userId = userIdRef.current;
         if (!userId) return;
         void getBrowserSupabase()
@@ -245,6 +316,71 @@ export default function Player({ film }: { film: Film }) {
 
   return (
     <div className="player-shell">
+      {showUpNext && nextFilm ? (
+        <div className="up-next" role="dialog" aria-label="Up next">
+          <span className="up-next-poster">
+            <img
+              src={posterUrl(nextFilm, 800)}
+              style={
+                {
+                  "--poster-zoom": posterZoomFor(nextFilm.slug),
+                } as React.CSSProperties
+              }
+              alt=""
+              width={800}
+              height={450}
+            />
+          </span>
+          <div className="up-next-body">
+            <p className="up-next-label">Up next</p>
+            <h3>
+              <Link href={`/films/${nextFilm.slug}`}>{nextFilm.title}</Link>
+            </h3>
+            {nextNeedsGate ? (
+              <p className="up-next-count">
+                Rated R. Confirm your age to play it.
+              </p>
+            ) : (
+              <>
+                <p className="up-next-count">
+                  Playing in {secondsLeft}s
+                </p>
+                <div
+                  className="up-next-bar"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={UP_NEXT_SECONDS}
+                  aria-valuenow={secondsLeft}
+                  aria-label="Time until the next film plays"
+                >
+                  <span
+                    style={{
+                      width: `${(secondsLeft / UP_NEXT_SECONDS) * 100}%`,
+                    }}
+                  />
+                </div>
+              </>
+            )}
+            <div className="up-next-actions">
+              <button
+                type="button"
+                className="play-btn"
+                onClick={playNextNow}
+              >
+                Play now
+              </button>
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => setShowUpNext(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {modal}
       <video
         ref={videoRef}
         className="video-js vjs-big-play-centered"

@@ -80,6 +80,7 @@ export default function ResetPasswordForm() {
     const supabase = getBrowserSupabase();
     const { error: err } = await supabase.auth.updateUser({
       password,
+      data: { password_set: true },
     });
     if (err) {
       setBusy(false);

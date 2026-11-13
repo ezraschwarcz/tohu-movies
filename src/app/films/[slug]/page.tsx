@@ -14,6 +14,7 @@ import { getApprovedComments } from "@/lib/comments";
 import CommentsSection from "@/components/CommentsSection";
 import FilmCard from "@/components/FilmCard";
 import FilmPlayerSection from "@/components/FilmPlayerSection";
+import ShareButton from "@/components/ShareButton";
 import StarRating from "@/components/StarRating";
 import WatchlistButton from "@/components/WatchlistButton";
 
@@ -120,7 +121,7 @@ export default async function FilmPage({
             {film.warnings}
           </div>
         ) : null}
-        <FilmPlayerSection film={film} />
+        <FilmPlayerSection film={film} nextFilm={more[0] ?? null} />
       </div>
 
       <div className="film-details">
@@ -138,6 +139,7 @@ export default async function FilmPage({
         <StarRating filmSlug={film.slug} initial={rating} />
         <p className="film-actions">
           <WatchlistButton filmSlug={film.slug} filmTitle={film.title} />
+          <ShareButton filmSlug={film.slug} filmTitle={film.title} />
         </p>
         <dl className="film-facts">
           <div>

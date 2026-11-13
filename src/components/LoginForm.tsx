@@ -14,10 +14,12 @@ import {
  *
  *  The primary option is a passkey (Face ID / fingerprint / device
  *  biometric, via Supabase auth.signInWithPasskey). Password sign-in is
- *  the second option, with a "Forgot password?" link. There is no magic
- *  link sign-in: sign-in is passkey plus password only. (Sign-up still
- *  sends an email confirmation; that is account confirmation, not
- *  magic link sign-in, and it still goes through /auth/callback.)
+ *  the second option, with a "Forgot password?" link. Third is a magic
+ *  link (Netflix style): "Email me a sign-in link" sends a one-time
+ *  link via signInWithOtp that lands on /auth/callback and opens a
+ *  session, no password needed. (Sign-up still sends an email
+ *  confirmation; that is account confirmation, separate from magic
+ *  link sign-in, through the same callback.)
  *
  *  The last-used email is remembered in localStorage ("tohu-last-email")
  *  and pre-filled here, so a returning visitor does not have to type it
@@ -58,6 +60,7 @@ export default function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [magicBusy, setMagicBusy] = useState(false);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [passkeySupported, setPasskeySupported] = useState(true);
   const [forgot, setForgot] = useState(false);
@@ -153,6 +156,34 @@ export default function LoginForm({
       );
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onMagicLink(e: FormEvent) {
+    e.preventDefault();
+    setMagicBusy(true);
+    setError(null);
+    setMessage(null);
+    const supabase = getBrowserSupabase();
+    try {
+      const dest = next.startsWith("/") ? next : "/";
+      const { error: err } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(dest)}`,
+        },
+      });
+      if (err) throw err;
+      rememberEmail(email);
+      setMessage(
+        "Check your email for your sign-in link. It signs you in when you tap it, no password needed.",
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Something went wrong. Try again.",
+      );
+    } finally {
+      setMagicBusy(false);
     }
   }
 
@@ -301,6 +332,34 @@ export default function LoginForm({
             </button>
           </p>
         </form>
+      )}
+
+      {forgot ? null : (
+        <>
+          <div className="auth-divider" role="separator">
+            <span>or sign in with an email link</span>
+          </div>
+          <form className="auth-form" onSubmit={onMagicLink}>
+            <label className="field">
+              <span>Email for your sign-in link</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
+            </label>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={magicBusy}
+            >
+              {magicBusy ? "Please wait…" : "Email me a sign-in link"}
+            </button>
+          </form>
+        </>
       )}
 
       <p className="auth-foot">

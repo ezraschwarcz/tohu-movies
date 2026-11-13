@@ -9,7 +9,13 @@ import type { RatingSummary } from "@/lib/types";
  *  rating lives in localStorage, and rating writes upsert on
  *  (film_slug, voter_id) with an anonymous random voter id. Tapping the
  *  same star again removes the rating. A failed write falls back to the
- *  local rating only (no error shown). */
+ *  local rating only (no error shown).
+ *
+ *  Display rule (Nov 12, 2026): the rating COUNT is never shown (with
+ *  about one rating per film it reads as empty, not popular). The
+ *  numeric average is shown only once a film has 5 or more ratings;
+ *  below that the label is "Rate this film", even if 1 to 4 ratings
+ *  exist. */
 
 const OWN_KEY = "tohu-ratings-v1";
 const VOTER_KEY = "tohu-voter-id-v1";
@@ -157,13 +163,10 @@ export default function StarRating({
           ★
         </button>
       ))}
-      {shown ? (
-        <span className="stars-avg">
-          {formatAverage(shown.average)} · {shown.count} rating
-          {shown.count === 1 ? "" : "s"}
-        </span>
+      {shown && shown.count >= 5 ? (
+        <span className="stars-avg">{formatAverage(shown.average)}</span>
       ) : (
-        <span className="stars-label">Be the first to rate</span>
+        <span className="stars-label">Rate this film</span>
       )}
     </div>
   );

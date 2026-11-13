@@ -7,6 +7,7 @@ import {
   isPasskeyDisabledError,
   PASSKEY_DISABLED_MESSAGE,
 } from "@/lib/passkeyError";
+import { computeProfileCompletion } from "@/lib/profile";
 import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
 
@@ -41,6 +42,9 @@ export default function ProfileForm({
   displayName,
   watchlistCount,
   isAdmin,
+  initialPasswordSet,
+  initialGenres,
+  allGenres,
 }: {
   userId: string;
   email: string;
@@ -49,6 +53,12 @@ export default function ProfileForm({
   /** Admins reach /admin from here on mobile, where the header nav
    *  pills row is hidden behind the bottom tab bar. */
   isAdmin: boolean;
+  /** password_set flag from auth user metadata (server read). */
+  initialPasswordSet: boolean;
+  /** favorite_genres from auth user metadata (server read). */
+  initialGenres: string[];
+  /** Every genre in the catalog, for the completion picker. */
+  allGenres: string[];
 }) {
   const { signOut, refreshProfile } = useAuth();
   const { hideRRated, setHideRRated } = useSiteSearch();
@@ -66,6 +76,47 @@ export default function ProfileForm({
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
   const [passkeyMessage, setPasskeyMessage] = useState<string | null>(null);
+  // Profile completion state: the saved name (not the in-progress
+  // input), the password flag, and the picked genres.
+  const [savedName, setSavedName] = useState(displayName);
+  const [passwordIsSet, setPasswordIsSet] = useState(initialPasswordSet);
+  const [favGenres, setFavGenres] = useState<string[]>(initialGenres);
+  const [genreBusy, setGenreBusy] = useState(false);
+  const [genreSaved, setGenreSaved] = useState<string | null>(null);
+  const [genreError, setGenreError] = useState<string | null>(null);
+
+  const completion = computeProfileCompletion({
+    displayName: savedName,
+    passwordSet: passwordIsSet,
+    favoriteGenres: favGenres,
+  });
+  const hasPasskey = passkeys !== null && passkeys.length > 0;
+
+  function toggleGenre(genre: string) {
+    setGenreSaved(null);
+    setGenreError(null);
+    setFavGenres((prev) => {
+      if (prev.includes(genre)) return prev.filter((g) => g !== genre);
+      if (prev.length >= 3) return prev;
+      return [...prev, genre];
+    });
+  }
+
+  async function onSaveGenres() {
+    setGenreBusy(true);
+    setGenreError(null);
+    setGenreSaved(null);
+    const supabase = getBrowserSupabase();
+    const { error: err } = await supabase.auth.updateUser({
+      data: { favorite_genres: favGenres },
+    });
+    setGenreBusy(false);
+    if (err) {
+      setGenreError(err.message);
+      return;
+    }
+    setGenreSaved("Favorite genres saved.");
+  }
 
   // Films rated on this device (anonymous voter id in localStorage).
   useEffect(() => {
@@ -151,6 +202,7 @@ export default function ProfileForm({
       return;
     }
     await refreshProfile();
+    setSavedName(trimmed);
     setSaved("Display name saved.");
   }
 
@@ -198,12 +250,14 @@ export default function ProfileForm({
     const supabase = getBrowserSupabase();
     const { error: err } = await supabase.auth.updateUser({
       password: newPassword,
+      data: { password_set: true },
     });
     setPasswordBusy(false);
     if (err) {
       setPasswordError(err.message);
       return;
     }
+    setPasswordIsSet(true);
     setNewPassword("");
     setConfirmPassword("");
     setPasswordSaved(
@@ -240,7 +294,118 @@ export default function ProfileForm({
         watching.
       </p>
 
-      <section aria-label="Name and email">
+      <nav className="profile-nav" aria-label="Profile sections">
+        <a href="#complete">Complete profile</a>
+        <a href="#mystuff">My Stuff</a>
+        <a href="#activity">Activity</a>
+        <a href="#preferences">Preferences</a>
+        <a href="#security">Sign-in &amp; Security</a>
+        {isAdmin ? <a href="#admin">Admin</a> : null}
+      </nav>
+
+      <section aria-label="Complete your profile" id="complete">
+        <h2 className="profile-h2">Complete your profile</h2>
+        {completion.complete ? (
+          <p className="form-note" role="status">
+            Profile complete. Your name, password, and favorite genres
+            are all set. You can change your genres any time below.
+          </p>
+        ) : (
+          <>
+            <div
+              className="wizard-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={completion.percent}
+              aria-label="Profile completion"
+            >
+              <span style={{ width: `${completion.percent}%` }} />
+            </div>
+            <p className="profile-line">
+              {completion.percent}% complete. Three quick steps:
+            </p>
+            <ul className="wizard-steps">
+              <li>
+                <span aria-hidden="true">
+                  {completion.hasName ? "✓" : "○"}
+                </span>{" "}
+                Display name{" "}
+                {completion.hasName ? (
+                  <span className="toggle-hint">Done</span>
+                ) : (
+                  <a href="#name">Add yours below</a>
+                )}
+              </li>
+              <li>
+                <span aria-hidden="true">
+                  {completion.hasPassword ? "✓" : "○"}
+                </span>{" "}
+                Password{" "}
+                {completion.hasPassword ? (
+                  <span className="toggle-hint">Done</span>
+                ) : (
+                  <a href="#security">Set one under Sign-in &amp; Security</a>
+                )}
+              </li>
+              <li>
+                <span aria-hidden="true">
+                  {completion.genres.length > 0 ? "✓" : "○"}
+                </span>{" "}
+                Favorite genres (pick up to 3)
+              </li>
+              <li>
+                <span aria-hidden="true">{hasPasskey ? "✓" : "○"}</span>{" "}
+                Passkey{" "}
+                <span className="toggle-hint">
+                  Optional bonus, never required.{" "}
+                  {hasPasskey ? "Added." : ""}
+                </span>
+                {hasPasskey ? null : <a href="#security">Add one below</a>}
+              </li>
+            </ul>
+          </>
+        )}
+        <div>
+            <div
+              className="chips"
+              role="group"
+              aria-label="Pick up to 3 favorite genres"
+            >
+              {allGenres.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  className="chip"
+                  aria-pressed={favGenres.includes(g)}
+                  onClick={() => toggleGenre(g)}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+            {genreError ? (
+              <p className="form-error" role="alert">
+                {genreError}
+              </p>
+            ) : null}
+            {genreSaved ? (
+              <p className="form-note" role="status">
+                {genreSaved}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => void onSaveGenres()}
+              disabled={genreBusy}
+            >
+              {genreBusy ? "Saving…" : "Save favorite genres"}
+            </button>
+        </div>
+      </section>
+
+      <section aria-label="Name and email" id="name">
         <h2 className="profile-h2">Name and email</h2>
         <form className="auth-form" onSubmit={onSaveName}>
           <label className="field">
@@ -275,8 +440,9 @@ export default function ProfileForm({
         </form>
       </section>
 
-      <section aria-label="Set a password">
-        <h2 className="profile-h2">Set a password</h2>
+      <section aria-label="Sign-in and security" id="security">
+        <h2 className="profile-h2">Sign-in &amp; Security</h2>
+        <h3 className="profile-h3">Set a password</h3>
         <p className="profile-line">
           If you signed up with an email link, you have no password yet.
           Set one here to sign in with a password as well.
@@ -323,7 +489,7 @@ export default function ProfileForm({
       </section>
 
       {isAdmin ? (
-        <section aria-label="Admin">
+        <section aria-label="Admin" id="admin">
           <h2 className="profile-h2">Admin</h2>
           <p className="profile-line">
             <Link href="/admin">Open the admin panel</Link> to moderate
@@ -332,7 +498,23 @@ export default function ProfileForm({
         </section>
       ) : null}
 
-      <section aria-label="Preferences">
+      <section aria-label="My Stuff" id="mystuff">
+        <h2 className="profile-h2">My Stuff</h2>
+        <p className="profile-line">
+          <Link href="/watchlist">
+            My watchlist ({watchlistCount} film
+            {watchlistCount === 1 ? "" : "s"} saved)
+          </Link>
+        </p>
+        <p className="profile-line">
+          Films you stopped partway through are under{" "}
+          <Link href="/watchlist">Continue watching on your watchlist
+          page</Link>
+          , ready to resume.
+        </p>
+      </section>
+
+      <section aria-label="Preferences" id="preferences">
         <h2 className="profile-h2">Preferences</h2>
         <label className="toggle-row">
           <input
@@ -343,21 +525,15 @@ export default function ProfileForm({
           <span>
             Hide R rated films
             <span className="toggle-hint">
-              R rated films will not appear in the Now Streaming grid on
-              this device.
+              R rated films will not appear in the film rows or the
+              Browse all films grid on this device.
             </span>
           </span>
         </label>
       </section>
 
-      <section aria-label="Your activity">
+      <section aria-label="Your activity" id="activity">
         <h2 className="profile-h2">Your activity</h2>
-        <p className="profile-line">
-          <Link href="/watchlist">
-            My watchlist ({watchlistCount} film
-            {watchlistCount === 1 ? "" : "s"} saved)
-          </Link>
-        </p>
         <h3 className="profile-h3">Films you rated on this device</h3>
         {rated === null ? (
           <p className="profile-line">Loading your ratings…</p>
@@ -384,7 +560,7 @@ export default function ProfileForm({
         )}
       </section>
 
-      <section aria-label="Passkeys">
+      <section aria-label="Passkeys" id="passkeys">
         <h2 className="profile-h2">Passkeys</h2>
         <p className="profile-line">
           Passkeys let you sign in with Face ID, fingerprint, or your

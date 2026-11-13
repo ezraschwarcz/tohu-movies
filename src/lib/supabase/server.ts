@@ -35,6 +35,9 @@ export type ServerAuth = {
   email: string | null;
   profile: Profile | null;
   isAdmin: boolean;
+  /** Supabase auth user metadata (display_name, password_set,
+   *  favorite_genres). Empty object when signed out. */
+  userMetadata: Record<string, unknown>;
 };
 
 /** The signed-in user (if any) plus their profile row, for server code.
@@ -45,7 +48,13 @@ export async function getServerAuth(): Promise<ServerAuth> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { userId: null, email: null, profile: null, isAdmin: false };
+    return {
+      userId: null,
+      email: null,
+      profile: null,
+      isAdmin: false,
+      userMetadata: {},
+    };
   }
   const { data } = await supabase
     .from("profiles")
@@ -58,5 +67,6 @@ export async function getServerAuth(): Promise<ServerAuth> {
     email: user.email ?? null,
     profile,
     isAdmin: profile?.is_admin === true,
+    userMetadata: (user.user_metadata ?? {}) as Record<string, unknown>,
   };
 }

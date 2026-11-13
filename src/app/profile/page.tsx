@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createServerSupabase, getServerAuth } from "@/lib/supabase/server";
+import {
+  favoriteGenresFromMetadata,
+  passwordSetFromMetadata,
+} from "@/lib/profile";
+import { genreChips, getFilms } from "@/lib/films";
 import ProfileForm from "@/components/ProfileForm";
 
 export const metadata: Metadata = {
@@ -17,25 +22,37 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const { userId, email, profile, isAdmin } = await getServerAuth();
+  const { userId, email, profile, isAdmin, userMetadata } =
+    await getServerAuth();
 
   if (!userId) {
     redirect("/login?next=/profile");
   }
 
   const supabase = await createServerSupabase();
-  const { count } = await supabase
-    .from("watchlist")
-    .select("film_slug", { count: "exact", head: true })
-    .eq("user_id", userId);
+  const [{ count }, films] = await Promise.all([
+    supabase
+      .from("watchlist")
+      .select("film_slug", { count: "exact", head: true })
+      .eq("user_id", userId),
+    getFilms(),
+  ]);
+  const allGenres = genreChips(films).map(({ genre }) => genre);
+  const metadataName =
+    typeof userMetadata.display_name === "string"
+      ? userMetadata.display_name
+      : "";
 
   return (
     <ProfileForm
       userId={userId}
       email={email ?? ""}
-      displayName={profile?.display_name ?? ""}
+      displayName={profile?.display_name ?? metadataName}
       watchlistCount={count ?? 0}
       isAdmin={isAdmin}
+      initialPasswordSet={passwordSetFromMetadata(userMetadata)}
+      initialGenres={favoriteGenresFromMetadata(userMetadata)}
+      allGenres={allGenres}
     />
   );
 }
