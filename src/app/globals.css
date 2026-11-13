@@ -42,9 +42,16 @@
 
 html {
   scroll-behavior: smooth;
+  /* The page itself must never scroll sideways. Rails (Continue
+   * Watching, discovery rows) scroll inside their own boxes; their
+   * scrollable overflow must not widen the page. `clip` (unlike
+   * `hidden`) does not create a scroll container, so sticky
+   * elements keep working. */
+  overflow-x: clip;
 }
 
 body {
+  overflow-x: clip;
   margin: 0;
   background: var(--bg);
   color: var(--ink);
@@ -2226,6 +2233,15 @@ footer .foot-copy {
 
 .continue-row {
   margin-top: 8px;
+  /* Same containment as .discovery: the rail scrolls inside its
+   * section, never widening the page. */
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.continue-grid {
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* Horizontal cards: the landscape poster on the left, title, progress,
@@ -2510,36 +2526,114 @@ footer .foot-copy {
 
 /* ---------- Phase 5: prompts, discovery rows, profile hub, Up Next ---------- */
 
-/* One-at-a-time home prompts (HomePrompts.tsx). */
-.home-prompt {
+/* One-at-a-time home prompts (HomePrompts.tsx), presented as a
+ * floating bubble over the page, the way Netflix and Peacock
+ * present theirs: it slides up, floats above the content (above
+ * the tab bar on phones, bottom-right on desktop), casts a real
+ * shadow, and closes from its own X. It is never part of the page
+ * flow, so it never pushes content around or widens the page. */
+.popup {
+  position: fixed;
+  z-index: 70;
+  left: 16px;
+  right: 16px;
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 18px;
-  margin: 18px 0 4px;
-  padding: 16px 18px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 48px 16px 16px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+  animation: popup-in 0.35s ease-out;
 }
 
-.home-prompt-text {
-  flex: 1 1 260px;
+@keyframes popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popup {
+    animation: none;
+  }
+}
+
+@media (min-width: 641px) {
+  .popup {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    width: 392px;
+  }
+}
+
+.popup-icon {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.popup-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.popup-text {
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink2);
 }
 
-.home-prompt-text strong {
+.popup-text strong {
   color: var(--ink);
 }
 
-.home-prompt-actions {
+.popup-actions {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: auto;
+  margin-top: 12px;
+}
+
+.popup-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink2);
+  display: grid;
+  place-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.popup-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.popup-close:hover {
+  background: var(--chip);
+  color: var(--ink);
 }
 
 /* Profile completion progress (home prompt + profile wizard). */
@@ -2572,45 +2666,235 @@ footer .foot-copy {
   font-weight: 700;
 }
 
-/* Profile hub sub-navigation: sticky chip row. */
-.profile-nav {
-  position: sticky;
-  top: 10px;
-  z-index: 5;
+/* Profile hub, Facebook menu style (Phase 5.1): the profile opens
+ * as an identity card plus grouped menu rows with icon circles and
+ * chevrons; each row drills into its own screen with a back button
+ * and a single content card. One screen at a time, consistent
+ * spacing, nothing trailing down an endless page. */
+.profile-hub {
+  max-width: 620px;
+  padding-top: 28px;
+}
+
+.profile-id-card {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 18px 0 6px;
-  padding: 10px;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 18px;
   box-shadow: var(--shadow);
 }
 
-.profile-nav a {
-  padding: 7px 13px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 700;
-  text-decoration: none;
-  color: var(--chip-ink);
-  background: var(--chip);
+.profile-avatar {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.profile-id-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-id-name {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.profile-nav a:hover {
+.profile-id-email {
+  font-size: 14px;
+  color: var(--ink2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-group {
+  margin-top: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 62px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-group .menu-row:last-child {
+  border-bottom: none;
+}
+
+.menu-row:hover {
+  background: var(--panel2);
+}
+
+.menu-row:active {
+  background: var(--panel2);
+}
+
+.menu-icon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--chip);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+}
+
+.menu-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.menu-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.menu-hint {
+  display: block;
+  margin-top: 1px;
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--ink2);
+}
+
+.menu-chev {
+  flex: 0 0 auto;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--ink2);
+}
+
+.menu-badge {
+  flex: 0 0 auto;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.menu-badge-done {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 8px 4px;
+  margin-left: -4px;
+  color: var(--ink2);
+  font-size: 15.5px;
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.profile-back span {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.profile-back:hover {
   color: var(--ink);
 }
 
-/* Anchored profile sections clear the sticky nav when jumped to. */
-.auth-wrap section[id] {
-  scroll-margin-top: 84px;
+.profile-view-title {
+  font-size: 30px;
+  margin: 6px 0 0;
+}
+
+.profile-card {
+  margin-top: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 22px 20px;
+}
+
+/* Inside a drilled-in screen the page title already names the
+ * section, so the old in-section headings are hidden and spacing
+ * comes from the card alone. */
+.profile-card .profile-h2 {
+  display: none;
+}
+
+.profile-card section + section {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.profile-card .auth-form {
+  margin-top: 4px;
+}
+
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* Discovery rows: horizontal rails of the standard landscape cards. */
 .discovery {
   margin-top: 6px;
+  /* Containment: a grid rail's scrollable overflow was widening the
+   * whole page on phones (measured Nov 12, 2026: document scrolled
+   * sideways to 2571px on a 390px screen, all of it from these
+   * rails). Clipping at the section keeps each rail's sideways
+   * scroll inside itself. */
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .discovery-head {
@@ -2636,6 +2920,8 @@ footer .foot-copy {
   grid-auto-flow: column;
   grid-auto-columns: minmax(250px, 300px);
   gap: 18px;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   padding: 6px 2px 14px;

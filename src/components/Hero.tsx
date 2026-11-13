@@ -167,7 +167,6 @@ export default function Hero({ films }: { films: Film[] }) {
             </svg>
             Watch now
           </button>
-          <span className="free">Free · No sign up</span>
         </div>
       </div>
       <button

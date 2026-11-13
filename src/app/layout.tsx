@@ -21,7 +21,7 @@ const archivoNarrow = Archivo_Narrow({
 });
 
 const DEFAULT_DESCRIPTION =
-  "Independent cinema, handpicked for people who love film. Bold voices and hidden gems, streaming free in HD with captions. No sign up.";
+  "Independent cinema, handpicked for people who love film. Bold voices and hidden gems, streaming free in HD with captions.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

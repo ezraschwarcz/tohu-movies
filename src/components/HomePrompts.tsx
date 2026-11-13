@@ -59,6 +59,52 @@ function formatPosition(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/** One prompt, presented the way the big apps present them: a
+ *  floating bubble that slides up over the page (above the tab bar
+ *  on phones, bottom-right on desktop), with its own close button.
+ *  It is not part of the page flow and never pushes content around. */
+function Popup({
+  label,
+  icon,
+  onClose,
+  children,
+  actions,
+}: {
+  label: string;
+  icon: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="popup" role="dialog" aria-label={label}>
+      <span className="popup-icon" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="popup-main">
+        <div className="popup-text">{children}</div>
+        {actions ? <div className="popup-actions">{actions}</div> : null}
+      </div>
+      <button
+        type="button"
+        className="popup-close"
+        onClick={onClose}
+        aria-label="Dismiss"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M6 6l12 12M18 6L6 18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export default function HomePrompts({ films }: { films: Film[] }) {
   const { loading, user, profile } = useAuth();
   const [ready, setReady] = useState(false);
@@ -181,28 +227,23 @@ export default function HomePrompts({ films }: { films: Film[] }) {
   // ---- Priority 1: welcome-back resume ----
   if (user && resume && !dismissed.has("resume")) {
     return (
-      <section className="home-prompt" aria-label="Welcome back">
-        <div className="home-prompt-text">
-          <strong>Welcome back.</strong> Resume {resume.film.title} from{" "}
-          {formatPosition(resume.position)} of{" "}
-          {formatRuntime(resume.film.runtime_minutes)}.
-        </div>
-        <div className="home-prompt-actions">
+      <Popup
+        label="Welcome back"
+        icon="▶"
+        onClose={() => hide("resume")}
+        actions={
           <Link
             href={`/films/${resume.film.slug}`}
             className="watchlist-btn saved"
           >
             Resume
           </Link>
-          <button
-            type="button"
-            className="continue-dismiss"
-            onClick={() => hide("resume")}
-          >
-            Dismiss
-          </button>
-        </div>
-      </section>
+        }
+      >
+        <strong>Welcome back.</strong> Resume {resume.film.title} from{" "}
+        {formatPosition(resume.position)} of{" "}
+        {formatRuntime(resume.film.runtime_minutes)}.
+      </Popup>
     );
   }
 
@@ -219,67 +260,57 @@ export default function HomePrompts({ films }: { films: Film[] }) {
       Date.now() - profileDismissedAt > 30 * DAY_MS)
   ) {
     return (
-      <section className="home-prompt" aria-label="Complete your profile">
-        <div className="home-prompt-text">
-          <strong>Complete your profile.</strong> You are{" "}
-          {completion.percent}% there. A display name, a password, and
-          your favorite genres make sign-in easier and your home page
-          more yours.
-          <div
-            className="wizard-progress"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={completion.percent}
-            aria-label="Profile completion"
-          >
-            <span style={{ width: `${completion.percent}%` }} />
-          </div>
-        </div>
-        <div className="home-prompt-actions">
+      <Popup
+        label="Complete your profile"
+        icon="✓"
+        onClose={() => {
+          if (user) {
+            writeTime(`tohu-profile-banner-dismissed-${user.id}`);
+          }
+          hide("profile");
+        }}
+        actions={
           <Link href="/profile" className="watchlist-btn saved">
             Complete your profile
           </Link>
-          <button
-            type="button"
-            className="continue-dismiss"
-            onClick={() => {
-              if (user) {
-                writeTime(`tohu-profile-banner-dismissed-${user.id}`);
-              }
-              hide("profile");
-            }}
-          >
-            Dismiss
-          </button>
+        }
+      >
+        <strong>Complete your profile.</strong> You are{" "}
+        {completion.percent}% there. A display name, a password, and
+        your favorite genres make sign-in easier and your home page
+        more yours.
+        <div
+          className="wizard-progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={completion.percent}
+          aria-label="Profile completion"
+        >
+          <span style={{ width: `${completion.percent}%` }} />
         </div>
-      </section>
+      </Popup>
     );
   }
 
   // ---- Priority 3: new since your last visit ----
   if (newCount > 0 && !dismissed.has("new")) {
     return (
-      <section className="home-prompt" aria-label="New films">
-        <div className="home-prompt-text">
-          <strong>
-            {newCount} new film{newCount === 1 ? "" : "s"} since your last
-            visit.
-          </strong>
-        </div>
-        <div className="home-prompt-actions">
+      <Popup
+        label="New films"
+        icon="✦"
+        onClose={() => hide("new")}
+        actions={
           <a href="#new-on-tohu" className="watchlist-btn saved">
             See what is new
           </a>
-          <button
-            type="button"
-            className="continue-dismiss"
-            onClick={() => hide("new")}
-          >
-            Dismiss
-          </button>
-        </div>
-      </section>
+        }
+      >
+        <strong>
+          {newCount} new film{newCount === 1 ? "" : "s"} since your last
+          visit.
+        </strong>
+      </Popup>
     );
   }
 
@@ -292,27 +323,22 @@ export default function HomePrompts({ films }: { films: Film[] }) {
     (nudgeDismissedAt === null || Date.now() - nudgeDismissedAt > 7 * DAY_MS)
   ) {
     return (
-      <section className="home-prompt" aria-label="Save your place">
-        <div className="home-prompt-text">
-          <strong>Save your place.</strong> Sign in with an email link to
-          keep your watchlist and continue watching on any device.
-        </div>
-        <div className="home-prompt-actions">
+      <Popup
+        label="Save your place"
+        icon="➜"
+        onClose={() => {
+          writeTime(SIGNIN_NUDGE_KEY);
+          hide("signin");
+        }}
+        actions={
           <Link href="/login" className="watchlist-btn saved">
             Sign in
           </Link>
-          <button
-            type="button"
-            className="continue-dismiss"
-            onClick={() => {
-              writeTime(SIGNIN_NUDGE_KEY);
-              hide("signin");
-            }}
-          >
-            Dismiss
-          </button>
-        </div>
-      </section>
+        }
+      >
+        <strong>Save your place.</strong> Sign in with an email link to
+        keep your watchlist and continue watching on any device.
+      </Popup>
     );
   }
 
@@ -327,15 +353,15 @@ export default function HomePrompts({ films }: { films: Film[] }) {
     (installEvent !== null || iosInstall)
   ) {
     return (
-      <section className="home-prompt" aria-label="Add to home screen">
-        <div className="home-prompt-text">
-          <strong>Add Tohu Movies to your home screen.</strong>{" "}
-          {iosInstall
-            ? "Tap the Share button in Safari, then “Add to Home Screen”, and Tohu opens like an app."
-            : "One tap from your home screen, no app store."}
-        </div>
-        <div className="home-prompt-actions">
-          {installEvent ? (
+      <Popup
+        label="Add to home screen"
+        icon="↓"
+        onClose={() => {
+          writeTime(INSTALL_KEY);
+          hide("install");
+        }}
+        actions={
+          installEvent ? (
             <button
               type="button"
               className="watchlist-btn saved"
@@ -354,19 +380,14 @@ export default function HomePrompts({ films }: { films: Film[] }) {
             >
               Install
             </button>
-          ) : null}
-          <button
-            type="button"
-            className="continue-dismiss"
-            onClick={() => {
-              writeTime(INSTALL_KEY);
-              hide("install");
-            }}
-          >
-            Dismiss
-          </button>
-        </div>
-      </section>
+          ) : null
+        }
+      >
+        <strong>Add Tohu Movies to your home screen.</strong>{" "}
+        {iosInstall
+          ? "Tap the Share button in Safari, then “Add to Home Screen”, and Tohu opens like an app."
+          : "One tap from your home screen, no app store."}
+      </Popup>
     );
   }
 
