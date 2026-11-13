@@ -2380,9 +2380,12 @@ footer .foot-copy {
 .continue-row {
   margin-top: 8px;
   /* Same containment as .discovery: the rail scrolls inside its
-   * section, never widening the page. */
+   * section, never widening the page. contain is what actually
+   * stops the overflow reaching the root in WebKit (see .discovery
+   * note); overflow hidden alone is not enough there. */
   overflow: hidden;
   max-width: 100%;
+  contain: layout paint;
 }
 
 .continue-grid {
@@ -3038,9 +3041,14 @@ footer .foot-copy {
    * whole page on phones (measured Nov 12, 2026: document scrolled
    * sideways to 2571px on a 390px screen, all of it from these
    * rails). Clipping at the section keeps each rail's sideways
-   * scroll inside itself. */
+   * scroll inside itself. The contain rule is required for WebKit:
+   * overflow hidden alone does NOT stop a grid scroller's overflow
+   * from reaching the root in Safari's engine (verified Nov 12,
+   * 2026 in WebKit: docW 2644 with hidden, 402 with containment),
+   * and iOS shrinks/pans the page to that root overflow area. */
   overflow: hidden;
   max-width: 100%;
+  contain: layout paint;
 }
 
 .discovery-head {
