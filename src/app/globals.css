@@ -46,11 +46,16 @@ html {
    * Watching, discovery rows) scroll inside their own boxes; their
    * scrollable overflow must not widen the page. `clip` (unlike
    * `hidden`) does not create a scroll container, so sticky
-   * elements keep working. */
+   * elements keep working. `hidden` is declared first as the
+   * fallback for older Safari, which ignores `clip`; where `clip`
+   * is supported it wins (Phase 5.2 hardening: iOS still scrolled
+   * sideways with clip alone, so main.page and .wrap clip too). */
+  overflow-x: hidden;
   overflow-x: clip;
 }
 
 body {
+  overflow-x: hidden;
   overflow-x: clip;
   margin: 0;
   background: var(--bg);
@@ -65,6 +70,14 @@ body {
 
 main {
   flex: 1;
+}
+
+/* Contain sideways overflow at the page shell as well as the root:
+ * a rail's scrollable overflow then stops here instead of reaching
+ * the document, on engines where root-level clipping is unreliable
+ * (older iOS Safari in particular). */
+main.page {
+  overflow-x: clip;
 }
 
 a {
@@ -100,6 +113,8 @@ button {
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 20px 64px;
+  /* Same containment as main.page, one level closer to the rails. */
+  overflow-x: clip;
 }
 
 /* ---------- Top bar ---------- */
@@ -315,7 +330,9 @@ button {
 .hero-in {
   position: relative;
   padding: 34px;
-  max-width: 640px;
+  /* Text stays in the left 600px; the prev/next arrows live at the
+   * bottom right (below), so the two can never overlap. */
+  max-width: 600px;
   color: var(--hero-ink);
   transition: opacity 0.45s ease, transform 0.45s ease;
 }
@@ -384,9 +401,14 @@ button {
 }
 
 .hero-nav {
+  /* Bottom right, above the dots: the old mid-height side arrows
+   * could sit on top of a long title or synopsis (Phase 5.2 fix).
+   * Text is capped at 600px on the left, so this corner is always
+   * clear. Mobile keeps its top-corner arrows (media query below). */
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: auto;
+  bottom: 64px;
+  transform: none;
   z-index: 3;
   width: 42px;
   height: 42px;
@@ -408,15 +430,17 @@ button {
 }
 
 .hero-nav:active {
-  transform: translateY(-50%) scale(0.94);
+  transform: scale(0.94);
 }
 
 .hero-nav.prev {
-  left: 14px;
+  left: auto;
+  right: 70px;
 }
 
 .hero-nav.next {
-  right: 14px;
+  right: 16px;
+  left: auto;
 }
 
 .hero-dots {
@@ -1469,7 +1493,9 @@ footer .foot-copy {
   }
 
   .hero-in {
-    padding: 64px 20px 4px;
+    /* 88px of top padding (was 64px): the top-corner arrows get a
+     * clear band of their own above the content. */
+    padding: 88px 20px 4px;
     width: 100%;
     max-width: 86%;
     margin-left: auto;
@@ -1483,6 +1509,10 @@ footer .foot-copy {
   .hero h1 {
     font-size: clamp(30px, 8.4vw, 38px);
     letter-spacing: 0;
+    /* The two 44px arrows sit at the top right (12px + 54px + gaps);
+     * reserving 96px keeps even a long, wrapped title out from
+     * under them. */
+    padding-right: 96px;
   }
 
   .hero p.syn {
@@ -1535,8 +1565,8 @@ footer .foot-copy {
   }
 
   /* Arrows sit at the top corners, over the poster. The hero content
-   * starts 64px down (see .hero-in below) so the arrows never overlap
-   * the title, which starts near the top of the hero on mobile. */
+   * starts 88px down and the title reserves 96px on the right (see
+   * .hero-in and .hero h1 above), so the arrows never overlap text. */
   .hero-nav {
     width: 44px;
     height: 44px;
@@ -2139,39 +2169,119 @@ footer .foot-copy {
   margin: 0 0 18px;
 }
 
+/* Comments, YouTube-style (Phase 5.2): no cards — an avatar, the
+ * name and time, the text, and a quiet actions row (like, reply).
+ * Replies indent under their thread behind an expander. */
 .comment-list {
   list-style: none;
   margin: 0 0 22px;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
-.comment {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 14px 16px;
+.comment-thread {
+  min-width: 0;
+}
+
+.comment-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.comment-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .comment-head {
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--ink2);
-  margin: 0 0 6px;
+  margin: 0 0 3px;
 }
 
 .comment-head strong {
   color: var(--ink);
+  font-size: 13.5px;
 }
 
 .comment-body {
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.55;
   color: var(--ink);
   margin: 0;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 3px 0 0 -10px;
+}
+
+.comment-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink2);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.comment-action:hover {
+  background: var(--chip);
+  color: var(--ink);
+}
+
+.comment-like.liked {
+  color: var(--accent);
+}
+
+.comment-like.liked:hover {
+  color: var(--accent);
+}
+
+.replies-toggle {
+  margin: 2px 0 0 38px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.replies-toggle:hover {
+  background: var(--chip);
+}
+
+.reply-list {
+  margin: 8px 0 0 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reply-note {
+  margin-left: 48px;
 }
 
 .comment-form {
@@ -2179,6 +2289,42 @@ footer .foot-copy {
   flex-direction: column;
   gap: 12px;
   max-width: 680px;
+}
+
+/* Composer: your avatar beside the box, actions right-aligned. */
+.comment-form.comment-composer {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.comment-composer-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.comment-form.reply-composer {
+  margin: 8px 0 4px 48px;
+  max-width: none;
+}
+
+.reply-composer .field textarea {
+  min-height: 60px;
+}
+
+.comment-like-error {
+  max-width: 680px;
+  margin: 0 0 14px;
 }
 
 .signin-prompt {
@@ -3055,4 +3201,203 @@ footer .foot-copy {
   .up-next-actions {
     justify-content: center;
   }
+}
+
+/* ---------- Phase 5.2: avatars, account menu, avatar picker ---------- */
+
+/* A round avatar (components/Avatar.tsx): an uploaded photo, a preset
+ * glyph disc, or initials on the brand amber. Sizes come from inline
+ * width/height; this is only the shared shape. */
+.avatar {
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  object-fit: cover;
+  font-weight: 800;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Header account menu (Facebook style): avatar + chevron button, and
+ * a floating panel under it. */
+.account-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.account-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 5px 3px 3px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.account-button:hover {
+  background: var(--chip);
+  color: var(--ink);
+}
+
+.account-chev {
+  flex: 0 0 auto;
+}
+
+.account-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+  z-index: 80;
+}
+
+.account-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.account-id:hover {
+  background: var(--panel2);
+}
+
+.account-id-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.account-id-name {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-id-email {
+  font-size: 13.5px;
+  color: var(--ink2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 8px 4px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.account-row:hover {
+  background: var(--panel2);
+}
+
+@media (max-width: 640px) {
+  /* On mobile the panel pins to the viewport corner instead of the
+   * (wrapping, searchable) header row, so it can never be pushed
+   * off-screen. The button itself stays in the header's top row. */
+  .account-dropdown {
+    position: fixed;
+    top: 64px;
+    right: 12px;
+  }
+}
+
+/* Avatar picker (profile page and sign-up): a grid of choices, the
+ * selected one ringed in the brand accent. */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 10px;
+  max-width: 560px;
+  margin: 10px 0 20px;
+}
+
+.avatar-grid-signup {
+  max-width: none;
+  margin-bottom: 4px;
+}
+
+.avatar-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 6px 10px;
+  background: var(--panel2);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.avatar-choice > span {
+  line-height: 1.2;
+  text-align: center;
+}
+
+.avatar-choice:hover {
+  border-color: var(--line);
+}
+
+.avatar-choice.selected {
+  border-color: var(--accent);
+  background: var(--panel);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.avatar-choice:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Current-photo preview at the top of the profile photo screen. */
+.avatar-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
 }

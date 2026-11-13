@@ -8,6 +8,8 @@ import {
   isPasskeyDisabledError,
   PASSKEY_DISABLED_MESSAGE,
 } from "@/lib/passkeyError";
+import { AVATAR_PRESETS } from "@/lib/avatars";
+import Avatar from "./Avatar";
 
 /** Create an account. Watching is free and needs no account; an account
  *  is only for comments, your watchlist, and continue watching. The
@@ -30,6 +32,9 @@ export default function SignupForm({ next }: { next: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  /** Optional avatar preset picked at sign-up; rides in the sign-up
+   *  metadata and the database trigger copies it onto the profile. */
+  const [avatarPreset, setAvatarPreset] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
@@ -64,7 +69,11 @@ export default function SignupForm({ next }: { next: string }) {
           // completion checklist knows this account already has a
           // password, even before the confirmation email is clicked
           // (there is no session yet to updateUser on).
-          data: { display_name: name, password_set: true },
+          data: {
+            display_name: name,
+            password_set: true,
+            ...(avatarPreset ? { avatar_preset: avatarPreset } : {}),
+          },
           emailRedirectTo: callbackUrl(),
         },
       });
@@ -169,6 +178,34 @@ export default function SignupForm({ next }: { next: string }) {
               autoComplete="nickname"
             />
           </label>
+          <div className="field">
+            <span>
+              Pick an avatar <span className="toggle-hint">(optional)</span>
+            </span>
+            <div
+              className="avatar-grid avatar-grid-signup"
+              role="group"
+              aria-label="Pick an avatar"
+            >
+              {AVATAR_PRESETS.map((p) => {
+                const selected = avatarPreset === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`avatar-choice${selected ? " selected" : ""}`}
+                    onClick={() =>
+                      setAvatarPreset(selected ? null : p.id)
+                    }
+                    aria-pressed={selected}
+                  >
+                    <Avatar preset={p.id} size={40} />
+                    <span>{p.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <label className="field">
             <span>Email</span>
             <input

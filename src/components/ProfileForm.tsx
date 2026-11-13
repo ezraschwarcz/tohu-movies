@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import {
   isPasskeyDisabledError,
   PASSKEY_DISABLED_MESSAGE,
 } from "@/lib/passkeyError";
 import { computeProfileCompletion } from "@/lib/profile";
+import { AVATAR_PRESETS, avatarPresetById } from "@/lib/avatars";
+import Avatar from "./Avatar";
 import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
 
@@ -70,6 +72,13 @@ const MENU_ICONS: Record<string, React.ReactNode> = {
       <path d="M11.4 12.1L20 3.5M16.6 6.9l3 3" />
     </>
   ),
+  camera: (
+    <>
+      <path d="M8.6 8.4 10.2 5.6h3.6L15.4 8.4" />
+      <rect x="3" y="8.4" width="18" height="11.2" rx="1.8" />
+      <circle cx="12" cy="14" r="3.3" />
+    </>
+  ),
   sliders: (
     <>
       <path d="M4 8h8.5M18 8h2M4 16h2.5M12 16h8" />
@@ -104,6 +113,32 @@ function MenuIcon({ name }: { name: string }) {
   );
 }
 
+/** Center-crop an image file to a square and shrink it to a 256px
+ *  JPEG for the avatars bucket: one small file per user, overwritten
+ *  on every change. Runs entirely on the device; the original photo
+ *  is never uploaded. */
+async function fileToSquareJpeg(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const side = Math.min(bitmap.width, bitmap.height);
+    const sx = (bitmap.width - side) / 2;
+    const sy = (bitmap.height - side) / 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not process that photo.");
+    ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, 256, 256);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.85),
+    );
+    if (!blob) throw new Error("Could not process that photo.");
+    return blob;
+  } finally {
+    bitmap.close();
+  }
+}
+
 export default function ProfileForm({
   userId,
   email,
@@ -113,6 +148,8 @@ export default function ProfileForm({
   initialPasswordSet,
   initialGenres,
   allGenres,
+  initialAvatarPreset,
+  initialAvatarUrl,
 }: {
   userId: string;
   email: string;
@@ -127,6 +164,11 @@ export default function ProfileForm({
   initialGenres: string[];
   /** Every genre in the catalog, for the completion picker. */
   allGenres: string[];
+  /** Avatar choice from auth user metadata (server read), if any.
+   *  The profiles columns are the real home (Phase 5.2); the client
+   *  load below reconciles the two on mount. */
+  initialAvatarPreset?: string | null;
+  initialAvatarUrl?: string | null;
 }) {
   const { signOut, refreshProfile } = useAuth();
   const { hideRRated, setHideRRated } = useSiteSearch();
@@ -152,6 +194,203 @@ export default function ProfileForm({
   const [genreBusy, setGenreBusy] = useState(false);
   const [genreSaved, setGenreSaved] = useState<string | null>(null);
   const [genreError, setGenreError] = useState<string | null>(null);
+  // Profile photo (Phase 5.2): a preset id and/or an uploaded photo
+  // URL. Lives on the profiles row once the Phase 5.2 SQL has run;
+  // before that, choices are mirrored into auth user metadata so the
+  // signed-in UI still reflects them (see persistAvatar).
+  const [avatarPreset, setAvatarPreset] = useState<string | null>(
+    initialAvatarPreset ?? null,
+  );
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    initialAvatarUrl ?? null,
+  );
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarSaved, setAvatarSaved] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const avatarTouched = useRef(false);
+
+  const avatarHint = avatarUrl
+    ? "Uploaded photo"
+    : avatarPreset
+      ? (avatarPresetById(avatarPreset)?.label ?? "Preset avatar")
+      : "Initials";
+
+  // Load the saved avatar on mount: the profiles columns first
+  // (tolerant — they exist only after the Phase 5.2 SQL), then the
+  // auth metadata (a preset picked at sign-up, or a pre-SQL choice).
+  // A metadata-only choice is synced into profiles best-effort, so
+  // comments pick it up too once the columns exist.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAvatar() {
+      const supabase = getBrowserSupabase();
+      let metaPreset: string | null = null;
+      let metaUrl: string | null = null;
+      try {
+        const { data } = await supabase.auth.getUser();
+        const md = (data.user?.user_metadata ?? {}) as Record<
+          string,
+          unknown
+        >;
+        if (typeof md.avatar_preset === "string") {
+          metaPreset = md.avatar_preset;
+        }
+        if (typeof md.avatar_url === "string") {
+          metaUrl = md.avatar_url;
+        }
+      } catch {
+        // ignore: metadata is only a fallback source
+      }
+      let profPreset: string | null = null;
+      let profUrl: string | null = null;
+      let columnsOk = false;
+      try {
+        const { data, error: err } = await supabase
+          .from("profiles")
+          .select("avatar_preset,avatar_url")
+          .eq("id", userId)
+          .maybeSingle();
+        if (!err && data) {
+          columnsOk = true;
+          const row = data as {
+            avatar_preset?: string | null;
+            avatar_url?: string | null;
+          };
+          profPreset = row.avatar_preset ?? null;
+          profUrl = row.avatar_url ?? null;
+        }
+      } catch {
+        // Columns not there yet (pre-SQL): metadata only.
+      }
+      if (cancelled || avatarTouched.current) return;
+      if (columnsOk && (profPreset || profUrl)) {
+        setAvatarPreset(profPreset);
+        setAvatarUrl(profUrl);
+        return;
+      }
+      if (metaPreset || metaUrl) {
+        setAvatarPreset(metaPreset);
+        setAvatarUrl(metaUrl);
+        if (columnsOk) {
+          // Best-effort sync into profiles so other people see this
+          // avatar on comments; failure here is not worth surfacing.
+          try {
+            await supabase
+              .from("profiles")
+              .update({ avatar_preset: metaPreset, avatar_url: metaUrl })
+              .eq("id", userId);
+            void refreshProfile();
+          } catch {
+            // ignore
+          }
+        }
+      }
+    }
+    void loadAvatar();
+    return () => {
+      cancelled = true;
+    };
+    // refreshProfile is stable; run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  /** Save an avatar choice. Profiles first; if that write fails
+   *  (the Phase 5.2 columns do not exist yet), mirror the choice into
+   *  auth user metadata so it is not lost, and flag the fallback so
+   *  the caller can word its status line honestly. */
+  async function persistAvatar(
+    nextPreset: string | null,
+    nextUrl: string | null,
+  ): Promise<{ error: string | null; fallback: boolean }> {
+    const supabase = getBrowserSupabase();
+    const { error: err } = await supabase
+      .from("profiles")
+      .update({ avatar_preset: nextPreset, avatar_url: nextUrl })
+      .eq("id", userId);
+    let fallback = false;
+    if (err) {
+      const { error: metaErr } = await supabase.auth.updateUser({
+        data: { avatar_preset: nextPreset, avatar_url: nextUrl },
+      });
+      if (metaErr) return { error: metaErr.message, fallback: false };
+      fallback = true;
+    }
+    avatarTouched.current = true;
+    setAvatarPreset(nextPreset);
+    setAvatarUrl(nextUrl);
+    await refreshProfile();
+    return { error: null, fallback };
+  }
+
+  const AVATAR_FALLBACK_NOTE =
+    "Saved. It will appear on your comments once the latest site update is finished.";
+
+  async function onChoosePreset(id: string) {
+    setAvatarBusy(true);
+    setAvatarError(null);
+    setAvatarSaved(null);
+    const { error: err, fallback } = await persistAvatar(id, null);
+    setAvatarBusy(false);
+    if (err) {
+      setAvatarError(err);
+    } else {
+      setAvatarSaved(fallback ? AVATAR_FALLBACK_NOTE : "Profile photo saved.");
+    }
+  }
+
+  async function onRemoveAvatar() {
+    setAvatarBusy(true);
+    setAvatarError(null);
+    setAvatarSaved(null);
+    const { error: err, fallback } = await persistAvatar(null, null);
+    setAvatarBusy(false);
+    if (err) {
+      setAvatarError(err);
+    } else {
+      setAvatarSaved(
+        fallback
+          ? AVATAR_FALLBACK_NOTE
+          : "Profile photo removed. Your initials will show.",
+      );
+    }
+  }
+
+  async function onAvatarFile(file: File) {
+    setAvatarBusy(true);
+    setAvatarError(null);
+    setAvatarSaved(null);
+    try {
+      const blob = await fileToSquareJpeg(file);
+      const supabase = getBrowserSupabase();
+      const path = `${userId}/avatar.jpg`;
+      const { error: uploadErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+      if (uploadErr) {
+        if (/bucket|not found/i.test(uploadErr.message)) {
+          throw new Error(
+            "Photo upload needs the Phase 5.2 database update — presets still work.",
+          );
+        }
+        throw new Error(uploadErr.message);
+      }
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      // The cache-buster makes the new photo show at once: the URL is
+      // stable per user, so browsers would otherwise keep the old one.
+      const url = `${data.publicUrl}?v=${Date.now()}`;
+      const { error: saveErr, fallback } = await persistAvatar(null, url);
+      if (saveErr) {
+        throw new Error(saveErr);
+      }
+      setAvatarSaved(fallback ? AVATAR_FALLBACK_NOTE : "Photo uploaded.");
+    } catch (err) {
+      setAvatarError(
+        err instanceof Error ? err.message : "Could not upload that photo.",
+      );
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
 
   const completion = computeProfileCompletion({
     displayName: savedName,
@@ -167,6 +406,7 @@ export default function ProfileForm({
     | "menu"
     | "complete"
     | "name"
+    | "avatar"
     | "security"
     | "activity"
     | "preferences"
@@ -177,17 +417,40 @@ export default function ProfileForm({
     window.scrollTo({ top: 0 });
   }, [view]);
 
-  const initials =
-    (savedName || email)
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? "")
-      .join("") || "?";
+  // Deep links from the header account menu: /profile?view=security
+  // opens that section directly. Read once on mount (the component
+  // remounts per navigation); admin only opens for admins.
+  useEffect(() => {
+    try {
+      const requested = new URLSearchParams(window.location.search).get(
+        "view",
+      );
+      const valid: ProfileView[] = [
+        "menu",
+        "complete",
+        "name",
+        "avatar",
+        "security",
+        "activity",
+        "preferences",
+        "admin",
+      ];
+      if (
+        requested &&
+        (valid as string[]).includes(requested) &&
+        (requested !== "admin" || isAdmin)
+      ) {
+        setView(requested as ProfileView);
+      }
+    } catch {
+      // ignore: no deep link
+    }
+  }, [isAdmin]);
 
   const viewTitles: Record<Exclude<ProfileView, "menu">, string> = {
     complete: "Complete your profile",
     name: "Name and email",
+    avatar: "Profile photo",
     security: "Sign-in & Security",
     activity: "Your activity",
     preferences: "Preferences",
@@ -392,9 +655,12 @@ export default function ProfileForm({
       {view === "menu" ? (
         <>
           <div className="profile-id-card">
-            <span className="profile-avatar" aria-hidden="true">
-              {initials}
-            </span>
+            <Avatar
+              preset={avatarPreset}
+              url={avatarUrl}
+              name={savedName || email}
+              size={56}
+            />
             <span className="profile-id-text">
               <span className="profile-id-name">
                 {savedName || "Your profile"}
@@ -490,6 +756,22 @@ export default function ProfileForm({
                 <MenuIcon name="user" />
               </span>
               <span className="menu-label">Name and email</span>
+              <span className="menu-chev" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button
+              type="button"
+              className="menu-row"
+              onClick={() => setView("avatar")}
+            >
+              <span className="menu-icon">
+                <MenuIcon name="camera" />
+              </span>
+              <span className="menu-label">
+                Profile photo
+                <span className="menu-hint">{avatarHint}</span>
+              </span>
               <span className="menu-chev" aria-hidden="true">
                 ›
               </span>
@@ -727,6 +1009,92 @@ export default function ProfileForm({
             {busy ? "Saving…" : "Save display name"}
           </button>
         </form>
+      </section>
+
+      ) : null}
+
+      {view === "avatar" ? (
+      <section aria-label="Profile photo" id="avatar">
+        <h2 className="profile-h2">Profile photo</h2>
+        <div className="avatar-preview">
+          <Avatar
+            preset={avatarPreset}
+            url={avatarUrl}
+            name={savedName || email}
+            size={72}
+          />
+          <div>
+            <p className="profile-line">
+              <strong>{savedName || "Your profile"}</strong>
+            </p>
+            <p className="profile-line">
+              Currently showing: {avatarHint.toLowerCase()}. Your photo
+              appears next to your comments and in the corner of the
+              header.
+            </p>
+          </div>
+        </div>
+
+        <h3 className="profile-h3">Choose an avatar</h3>
+        <div
+          className="avatar-grid"
+          role="group"
+          aria-label="Choose an avatar"
+        >
+          {AVATAR_PRESETS.map((p) => {
+            const selected = avatarPreset === p.id && !avatarUrl;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={`avatar-choice${selected ? " selected" : ""}`}
+                onClick={() => void onChoosePreset(p.id)}
+                aria-pressed={selected}
+                disabled={avatarBusy}
+              >
+                <Avatar preset={p.id} size={44} />
+                <span>{p.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <h3 className="profile-h3">Or upload your own photo</h3>
+        <label className="field">
+          <span>Photo file (cropped square, shrunk to 256px)</span>
+          <input
+            type="file"
+            accept="image/*"
+            disabled={avatarBusy}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void onAvatarFile(file);
+            }}
+          />
+        </label>
+
+        {avatarError ? (
+          <p className="form-error" role="alert">
+            {avatarError}
+          </p>
+        ) : null}
+        {avatarSaved ? (
+          <p className="form-note" role="status">
+            {avatarSaved}
+          </p>
+        ) : null}
+
+        {avatarUrl || avatarPreset ? (
+          <button
+            type="button"
+            className="btn-ghost danger"
+            onClick={() => void onRemoveAvatar()}
+            disabled={avatarBusy}
+          >
+            Remove photo
+          </button>
+        ) : null}
       </section>
 
       ) : null}

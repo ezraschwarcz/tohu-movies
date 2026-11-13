@@ -54,7 +54,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("id,display_name,is_admin")
       .eq("id", userId)
       .maybeSingle();
-    setProfile((data ?? null) as Profile | null);
+    const base = (data ?? null) as Profile | null;
+    setProfile(base);
+    if (!base) return;
+    // Avatar columns arrive with the Phase 5.2 SQL; until then this
+    // select errors and the profile simply has no avatar fields (the
+    // UI falls back to initials). Tolerant on purpose: never let an
+    // avatar read break sign-in state.
+    let columnsRead = false;
+    try {
+      const { data: avatarData, error: avatarError } = await supabase
+        .from("profiles")
+        .select("avatar_preset,avatar_url")
+        .eq("id", userId)
+        .maybeSingle();
+      if (!avatarError && avatarData) {
+        columnsRead = true;
+        const row = avatarData as {
+          avatar_preset?: string | null;
+          avatar_url?: string | null;
+        };
+        setProfile((prev) =>
+          prev && prev.id === userId
+            ? {
+                ...prev,
+                avatar_preset: row.avatar_preset ?? null,
+                avatar_url: row.avatar_url ?? null,
+              }
+            : prev,
+        );
+      }
+    } catch {
+      // Columns not there yet; metadata fallback below.
+    }
+    if (columnsRead) return;
+    // Pre-SQL fallback: an avatar chosen on the profile page before
+    // the columns existed was saved into auth user metadata instead.
+    // Reflect it so the header and composer still show the choice.
+    // (Once the columns exist they win outright, even when null: a
+    // cleared avatar must stay cleared.)
+    try {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      const md = (authUser?.user_metadata ?? {}) as Record<string, unknown>;
+      const metaPreset =
+        typeof md.avatar_preset === "string" ? md.avatar_preset : null;
+      const metaUrl =
+        typeof md.avatar_url === "string" ? md.avatar_url : null;
+      if (metaPreset || metaUrl) {
+        setProfile((prev) =>
+          prev && prev.id === userId
+            ? { ...prev, avatar_preset: metaPreset, avatar_url: metaUrl }
+            : prev,
+        );
+      }
+    } catch {
+      // No metadata avatar; initials fallback applies.
+    }
   }, []);
 
   useEffect(() => {

@@ -41,6 +41,11 @@ export type Profile = {
   id: string;
   display_name: string;
   is_admin: boolean;
+  /** Phase 5.2 avatar choice: a preset id (lib/avatars.ts) and/or an
+   *  uploaded photo URL. Optional because the columns only exist once
+   *  the Phase 5.2 SQL has run; readers tolerate them being absent. */
+  avatar_preset?: string | null;
+  avatar_url?: string | null;
 };
 
 /** One comment, with the commenter's display name joined from profiles.
@@ -54,7 +59,22 @@ export type Comment = {
   user_id: string;
   created_at: string;
   profiles: { display_name: string } | null;
+  /** Phase 5.2 threading and likes, flattened onto the comment by
+   *  lib/comments.ts (they come from separate tolerant queries, not
+   *  the base select, so the thread still loads before the Phase 5.2
+   *  SQL has run: parent_id null, like_count 0, liked_by_me false).
+   *  avatar_* are the commenter's avatar, copied from their profile. */
+  parent_id?: string | null;
+  like_count?: number;
+  liked_by_me?: boolean;
+  avatar_preset?: string | null;
+  avatar_url?: string | null;
 };
+
+/** A top-level comment with its replies (Phase 5.2). Replies are
+ *  flattened to one level, YouTube-style: a reply to a reply belongs
+ *  to the same thread, under the top-level ancestor. */
+export type ThreadComment = Comment & { replies: ThreadComment[] };
 
 /** One continue-watching row, with the film joined. Owner only. */
 export type ContinueWatchingEntry = {

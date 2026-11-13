@@ -10,7 +10,8 @@ import {
   posterUrl,
 } from "@/lib/films";
 import { SITE_URL } from "@/lib/site";
-import { getApprovedComments } from "@/lib/comments";
+import { getCommentThreads } from "@/lib/comments";
+import { getServerAuth } from "@/lib/supabase/server";
 import CommentsSection from "@/components/CommentsSection";
 import FilmCard from "@/components/FilmCard";
 import FilmPlayerSection from "@/components/FilmPlayerSection";
@@ -19,9 +20,11 @@ import StarRating from "@/components/StarRating";
 import WatchlistButton from "@/components/WatchlistButton";
 
 /** Film detail page: /films/[slug]. One dynamic route, rendered from the
- *  Supabase films table. The 55 known slugs are pre-rendered at build
- *  time; a film added later renders on demand (dynamicParams) and is then
- *  cached. Each page carries its own Open Graph and Twitter tags.
+ *  Supabase films table. The 55 known slugs come from
+ *  generateStaticParams; since Phase 5.2 the page also reads the
+ *  viewer's session (to mark which comments they have liked), so it
+ *  renders per request rather than from a shared cache. Each page
+ *  carries its own Open Graph and Twitter tags.
  *  Note: the revalidate value is a literal on purpose. Route segment
  *  config is read by static analysis, and an imported constant is
  *  flagged as an unsupported value at build time. */
@@ -85,10 +88,15 @@ export default async function FilmPage({
   if (!film) {
     notFound();
   }
-  const [ratings, films, comments] = await Promise.all([
+  // The viewer's id (null when signed out) only personalizes the
+  // comment threads: which comments they have already liked. Reading
+  // the session makes this page render per request; comments, likes,
+  // and commenter avatars are per-user state, not cacheable content.
+  const { userId } = await getServerAuth();
+  const [ratings, films, commentThreads] = await Promise.all([
     getRatings(),
     getFilms(),
-    getApprovedComments(slug),
+    getCommentThreads(slug, userId),
   ]);
   const rating = ratings[film.slug] ?? null;
 
@@ -166,7 +174,11 @@ export default async function FilmPage({
         )}
       </div>
 
-      <CommentsSection filmSlug={film.slug} initial={comments} />
+      <CommentsSection
+        filmSlug={film.slug}
+        initialThreads={commentThreads.threads}
+        totalApproved={commentThreads.totalApproved}
+      />
 
       {more.length > 0 ? (
         <section className="more-films" aria-label="More films">

@@ -85,7 +85,7 @@ export default function RootLayout({
         <SiteProvider>
           <AuthProvider>
             <Header />
-            <main>{children}</main>
+            <main className="page">{children}</main>
             <Footer />
             <TabBar />
           </AuthProvider>

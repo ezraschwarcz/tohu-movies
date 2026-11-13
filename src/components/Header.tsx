@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
+import Avatar from "./Avatar";
 import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
 
@@ -62,11 +63,47 @@ function SearchBox() {
 }
 
 /** Sign-in state in the header. Signed out: a Sign in link. Signed in:
- *  the display name (a link to the profile), a Sign out button, and a
- *  My watchlist link (plus an Admin link for admins). Watching stays
- *  free; this only gates comments, watchlist, and continue watching. */
+ *  the account avatar with a small chevron (Facebook style); clicking
+ *  it opens the account menu — identity card, profile sections,
+ *  watchlist, admin, sign out. The menu closes on an outside click,
+ *  Escape, a link click, or a route change. Watching stays free; this
+ *  only gates comments, watchlist, and continue watching. */
 function AuthArea() {
   const { loading, user, profile, isAdmin, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLSpanElement | null>(null);
+  const pathname = usePathname();
+
+  // Close on route change.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Close on outside click or Escape while open.
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      if (
+        menuRef.current &&
+        e.target instanceof Node &&
+        !menuRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open ]);
+
   if (loading) return <span className="auth-area" aria-hidden="true" />;
   if (!user) {
     return (
@@ -77,22 +114,129 @@ function AuthArea() {
       </span>
     );
   }
+
+  const name = profile?.display_name || user.email || "Your account";
+  const email = user.email ?? "";
+
   return (
     <span className="auth-area">
-      <Link
-        className="auth-name"
-        href="/profile"
-        title={profile?.display_name ?? user.email ?? ""}
-      >
-        {profile?.display_name || user.email}
-      </Link>
-      <button
-        type="button"
-        className="nav-link auth-link auth-btn"
-        onClick={() => void signOut()}
-      >
-        Sign out
-      </button>
+      <span className="account-menu" ref={menuRef}>
+        <button
+          type="button"
+          className="account-button"
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={`Account menu for ${name}`}
+        >
+          <Avatar
+            preset={profile?.avatar_preset}
+            url={profile?.avatar_url}
+            name={name}
+            size={34}
+          />
+          <svg
+            className="account-chev"
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 9.5 12 15.5 18 9.5" />
+          </svg>
+        </button>
+        {open ? (
+          <div className="account-dropdown" role="menu">
+            <Link
+              className="account-id"
+              href="/profile"
+              onClick={() => setOpen(false)}
+              role="menuitem"
+            >
+              <Avatar
+                preset={profile?.avatar_preset}
+                url={profile?.avatar_url}
+                name={name}
+                size={40}
+              />
+              <span className="account-id-text">
+                <span className="account-id-name">{name}</span>
+                {email ? (
+                  <span className="account-id-email">{email}</span>
+                ) : null}
+              </span>
+            </Link>
+            <div className="account-divider" aria-hidden="true" />
+            <Link
+              className="account-row"
+              href="/profile"
+              onClick={() => setOpen(false)}
+              role="menuitem"
+            >
+              Your profile
+            </Link>
+            <Link
+              className="account-row"
+              href="/profile?view=complete"
+              onClick={() => setOpen(false)}
+              role="menuitem"
+            >
+              Complete your profile
+            </Link>
+            <Link
+              className="account-row"
+              href="/watchlist"
+              onClick={() => setOpen(false)}
+              role="menuitem"
+            >
+              My watchlist
+            </Link>
+            <Link
+              className="account-row"
+              href="/profile?view=security"
+              onClick={() => setOpen(false)}
+              role="menuitem"
+            >
+              Sign-in &amp; security
+            </Link>
+            <Link
+              className="account-row"
+              href="/profile?view=preferences"
+              onClick={() => setOpen(false)}
+              role="menuitem"
+            >
+              Preferences
+            </Link>
+            {isAdmin ? (
+              <Link
+                className="account-row"
+                href="/admin"
+                onClick={() => setOpen(false)}
+                role="menuitem"
+              >
+                Admin
+              </Link>
+            ) : null}
+            <div className="account-divider" aria-hidden="true" />
+            <button
+              type="button"
+              className="account-row account-signout"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                void signOut();
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        ) : null}
+      </span>
     </span>
   );
 }

@@ -53,6 +53,16 @@ export default async function ProfilePage() {
       initialPasswordSet={passwordSetFromMetadata(userMetadata)}
       initialGenres={favoriteGenresFromMetadata(userMetadata)}
       allGenres={allGenres}
+      initialAvatarPreset={
+        typeof userMetadata.avatar_preset === "string"
+          ? userMetadata.avatar_preset
+          : null
+      }
+      initialAvatarUrl={
+        typeof userMetadata.avatar_url === "string"
+          ? userMetadata.avatar_url
+          : null
+      }
     />
   );
 }
