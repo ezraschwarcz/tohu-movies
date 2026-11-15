@@ -3501,9 +3501,9 @@ footer .foot-copy {
   border-radius: 999px;
 }
 
-/* ---------- v2.1: designed poster cards ----------
- * A 2:3 poster made of a genre color field, the whole 16:9 still,
- * and the title. The still is never cropped to portrait. */
+/* ---------- v2.2: full-bleed poster cards ----------
+ * A 2:3 poster filled edge to edge by a frame hand-picked for each
+ * film, with the title over the bottom. */
 .grid {
   grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   gap: 26px 18px;
@@ -3519,71 +3519,62 @@ footer .foot-copy {
 }
 
 .poster {
-  display: flex;
-  flex-direction: column;
+  display: block;
+  position: relative;
   aspect-ratio: 2 / 3;
   border-radius: 10px;
   overflow: hidden;
-  background: var(--tone, var(--panel2));
+  background: var(--panel2);
   border: 1px solid rgba(242, 238, 227, 0.1);
   color: #f7f2e7;
   text-decoration: none;
   transition: transform 0.25s ease, border-color 0.25s ease;
 }
 
-.poster-top {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 12px;
-}
-
-.poster-brand {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(247, 242, 231, 0.78);
-}
-
-.poster-rank {
-  color: var(--accent);
-  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
-  font-weight: 700;
-  font-size: 30px;
-  line-height: 1;
-}
-
-.poster-still {
-  flex: none;
-  position: relative;
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background: #0c0b09;
-}
-
-.poster-still img {
+/* The whole card is the film's art: a hand-picked frame, centered on
+ * its subject by object-position (set per film, lib/posterArt.ts).
+ * Letterboxed films are pre-scaled so their black bars fall outside. */
+.poster img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  /* Letterboxed stills (lib/posterZoom.ts) are pre-scaled so their
-   * black bars fall outside the frame. */
   transform: scale(var(--poster-zoom, 1));
 }
 
+.poster-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(12, 11, 9, 0.95) 0%,
+    rgba(12, 11, 9, 0.62) 26%,
+    rgba(12, 11, 9, 0) 56%
+  );
+}
+
+.poster-rank {
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  color: var(--accent);
+  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 56px;
+  line-height: 1;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+}
+
 .poster-text {
-  flex: 1;
-  min-height: 0;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 11px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 6px;
-  padding: 12px 12px 11px;
 }
 
 .poster-title {
@@ -3593,6 +3584,7 @@ footer .foot-copy {
   letter-spacing: 0.01em;
   line-height: 1.04;
   text-wrap: balance;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
   /* Never split a word across lines; the sizes below keep the
    * longest word inside the poster. */
   overflow-wrap: normal;
@@ -3616,7 +3608,7 @@ footer .foot-copy {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: rgba(247, 242, 231, 0.8);
+  color: rgba(247, 242, 231, 0.85);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3652,10 +3644,10 @@ footer .foot-copy {
 /* Watchlist button: a small pill on the poster's top right corner. */
 .poster-wrap .watchlist-btn.compact {
   position: absolute;
-  top: 3px;
-  right: 6px;
+  top: 8px;
+  right: 8px;
   margin: 0;
-  min-height: 28px;
+  min-height: 30px;
   padding: 0 10px;
   font-size: 11.5px;
   border-radius: 999px;
@@ -3895,16 +3887,13 @@ footer .foot-copy {
   }
 
   .poster-rank {
-    font-size: 24px;
-  }
-
-  .poster-top {
-    height: 30px;
-    padding: 0 10px;
+    font-size: 42px;
   }
 
   .poster-text {
-    padding: 9px 10px 9px;
+    left: 10px;
+    right: 10px;
+    bottom: 9px;
   }
 
   .poster-sub {
