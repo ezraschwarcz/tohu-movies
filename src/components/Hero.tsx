@@ -12,8 +12,8 @@ import { posterZoomFor } from "@/lib/posterZoom";
 import type { Film } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
 
-/** Rotating hero, matching the live site: the 6 most recently added films
- *  (last 6 of the catalog order, most recent first), rotating every 6
+/** Rotating hero: six films chosen at random from the whole catalog by
+ *  the home page (so the lineup changes from visit to visit), rotating every 6
  *  seconds, with prev/next arrows, dots, and a slide counter. Rotation
  *  pauses on hover, focus, touch, and when the tab is hidden, and is off
  *  for visitors who prefer reduced motion. On mobile the synopsis clamps
@@ -22,8 +22,18 @@ import { useAgeGate } from "./AgeGate";
 
 const ROTATE_MS = 6000;
 
-export default function Hero({ films }: { films: Film[] }) {
-  const featured = films.slice(-6).reverse();
+export default function Hero({
+  films,
+  featured: picked,
+}: {
+  films: Film[];
+  /** The films to feature, already chosen and ordered by the page
+   *  (a fresh random six each time the home page is rebuilt). Falls
+   *  back to the six most recently added. */
+  featured?: Film[];
+}) {
+  const featured =
+    picked && picked.length > 0 ? picked : films.slice(-6).reverse();
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [paused, setPaused] = useState(false);

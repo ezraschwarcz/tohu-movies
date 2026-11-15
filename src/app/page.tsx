@@ -45,6 +45,20 @@ const SITE_JSON_LD = {
   ],
 };
 
+/** Six films at random from the whole catalog, in random order, for
+ *  the hero. Chosen on the server each time the page is rebuilt (at
+ *  most once a minute, on a visit), so the top of the home page shows
+ *  a different lineup from one visit to the next without the picture
+ *  flickering as it loads. */
+function pickFeatured<T>(films: T[], count = 6): T[] {
+  const pool = [...films];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
+
 export default async function HomePage() {
   const [films, ratings, views] = await Promise.all([
     getFilms(),
@@ -54,7 +68,7 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={SITE_JSON_LD} />
-      <Hero films={films} />
+      <Hero films={films} featured={pickFeatured(films)} />
       <div className="wrap">
       <HomePrompts films={films} />
       <ContinueWatching />
