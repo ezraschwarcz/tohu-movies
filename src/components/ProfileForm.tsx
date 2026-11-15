@@ -498,11 +498,25 @@ export default function ProfileForm({
         return;
       }
       const supabase = getBrowserSupabase();
-      const { data } = await supabase
-        .from("ratings")
-        .select("film_slug,stars,films(title)")
-        .eq("voter_id", voterId)
-        .order("created_at", { ascending: false });
+      // The my_film_ratings function returns only this device's own
+      // ratings. If it is not there yet (privacy hardening SQL not
+      // run), read the table directly, as before.
+      let data: unknown[] | null = null;
+      const viaFunction = await supabase.rpc("my_film_ratings", {
+        p_voter: voterId,
+      });
+      if (!viaFunction.error && Array.isArray(viaFunction.data)) {
+        data = (viaFunction.data as { film_slug: string; stars: number; title: string }[]).map(
+          (r) => ({ film_slug: r.film_slug, stars: r.stars, films: { title: r.title } }),
+        );
+      } else {
+        const direct = await supabase
+          .from("ratings")
+          .select("film_slug,stars,films(title)")
+          .eq("voter_id", voterId)
+          .order("created_at", { ascending: false });
+        data = direct.data;
+      }
       if (cancelled) return;
       const rows = (data ?? []) as unknown as {
         film_slug: string;

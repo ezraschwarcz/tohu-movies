@@ -11,6 +11,10 @@ import type { RatingSummary } from "@/lib/types";
  *  same star again removes the rating. A failed write falls back to the
  *  local rating only (no error shown).
  *
+ *  Writes go through the rate_film / clear_film_rating database
+ *  functions, which only ever touch the caller's own rating, so the
+ *  ratings table itself can be closed to direct writes.
+ *
  *  Display rule (Nov 12, 2026): the rating COUNT is never shown (with
  *  about one rating per film it reads as empty, not popular). The
  *  numeric average is shown only once a film has 5 or more ratings;
@@ -45,6 +49,17 @@ function readVoterId(): string {
   } catch {
     return `v-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
+}
+
+/** True when the database does not have the rating functions yet
+ *  (the privacy hardening SQL has not run): the caller then falls
+ *  back to writing the ratings table directly, as before. */
+function isMissingFunction(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === "PGRST202" ||
+    error.code === "42883" ||
+    /could not find the function/i.test(error.message ?? "")
+  );
 }
 
 function formatAverage(avg: number): string {
@@ -111,11 +126,17 @@ export default function StarRating({
         } catch {
           // ignore
         }
-        const { error } = await supabase
-          .from("ratings")
-          .delete()
-          .eq("film_slug", filmSlug)
-          .eq("voter_id", voterId);
+        let { error } = await supabase.rpc("clear_film_rating", {
+          p_slug: filmSlug,
+          p_voter: voterId,
+        });
+        if (error && isMissingFunction(error)) {
+          ({ error } = await supabase
+            .from("ratings")
+            .delete()
+            .eq("film_slug", filmSlug)
+            .eq("voter_id", voterId));
+        }
         if (error) setShown(prevShown);
         return;
       }
@@ -131,12 +152,19 @@ export default function StarRating({
       } catch {
         // ignore
       }
-      const { error } = await supabase
-        .from("ratings")
-        .upsert(
-          { film_slug: filmSlug, stars, voter_id: voterId },
-          { onConflict: "film_slug,voter_id" },
-        );
+      let { error } = await supabase.rpc("rate_film", {
+        p_slug: filmSlug,
+        p_stars: stars,
+        p_voter: voterId,
+      });
+      if (error && isMissingFunction(error)) {
+        ({ error } = await supabase
+          .from("ratings")
+          .upsert(
+            { film_slug: filmSlug, stars, voter_id: voterId },
+            { onConflict: "film_slug,voter_id" },
+          ));
+      }
       if (error) setShown(prevShown);
     },
     [filmSlug, shown],

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getFilms, getRatings } from "@/lib/films";
-import { createServerSupabase, getServerAuth } from "@/lib/supabase/server";
+import { createServerSupabase, getServerUserId } from "@/lib/supabase/server";
 import { embeddedOne } from "@/lib/types";
 import type { Film } from "@/lib/types";
 import FilmCard from "@/components/FilmCard";
@@ -20,7 +20,8 @@ type WatchlistRow = {
 };
 
 export default async function WatchlistPage() {
-  const { userId } = await getServerAuth();
+  const supabase = await createServerSupabase();
+  const userId = await getServerUserId(supabase);
 
   if (!userId) {
     return (
@@ -36,7 +37,6 @@ export default async function WatchlistPage() {
     );
   }
 
-  const supabase = await createServerSupabase();
   const [{ data: rows }, ratings, allFilms] = await Promise.all([
     supabase
       .from("watchlist")
@@ -63,11 +63,6 @@ export default async function WatchlistPage() {
 
   return (
     <div className="wrap">
-      {/* Continue watching lives here too: the watchlist page is the
-          signed-in "my stuff" hub, which is where Peacock, Netflix
-          and the others surface in-progress films. The component
-          renders nothing when there is nothing in progress. */}
-      <ContinueWatching />
       <div className="section-head">
         <h2>My watchlist</h2>
         <p className="now-count">
@@ -90,6 +85,11 @@ export default async function WatchlistPage() {
           ))}
         </div>
       )}
+      {/* Continue watching sits below the saved films: it loads a
+          moment after the page, and down here its arrival never
+          pushes the watchlist around. Renders nothing when there is
+          nothing in progress. */}
+      <ContinueWatching />
       {showSuggestions ? (
         <WatchlistSuggestions films={suggestions} ratings={ratings} />
       ) : null}

@@ -13,7 +13,7 @@ import {
 } from "@/lib/films";
 import { SITE_URL } from "@/lib/site";
 import { getCommentThreads } from "@/lib/comments";
-import { getServerAuth } from "@/lib/supabase/server";
+import { getServerUserId } from "@/lib/supabase/server";
 import CommentsSection from "@/components/CommentsSection";
 import JsonLd from "@/components/JsonLd";
 import FilmCard from "@/components/FilmCard";
@@ -86,7 +86,7 @@ export default async function FilmPage({
   // comment threads: which comments they have already liked. Reading
   // the session makes this page render per request; comments, likes,
   // and commenter avatars are per-user state, not cacheable content.
-  const { userId } = await getServerAuth();
+  const userId = await getServerUserId();
   const [ratings, films, commentThreads] = await Promise.all([
     getRatings(),
     getFilms(),

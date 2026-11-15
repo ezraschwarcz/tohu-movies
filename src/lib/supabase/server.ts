@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "../site";
+import { readProfile } from "../profileRead";
 import type { Profile } from "../types";
 
 /** Server-side client with the request's session (Server Components,
@@ -30,6 +31,20 @@ export async function createServerSupabase(): Promise<SupabaseClient> {
   });
 }
 
+/** Just the signed-in user's id (null when signed out). Pages that
+ *  only need to know who is asking use this instead of getServerAuth,
+ *  which also loads the profile and admin status: fewer database
+ *  round trips, so the page arrives sooner. */
+export async function getServerUserId(
+  supabase?: SupabaseClient,
+): Promise<string | null> {
+  const client = supabase ?? (await createServerSupabase());
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  return user?.id ?? null;
+}
+
 export type ServerAuth = {
   userId: string | null;
   email: string | null;
@@ -56,12 +71,7 @@ export async function getServerAuth(): Promise<ServerAuth> {
       userMetadata: {},
     };
   }
-  const { data } = await supabase
-    .from("profiles")
-    .select("id,display_name,is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
-  const profile = (data ?? null) as Profile | null;
+  const profile = await readProfile(supabase, user.id);
   return {
     userId: user.id,
     email: user.email ?? null,

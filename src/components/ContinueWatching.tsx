@@ -25,6 +25,9 @@ import type { ContinueWatchingEntry, Film } from "@/lib/types";
  *  Watchlist page (the "My Stuff" hub), the same place the big
  *  services put it. Capped at the 10 most recent entries. */
 
+const MIN_SECONDS = 60;
+const MAX_SHOWN = 6;
+
 function formatPosition(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -51,14 +54,23 @@ export default function ContinueWatching() {
         )
         .eq("user_id", userId)
         .order("updated_at", { ascending: false })
-        .limit(10);
+        .limit(20);
       if (cancelled) return;
       const rows = ((data ?? []) as unknown as ContinueWatchingEntry[])
         .map((r) => ({
           ...r,
           films: embeddedOne(r.films as unknown as Film | Film[] | null),
         }))
-        .filter((r) => r.films !== null && r.duration_seconds > 0);
+        .filter((r) => r.films !== null && r.duration_seconds > 0)
+        // Only films actually in progress: at least a minute in, and
+        // not all but finished. Opening a film for a few seconds no
+        // longer adds it to the row.
+        .filter(
+          (r) =>
+            r.position_seconds >= MIN_SECONDS &&
+            r.position_seconds / r.duration_seconds < 0.95,
+        )
+        .slice(0, MAX_SHOWN);
       setEntries(rows);
     }
     void load();
@@ -90,88 +102,67 @@ export default function ContinueWatching() {
       <div className="section-head">
         <h2>Continue watching</h2>
       </div>
-      <div
-        className={`continue-grid${entries.length === 1 ? " is-single" : ""}`}
-      >
+      <div className="cw-rail">
         {entries.map((entry) => {
           const film = entry.films!;
           const progress = Math.min(
             100,
             Math.round((entry.position_seconds / entry.duration_seconds) * 100),
           );
+          const minutesLeft = Math.max(
+            1,
+            Math.round((entry.duration_seconds - entry.position_seconds) / 60),
+          );
           return (
-            <article key={entry.film_slug} className="continue-card">
+            <article key={entry.film_slug} className="cw-card">
               <Link
                 href={`/films/${film.slug}`}
-                className="continue-thumb"
-                aria-label={`Resume ${film.title}`}
+                className="cw-thumb"
+                aria-label={`Resume ${film.title}, ${minutesLeft} minutes left`}
               >
                 {/* Plain <img>, not next/image: the Mux still URL
-                    carries ?width=...&time=... query params, which the
-                    /_next/image optimizer rejects with HTTP 400. Mux
-                    already sizes the still, so the optimizer adds
-                    nothing. */}
+                    carries query params, which the /_next/image
+                    optimizer rejects. */}
                 <img
-                  src={posterUrl(film, 800)}
+                  src={posterUrl(film, 640)}
                   style={
                     {
                       "--poster-zoom": posterZoomFor(film.slug),
                     } as React.CSSProperties
                   }
-                  alt={`Still from ${film.title}`}
-                  width={800}
-                  height={450}
+                  alt=""
+                  width={640}
+                  height={360}
                   loading="lazy"
-                  sizes="(max-width: 640px) 40vw, 220px"
                 />
-              </Link>
-              <div className="continue-body">
-                <h3>
-                  <Link href={`/films/${film.slug}`}>{film.title}</Link>
-                </h3>
-                <p className="continue-meta">
-                  {formatPosition(entry.position_seconds)} of{" "}
-                  {formatRuntime(film.runtime_minutes)} · {progress}% watched
-                  {entry.duration_seconds > entry.position_seconds
-                    ? ` · ${Math.max(
-                        1,
-                        Math.round(
-                          (entry.duration_seconds -
-                            entry.position_seconds) /
-                            60,
-                        ),
-                      )} min left`
-                    : ""}
-                </p>
-                <div
-                  className="continue-progress"
+                <span className="cw-shade" aria-hidden="true" />
+                <span className="cw-title" aria-hidden="true">
+                  {film.title}
+                </span>
+                <span
+                  className="cw-progress"
                   role="progressbar"
                   aria-valuenow={progress}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-label={`${progress}% watched`}
                 >
-                  <span
-                    className="continue-progress-fill"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <div className="continue-actions">
-                  <Link
-                    href={`/films/${film.slug}`}
-                    className="watchlist-btn saved"
-                  >
-                    Resume
-                  </Link>
-                  <button
-                    type="button"
-                    className="continue-dismiss"
-                    onClick={() => void dismiss(film.slug)}
-                    aria-label={`Remove ${film.title} from Continue watching`}
-                  >
-                    Remove
-                  </button>
-                </div>
+                  <span style={{ width: `${progress}%` }} />
+                </span>
+              </Link>
+              <div className="cw-foot">
+                <span className="cw-left">
+                  {minutesLeft} min left · {formatPosition(entry.position_seconds)} of{" "}
+                  {formatRuntime(film.runtime_minutes)}
+                </span>
+                <button
+                  type="button"
+                  className="cw-remove"
+                  onClick={() => void dismiss(film.slug)}
+                  aria-label={`Remove ${film.title} from Continue watching`}
+                >
+                  Remove
+                </button>
               </div>
             </article>
           );

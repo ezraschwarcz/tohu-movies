@@ -1,5 +1,6 @@
 "use client";
 
+import { readProfile } from "@/lib/profileRead";
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import {
   createContext,
@@ -49,12 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = useCallback(async (userId: string) => {
     const supabase = getBrowserSupabase();
-    const { data } = await supabase
-      .from("profiles")
-      .select("id,display_name,is_admin")
-      .eq("id", userId)
-      .maybeSingle();
-    const base = (data ?? null) as Profile | null;
+    const base = await readProfile(supabase, userId);
     setProfile(base);
     if (!base) return;
     // Avatar columns arrive with the Phase 5.2 SQL; until then this
