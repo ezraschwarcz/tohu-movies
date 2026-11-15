@@ -6,6 +6,7 @@ import { posterUrl } from "@/lib/films";
 import type { Film } from "@/lib/types";
 import { AgeGateModal } from "./AgeGate";
 import Player from "./Player";
+import PlayerBoundary from "./PlayerBoundary";
 
 /** The film page player area. Non-R films play straight away. R rated
  *  films show the age gate before the player appears; the check reads
@@ -92,5 +93,9 @@ export default function FilmPlayerSection({
     );
   }
 
-  return <Player film={film} nextFilm={nextFilm} />;
+  return (
+    <PlayerBoundary film={film}>
+      <Player film={film} nextFilm={nextFilm} />
+    </PlayerBoundary>
+  );
 }

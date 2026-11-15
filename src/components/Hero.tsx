@@ -137,7 +137,17 @@ export default function Hero({ films }: { films: Film[] }) {
 
   /** Watch now: go to the film and start it playing. */
   function play() {
-    ensureAllowed(current, () => router.push(`/films/${current.slug}?play=1`));
+    ensureAllowed(current, () => {
+      // Tell the film page to start playing. Kept in the browser's
+      // session, not in the address, so a refresh or a shared link
+      // never auto-starts.
+      try {
+        window.sessionStorage.setItem("tohu-autoplay", current.slug);
+      } catch {
+        // storage unavailable; the film opens without auto-starting
+      }
+      router.push(`/films/${current.slug}`);
+    });
   }
 
   /** Tapping the art: go to the film's page without starting it. */
@@ -151,11 +161,16 @@ export default function Hero({ films }: { films: Film[] }) {
     <section
       className={`hero${fading ? " fading" : ""}${art ? " has-art" : ""}`}
       id="hero"
+      style={art ? ({ "--art": `url("${art}")` } as React.CSSProperties) : undefined}
       aria-roledescription="carousel"
       aria-label="Featured films"
       onFocusCapture={(e) => {
         // Keyboard focus only; a mouse click or tap should not stop it.
-        if ((e.target as HTMLElement).matches?.(":focus-visible")) setPaused(true);
+        try {
+          if ((e.target as HTMLElement).matches?.(":focus-visible")) setPaused(true);
+        } catch {
+          // older browsers do not know :focus-visible; ignore
+        }
       }}
       onBlurCapture={() => setPaused(false)}
       onTouchStart={(e) => {

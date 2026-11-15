@@ -246,17 +246,14 @@ export default function Player({
     let cancelled = false;
     let player: VideoJsPlayer | null = null;
     let lastSavedAt = 0;
-    // "?play=1" on the address means the viewer pressed a Watch now
-    // button: start the film as soon as the player is ready. Read
-    // once, then removed from the address so a refresh or a shared
-    // link does not auto-start.
+    // A Watch now button leaves a note in the browser's session
+    // naming this film: start it as soon as the player is ready.
+    // The note is read once and removed.
     let wantsAutoplay = false;
     try {
-      const url = new URL(window.location.href);
-      if (url.searchParams.get("play") === "1") {
+      if (window.sessionStorage.getItem("tohu-autoplay") === film.slug) {
         wantsAutoplay = true;
-        url.searchParams.delete("play");
-        window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+        window.sessionStorage.removeItem("tohu-autoplay");
       }
     } catch {
       // ignore

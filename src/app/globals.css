@@ -4566,3 +4566,349 @@ footer .foot-copy {
     transition: none;
   }
 }
+
+/* ---------- Error screens ---------- */
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.error-actions .play-btn {
+  border-radius: 999px;
+}
+
+.error-detail {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink2);
+  word-break: break-word;
+}
+
+.player-failed-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  background: rgba(8, 7, 5, 0.82);
+  color: #f7f2e7;
+}
+
+.player-failed-body p {
+  margin: 0;
+}
+
+.player-failed-body .play-btn {
+  border-radius: 999px;
+}
+
+/* ---------- Hero on phones: sized to fit the screen ----------
+ * The card (poster + facts + Watch button + dots) is sized from the
+ * screen's height so all of it is visible at once, between the header
+ * and the tab bar, instead of running off the bottom. It sits centered
+ * and narrower than the screen, like the big services' apps. */
+@media (max-width: 640px) {
+  .hero.has-art {
+    width: clamp(220px, calc((100vh - 372px) * 2 / 3), calc(100% - 40px));
+    width: clamp(220px, calc((100svh - 372px) * 2 / 3), calc(100% - 40px));
+    margin: 12px auto 0;
+    border-radius: 16px;
+  }
+
+  .hero.has-art .hero-in {
+    padding: 10px 12px 0;
+  }
+
+  .hero.has-art .meta-row {
+    margin: 0 0 8px;
+    font-size: 12px;
+    gap: 4px 6px;
+    justify-content: center;
+  }
+
+  .hero.has-art .play-btn {
+    min-height: 44px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero.has-art .hero-dots {
+    margin: 8px auto 10px;
+  }
+
+  .hero.hero-pending {
+    width: clamp(220px, calc((100svh - 372px) * 2 / 3), calc(100% - 40px));
+    margin: 12px auto 0;
+    aspect-ratio: 2 / 3.6;
+    min-height: 0;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* All six dots share the card's width, each still an easy tap. */
+  .hero.has-art .hero-dots {
+    width: 100%;
+    box-sizing: border-box;
+    gap: 0;
+    padding: 0 10px;
+  }
+
+  .hero.has-art .hero-dot {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    height: 40px;
+  }
+}
+
+/* ---------- Hero on phones, final form (Peacock-style) ----------
+ * This block replaces the two phone layouts above it. The card runs
+ * nearly the full width of the screen with rounded corners; the cover
+ * art fills it; a dark fade at the bottom carries the facts line and
+ * a centered Watch button. Its height follows the poster's own shape
+ * but never exceeds what the screen can show, so the next row always
+ * peeks in below. */
+@media (max-width: 640px) {
+  .hero.has-art,
+  .hero.hero-pending {
+    display: block;
+    position: relative;
+    width: auto;
+    aspect-ratio: auto;
+    height: min(calc((100vw - 32px) * 1.5), calc(100vh - 262px));
+    height: min(calc((100vw - 32px) * 1.5), calc(100svh - 262px));
+    min-height: 360px;
+    margin: 10px 16px 0;
+    border: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+
+  .hero.has-art .hero-art,
+  .hero.has-art picture {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  /* Anchored to the top, so when a short screen trims the poster it
+   * trims the credits at the bottom, not the faces or the title. */
+  .hero.has-art img.bg {
+    object-position: 50% 0;
+    transform: none;
+  }
+
+  .hero.has-art .shade {
+    display: block;
+    background: linear-gradient(
+      to top,
+      rgba(8, 7, 5, 0.96) 0%,
+      rgba(8, 7, 5, 0.86) 14%,
+      rgba(8, 7, 5, 0.45) 26%,
+      rgba(8, 7, 5, 0) 38%
+    );
+  }
+
+  .hero.has-art .hero-in {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0 16px 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .hero.has-art .hero-in > * {
+    max-width: none;
+  }
+
+  .hero.has-art .meta-row {
+    margin: 0 0 10px;
+    justify-content: center;
+    gap: 4px 6px;
+    font-size: 13px;
+    color: #f7f2e7;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  }
+
+  .hero.has-art .play-btn {
+    width: auto;
+    min-width: 62%;
+    min-height: 46px;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 14px;
+    pointer-events: auto;
+  }
+
+  /* Small dots tucked under the button; swiping is the main way to
+   * move between films. */
+  .hero.has-art .hero-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 4px;
+    width: auto;
+    margin: 0;
+    padding: 0 28%;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .hero.has-art .hero-dot {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    height: 26px;
+  }
+
+  .hero.has-art .hero-dot::before {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The facts sit in a dark pill, so they stay readable even where a
+   * poster's own lettering runs underneath. */
+  .hero.has-art .meta-row {
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(12, 11, 9, 0.74);
+    text-shadow: none;
+    font-size: 12.5px;
+  }
+}
+
+/* ---------- Hero on phones: art never covered ----------
+ * Supersedes the fade-over-art version above. The card keeps its
+ * near-full width and rounded corners, but is split in two: the cover
+ * art on top, shown whole with nothing printed over it, and a slim
+ * bar beneath with the facts on the left and Watch now on the right.
+ * On a shorter phone the art is scaled to fit the height and the
+ * space beside it is filled with a soft blur of the same art. */
+@media (max-width: 640px) {
+  .hero.has-art {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    border: 1px solid var(--line);
+  }
+
+  .hero.has-art .hero-art {
+    position: relative;
+    inset: auto;
+    flex: none;
+    width: 100%;
+    height: min(calc((100vw - 34px) * 1.5), calc(100vh - 318px));
+    height: min(calc((100vw - 34px) * 1.5), calc(100svh - 318px));
+    min-height: 300px;
+    overflow: hidden;
+    background: #0c0b09;
+  }
+
+  .hero.has-art .hero-art::before {
+    content: "";
+    position: absolute;
+    inset: -40px;
+    background-image: var(--art);
+    background-size: cover;
+    background-position: center;
+    filter: blur(26px) brightness(0.5);
+  }
+
+  .hero.has-art picture {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero.has-art img.bg {
+    object-fit: contain;
+    object-position: 50% 50%;
+  }
+
+  .hero.has-art .shade {
+    display: none;
+  }
+
+  .hero.has-art .hero-in {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px 0 14px;
+    text-align: left;
+    pointer-events: auto;
+  }
+
+  .hero.has-art .meta-row {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    justify-content: flex-start;
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  .hero.has-art .hero-in > div {
+    flex: none;
+  }
+
+  .hero.has-art .play-btn {
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 18px;
+    font-size: 13px;
+  }
+
+  .hero.has-art .hero-dots {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    padding: 0 30%;
+    margin: 2px 0 4px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero.has-art .hero-dots {
+    padding: 0;
+    gap: 2px;
+  }
+
+  .hero.has-art .hero-dot {
+    flex: none;
+    width: 20px;
+  }
+}
