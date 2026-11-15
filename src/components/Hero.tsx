@@ -21,7 +21,7 @@ import { useAgeGate } from "./AgeGate";
  *  to 3 lines with a Read more toggle that only appears when it overflows.
  *  Play goes to the film page (through the R age gate when needed). */
 
-const ROTATE_MS = 6000;
+const ROTATE_MS = 7000;
 
 /** Six films at random from the whole catalog, in random order. */
 function pickRandom(films: Film[], count = 6): Film[] {
@@ -43,6 +43,23 @@ export default function Hero({ films }: { films: Film[] }) {
   useEffect(() => {
     setFeatured(pickRandom(films));
   }, [films]);
+  // Fetch all six pictures as soon as the lineup is known, in the
+  // shape this screen will show (cover art on phones, wide still
+  // otherwise), so moving to the next film swaps the picture at once
+  // instead of the title arriving first and the art catching up.
+  useEffect(() => {
+    if (!featured) return;
+    const phone = window.matchMedia("(max-width: 640px)").matches;
+    const held = featured.map((f) => {
+      const img = new Image();
+      const art = officialPosterFor(f.slug);
+      img.src = phone && art ? art : posterUrl(f, 1600);
+      return img;
+    });
+    return () => {
+      held.length = 0;
+    };
+  }, [featured]);
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -51,6 +68,7 @@ export default function Hero({ films }: { films: Film[] }) {
   const [needsToggle, setNeedsToggle] = useState(false);
   const synRef = useRef<HTMLParagraphElement | null>(null);
   const touchX = useRef<number | null>(null);
+  const swipedAt = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
   const { ensureAllowed, modal } = useAgeGate();
@@ -72,7 +90,11 @@ export default function Hero({ films }: { films: Film[] }) {
     [index, total],
   );
 
-  // Auto-rotation, paused on hover/focus/touch/hidden/reduced motion.
+  // Auto-rotation: always on, except while a finger is on the banner,
+  // while a control inside it has keyboard focus, while the tab is
+  // hidden, or when the visitor has asked their device for reduced
+  // motion. Hovering with a mouse no longer pauses it: the banner is
+  // most of the screen, so the pointer is nearly always over it.
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
@@ -113,7 +135,15 @@ export default function Hero({ films }: { films: Film[] }) {
   const current = film;
   const art = officialPosterFor(film.slug);
 
+  /** Watch now: go to the film and start it playing. */
   function play() {
+    ensureAllowed(current, () => router.push(`/films/${current.slug}?play=1`));
+  }
+
+  /** Tapping the art: go to the film's page without starting it. */
+  function openFilm(e: React.MouseEvent) {
+    e.preventDefault();
+    if (Date.now() - swipedAt.current < 600) return;
     ensureAllowed(current, () => router.push(`/films/${current.slug}`));
   }
 
@@ -123,15 +153,18 @@ export default function Hero({ films }: { films: Film[] }) {
       id="hero"
       aria-roledescription="carousel"
       aria-label="Featured films"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
+      onFocusCapture={(e) => {
+        // Keyboard focus only; a mouse click or tap should not stop it.
+        if ((e.target as HTMLElement).matches?.(":focus-visible")) setPaused(true);
+      }}
       onBlurCapture={() => setPaused(false)}
       onTouchStart={(e) => {
         setPaused(true);
         touchX.current = e.touches[0]?.clientX ?? null;
       }}
       onTouchEnd={(e) => {
+        // Lifting the finger lets the rotation carry on.
+        setPaused(false);
         // Swipe left/right on the hero moves between featured films,
         // the gesture phone users expect from a carousel.
         const start = touchX.current;
@@ -140,6 +173,9 @@ export default function Hero({ films }: { films: Film[] }) {
         if (start === null || end === undefined) return;
         const dx = end - start;
         if (Math.abs(dx) < 48) return;
+        // A swipe is not a tap: ignore the click the browser may send
+        // after it, so swiping never opens the film.
+        swipedAt.current = Date.now();
         goTo(dx < 0 ? index + 1 : index - 1);
       }}
     >
@@ -151,20 +187,27 @@ export default function Hero({ films }: { films: Film[] }) {
       {/* Wide still on desktop; the film's cover art on phones, where
           the hero is a tall card. <picture> lets the browser fetch
           only the one it will show. */}
-      <picture>
-        {art ? <source media="(max-width: 640px)" srcSet={art} /> : null}
-        <img
-          className="bg"
-          src={posterUrl(film, 1600)}
-          style={
-            {
-              "--poster-zoom": posterZoomFor(film.slug),
-            } as React.CSSProperties
-          }
-          alt=""
-          fetchPriority="high"
-        />
-      </picture>
+      <a
+        className="hero-art"
+        href={`/films/${film.slug}`}
+        onClick={openFilm}
+        aria-label={`Open ${film.title}`}
+      >
+        <picture>
+          {art ? <source media="(max-width: 640px)" srcSet={art} /> : null}
+          <img
+            className="bg"
+            src={posterUrl(film, 1600)}
+            style={
+              {
+                "--poster-zoom": posterZoomFor(film.slug),
+              } as React.CSSProperties
+            }
+            alt=""
+            fetchPriority="high"
+          />
+        </picture>
+      </a>
       <div className="shade" aria-hidden="true" />
       <div className="hero-in">
         <h1>{film.title}</h1>

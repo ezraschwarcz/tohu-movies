@@ -4520,3 +4520,49 @@ footer .foot-copy {
     color: var(--ink);
   }
 }
+
+/* ---------- Hero: the art is a link; pictures swap with the text ---------- */
+.hero-art {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.hero img.bg {
+  transition: opacity 0.22s ease;
+}
+
+.hero.fading img.bg {
+  opacity: 0;
+}
+
+/* The text sits over the art; let clicks on its empty space fall
+ * through to the art link, while the button and toggle stay live. */
+.hero .shade,
+.hero-in {
+  pointer-events: none;
+}
+
+.hero-in button,
+.hero-in a {
+  pointer-events: auto;
+}
+
+@media (max-width: 640px) {
+  .hero.has-art .hero-art {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    flex: none;
+  }
+
+  .hero.has-art .hero-in {
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero img.bg {
+    transition: none;
+  }
+}

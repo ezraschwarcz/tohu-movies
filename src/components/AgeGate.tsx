@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ageFromBirthdate, isAgeVerified, setAgeVerified } from "@/lib/ageGate";
 import type { Film } from "@/lib/types";
 
@@ -20,6 +21,19 @@ export function AgeGateModal({
 }) {
   const [birthdate, setBirthdate] = useState("");
   const [error, setError] = useState("");
+  // The dialog is drawn at the top level of the page (a portal), not
+  // inside whichever card or banner opened it. Drawn in place, it was
+  // layered and clipped by that parent, so on phones it could sit
+  // half hidden behind the content below it.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
 
   function confirm() {
     if (birthdate) {
@@ -39,7 +53,8 @@ export function AgeGateModal({
     onConfirm();
   }
 
-  return (
+  if (!mounted) return null;
+  return createPortal(
     <div
       className="age-gate open"
       role="dialog"
@@ -82,7 +97,8 @@ export function AgeGateModal({
           asked again on this device.
         </p>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

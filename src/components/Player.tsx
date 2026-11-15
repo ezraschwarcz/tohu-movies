@@ -246,6 +246,21 @@ export default function Player({
     let cancelled = false;
     let player: VideoJsPlayer | null = null;
     let lastSavedAt = 0;
+    // "?play=1" on the address means the viewer pressed a Watch now
+    // button: start the film as soon as the player is ready. Read
+    // once, then removed from the address so a refresh or a shared
+    // link does not auto-start.
+    let wantsAutoplay = false;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("play") === "1") {
+        wantsAutoplay = true;
+        url.searchParams.delete("play");
+        window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+      }
+    } catch {
+      // ignore
+    }
     const cleanups: (() => void)[] = [];
     let watchedSeconds = 0;
     let lastTick = -1;
@@ -340,7 +355,21 @@ export default function Player({
         if (pos > 15 && dur > 0 && pos < dur - 30) {
           // Offer the choice instead of jumping silently: the viewer
           // picks Resume or Start over on the player.
-          if (p.paused()) setResumeAt(pos);
+          if (wantsAutoplay) {
+            // Arrived through a Watch now button: carry on from
+            // where they stopped, without asking.
+            const go = () => {
+              try {
+                p.currentTime(pos);
+              } catch {
+                // ignore
+              }
+            };
+            if (p.readyState() >= 1) go();
+            else p.one("loadedmetadata", go);
+          } else if (p.paused()) {
+            setResumeAt(pos);
+          }
         }
       } catch {
         // resume is best effort; playback starts from the beginning
@@ -652,6 +681,17 @@ export default function Player({
       // stopped, and record the position as they watch. Finishing a film
       // removes it from Continue watching.
       void resumeFromSaved(created);
+      if (wantsAutoplay) {
+        created.ready(() => {
+          const attempt = created.play();
+          // Some phones refuse to start sound without a direct tap on
+          // the video. If so, the big play button is simply left
+          // showing; nothing breaks.
+          if (attempt && typeof attempt.catch === "function") {
+            attempt.catch(() => {});
+          }
+        });
+      }
       created.on("timeupdate", () => void savePosition(false));
       created.on("timeupdate", trackView);
       created.on("pause", () => void savePosition(true));
