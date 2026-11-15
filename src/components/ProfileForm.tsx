@@ -9,6 +9,7 @@ import {
 } from "@/lib/passkeyError";
 import { computeProfileCompletion } from "@/lib/profile";
 import { AVATAR_PRESETS, avatarPresetById } from "@/lib/avatars";
+import AvatarCropper from "./AvatarCropper";
 import Avatar from "./Avatar";
 import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
@@ -113,32 +114,6 @@ function MenuIcon({ name }: { name: string }) {
   );
 }
 
-/** Center-crop an image file to a square and shrink it to a 256px
- *  JPEG for the avatars bucket: one small file per user, overwritten
- *  on every change. Runs entirely on the device; the original photo
- *  is never uploaded. */
-async function fileToSquareJpeg(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  try {
-    const side = Math.min(bitmap.width, bitmap.height);
-    const sx = (bitmap.width - side) / 2;
-    const sy = (bitmap.height - side) / 2;
-    const canvas = document.createElement("canvas");
-    canvas.width = 256;
-    canvas.height = 256;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Could not process that photo.");
-    ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, 256, 256);
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.85),
-    );
-    if (!blob) throw new Error("Could not process that photo.");
-    return blob;
-  } finally {
-    bitmap.close();
-  }
-}
-
 export default function ProfileForm({
   userId,
   email,
@@ -205,6 +180,8 @@ export default function ProfileForm({
     initialAvatarUrl ?? null,
   );
   const [avatarBusy, setAvatarBusy] = useState(false);
+  /** The photo being positioned in the cropper, or null. */
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [avatarSaved, setAvatarSaved] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const avatarTouched = useRef(false);
@@ -355,12 +332,12 @@ export default function ProfileForm({
     }
   }
 
-  async function onAvatarFile(file: File) {
+  /** Upload the square the member framed in the cropper. */
+  async function onAvatarCropped(blob: Blob) {
     setAvatarBusy(true);
     setAvatarError(null);
     setAvatarSaved(null);
     try {
-      const blob = await fileToSquareJpeg(file);
       const supabase = getBrowserSupabase();
       const path = `${userId}/avatar.jpg`;
       const { error: uploadErr } = await supabase.storage
@@ -389,6 +366,7 @@ export default function ProfileForm({
       );
     } finally {
       setAvatarBusy(false);
+      setCropFile(null);
     }
   }
 
@@ -1075,7 +1053,7 @@ export default function ProfileForm({
 
         <h3 className="profile-h3">Or upload your own photo</h3>
         <label className="field">
-          <span>Photo file (cropped square, shrunk to 256px)</span>
+          <span>Choose a photo, then position and zoom it</span>
           <input
             type="file"
             accept="image/*"
@@ -1083,10 +1061,23 @@ export default function ProfileForm({
             onChange={(e) => {
               const file = e.target.files?.[0];
               e.target.value = "";
-              if (file) void onAvatarFile(file);
+              if (file) {
+                setAvatarError(null);
+                setAvatarSaved(null);
+                setCropFile(file);
+              }
             }}
           />
         </label>
+
+        {cropFile ? (
+          <AvatarCropper
+            file={cropFile}
+            busy={avatarBusy}
+            onCancel={() => setCropFile(null)}
+            onSave={(blob) => void onAvatarCropped(blob)}
+          />
+        ) : null}
 
         {avatarError ? (
           <p className="form-error" role="alert">

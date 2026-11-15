@@ -242,6 +242,7 @@ function AuthArea() {
 }
 
 export default function Header() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const { setQuery } = useSiteSearch();
   const { user, isAdmin } = useAuth();
@@ -262,7 +263,16 @@ export default function Header() {
           className="wordmark"
           href="/"
           aria-label="Tohu Movies, home"
-          onClick={() => setQuery("")}
+          onClick={(e) => {
+            setQuery("");
+            // Already on the home page: a plain link would do nothing,
+            // so reload it fresh (new banner lineup, back to the top).
+            if (pathname === "/") {
+              e.preventDefault();
+              window.scrollTo(0, 0);
+              window.location.assign("/");
+            }
+          }}
         >
           <Logo size={34} className="logo-mark" />
           <span className="wordmark-text">
