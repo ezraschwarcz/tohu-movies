@@ -4433,3 +4433,90 @@ footer .foot-copy {
     height: 70%;
   }
 }
+
+/* ---------- Hero: empty frame until the random lineup is drawn ---------- */
+.hero.hero-pending {
+  background: var(--bg);
+}
+
+.hero:not(.hero-pending) {
+  animation: hero-in 0.35s ease both;
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero:not(.hero-pending) {
+    animation: none;
+  }
+}
+
+/* ---------- Hero on phones: the film's cover art ----------
+ * The tall hero card shows the official poster whole and untouched:
+ * nothing is printed over the art. The facts line, the Watch button
+ * and the dots sit on a plain panel beneath it, where they are always
+ * readable. The art carries the title. Swiping (or the dots) moves
+ * between films, so the arrows that sat over the poster are hidden. */
+@media (max-width: 640px) {
+  .hero.has-art {
+    aspect-ratio: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+
+  .hero.has-art picture {
+    display: block;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    flex: none;
+  }
+
+  .hero.has-art img.bg {
+    object-position: 50% 50%;
+    transform: none;
+  }
+
+  .hero.has-art .shade,
+  .hero.has-art .hero-nav {
+    display: none;
+  }
+
+  .hero.has-art .hero-in {
+    max-width: none;
+    padding: 14px 16px 2px;
+  }
+
+  /* Still there for screen readers; hidden from sight because the
+   * poster already shows the title. */
+  .hero.has-art h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .hero.has-art p.syn,
+  .hero.has-art .syn-toggle {
+    display: none;
+  }
+
+  .hero.has-art .meta-row {
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+}

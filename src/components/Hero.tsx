@@ -9,11 +9,12 @@ import {
 } from "react";
 import { formatRuntime, posterUrl } from "@/lib/films";
 import { posterZoomFor } from "@/lib/posterZoom";
+import { officialPosterFor } from "@/lib/posters";
 import type { Film } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
 
-/** Rotating hero: six films chosen at random from the whole catalog by
- *  the home page (so the lineup changes from visit to visit), rotating every 6
+/** Rotating hero: six films chosen at random from the whole catalog on
+ *  every page load, rotating every 6
  *  seconds, with prev/next arrows, dots, and a slide counter. Rotation
  *  pauses on hover, focus, touch, and when the tab is hidden, and is off
  *  for visitors who prefer reduced motion. On mobile the synopsis clamps
@@ -22,18 +23,26 @@ import { useAgeGate } from "./AgeGate";
 
 const ROTATE_MS = 6000;
 
-export default function Hero({
-  films,
-  featured: picked,
-}: {
-  films: Film[];
-  /** The films to feature, already chosen and ordered by the page
-   *  (a fresh random six each time the home page is rebuilt). Falls
-   *  back to the six most recently added. */
-  featured?: Film[];
-}) {
-  const featured =
-    picked && picked.length > 0 ? picked : films.slice(-6).reverse();
+/** Six films at random from the whole catalog, in random order. */
+function pickRandom(films: Film[], count = 6): Film[] {
+  const pool = [...films];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
+
+export default function Hero({ films }: { films: Film[] }) {
+  // The lineup is drawn in the visitor's browser on every page load,
+  // so it is different each time (a server-side pick is cached and
+  // repeats). Until the draw has happened the hero shows an empty
+  // frame of the same size, rather than flashing one film and then
+  // swapping to another.
+  const [featured, setFeatured] = useState<Film[] | null>(null);
+  useEffect(() => {
+    setFeatured(pickRandom(films));
+  }, [films]);
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -46,8 +55,8 @@ export default function Hero({
   const router = useRouter();
   const { ensureAllowed, modal } = useAgeGate();
 
-  const film = featured[index] ?? films[0];
-  const total = featured.length;
+  const film = featured ? (featured[index] ?? featured[0]) : undefined;
+  const total = featured ? featured.length : 0;
 
   const goTo = useCallback(
     (next: number) => {
@@ -96,15 +105,21 @@ export default function Hero({
     return () => window.removeEventListener("resize", measure);
   }, [film, expanded]);
 
-  if (!film) return null;
+  if (!film) {
+    // Same size as the real hero, so nothing below it moves when the
+    // lineup arrives a moment later.
+    return <section className="hero hero-pending" aria-hidden="true" />;
+  }
+  const current = film;
+  const art = officialPosterFor(film.slug);
 
   function play() {
-    ensureAllowed(film, () => router.push(`/films/${film.slug}`));
+    ensureAllowed(current, () => router.push(`/films/${current.slug}`));
   }
 
   return (
     <section
-      className={`hero${fading ? " fading" : ""}`}
+      className={`hero${fading ? " fading" : ""}${art ? " has-art" : ""}`}
       id="hero"
       aria-roledescription="carousel"
       aria-label="Featured films"
@@ -133,18 +148,23 @@ export default function Hero({
           optimizer rejects with HTTP 400. Mux already sizes the
           still, so the optimizer adds nothing. The .hero img.bg CSS
           rule carries the fill positioning next/image used to add. */}
-      <img
-        className="bg"
-        src={posterUrl(film, 1600)}
-        style={
-          {
-            "--poster-zoom": posterZoomFor(film.slug),
-          } as React.CSSProperties
-        }
-        alt=""
-        fetchPriority="high"
-        sizes="100vw"
-      />
+      {/* Wide still on desktop; the film's cover art on phones, where
+          the hero is a tall card. <picture> lets the browser fetch
+          only the one it will show. */}
+      <picture>
+        {art ? <source media="(max-width: 640px)" srcSet={art} /> : null}
+        <img
+          className="bg"
+          src={posterUrl(film, 1600)}
+          style={
+            {
+              "--poster-zoom": posterZoomFor(film.slug),
+            } as React.CSSProperties
+          }
+          alt=""
+          fetchPriority="high"
+        />
+      </picture>
       <div className="shade" aria-hidden="true" />
       <div className="hero-in">
         <h1>{film.title}</h1>
@@ -196,7 +216,7 @@ export default function Hero({
         ›
       </button>
       <div className="hero-dots" role="tablist" aria-label="Featured films">
-        {featured.map((f, i) => (
+        {(featured ?? []).map((f, i) => (
           <button
             key={f.slug}
             type="button"
