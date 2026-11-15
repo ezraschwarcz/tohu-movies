@@ -3544,6 +3544,39 @@ footer .foot-copy {
   transform: scale(var(--poster-zoom, 1));
 }
 
+/* On official art the Watchlist pill sits bottom right, clear of the
+ * title lettering that posters usually carry near the top. */
+.poster-wrap.has-official .watchlist-btn.compact {
+  top: auto;
+  bottom: 8px;
+}
+
+.card .m {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Official cover art is never zoomed and stays centered. */
+.poster img.poster-official {
+  transform: none;
+  object-position: 50% 50%;
+}
+
+.card h3.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 9px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card h3.card-title + .m {
+  margin-top: 2px;
+}
+
 .poster-shade {
   position: absolute;
   inset: 0;
@@ -3562,9 +3595,16 @@ footer .foot-copy {
   color: var(--accent);
   font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
   font-weight: 700;
-  font-size: 56px;
+  font-size: 40px;
   line-height: 1;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+  /* A dark tab behind the numeral keeps it readable on any artwork. */
+  top: 0;
+  left: 0;
+  min-width: 44px;
+  padding: 4px 10px 6px;
+  text-align: center;
+  background: rgba(12, 11, 9, 0.88);
+  border-bottom-right-radius: 10px;
 }
 
 .poster-text {
@@ -3887,7 +3927,9 @@ footer .foot-copy {
   }
 
   .poster-rank {
-    font-size: 42px;
+    font-size: 30px;
+    min-width: 36px;
+    padding: 3px 8px 5px;
   }
 
   .poster-text {
@@ -3910,5 +3952,484 @@ footer .foot-copy {
   .card:hover .poster,
   .card:hover .poster-wrap .watchlist-btn.compact {
     transform: none;
+  }
+}
+
+/* ==========================================================
+ * Player upgrade (November 2026): edge-to-edge stage, Tohu
+ * controls, skip, previews, resume prompt, Up next list.
+ * ========================================================== */
+
+/* ---------- Stage: the player, edge to edge ---------- */
+.film-stage {
+  background: #000;
+  scroll-margin-top: 140px;
+}
+
+.film-stage-in {
+  /* As wide as the page allows, but never taller than the screen:
+   * the whole picture stays visible under the sticky header. */
+  width: 100%;
+  max-width: min(1500px, calc((100vh - 150px) * 16 / 9));
+  margin: 0 auto;
+  position: relative;
+}
+
+.film-stage .sensitive {
+  margin: 0;
+  max-width: none;
+  border-radius: 0;
+  border-width: 0 0 1px;
+}
+
+.film-stage .player-shell,
+.film-stage .player-placeholder {
+  border-radius: 0;
+  box-shadow: none;
+  background: #000;
+}
+
+.player-shell {
+  position: relative;
+}
+
+.film-stage .player-shell .video-js,
+.film-stage .player-shell .video-js .vjs-poster {
+  background-color: #000;
+}
+
+@media (max-width: 640px) {
+  .film-stage-in {
+    max-width: none;
+  }
+}
+
+/* ---------- Details beside an Up next list ---------- */
+.film-page {
+  padding-top: 30px;
+}
+
+.film-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .film-columns {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 56px;
+  }
+}
+
+.film-columns .film-details {
+  max-width: none;
+  margin: 0;
+}
+
+.next-list h2 {
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  margin: 0 0 14px;
+}
+
+.next-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.next-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: background 0.2s ease;
+}
+
+.next-item:hover,
+.next-item:focus-visible {
+  background: var(--panel);
+}
+
+.next-thumb {
+  flex: none;
+  width: 112px;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--panel2);
+}
+
+.next-thumb.is-official {
+  width: 56px;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+}
+
+.next-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.next-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.next-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.next-meta {
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+/* ---------- Tohu theme, restated to outrank the library ---------- */
+/* The player library ships its own stylesheet, which loads after this
+ * file. These rules are scoped under .player-shell so they outrank
+ * it; without that scope the library's defaults win. */
+
+.player-shell .video-js {
+  width: 100%;
+  background: #16130e;
+  color: #f7f2e7;
+  font-family: inherit;
+  font-size: 10px;
+}
+
+.player-shell .video-js .vjs-poster {
+  background-size: cover;
+}
+
+.player-shell .video-js .vjs-big-play-button {
+  background-color: rgba(233, 168, 58, 0.94);
+  border: 0;
+  border-radius: 8px;
+  color: #16130e;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.player-shell .video-js:hover .vjs-big-play-button,
+.player-shell .video-js .vjs-big-play-button:focus {
+  background-color: #e9a83a;
+  color: #16130e;
+}
+
+.player-shell .video-js .vjs-control-bar {
+  background-color: rgba(22, 19, 14, 0.92);
+}
+
+.player-shell .video-js .vjs-control:focus {
+  outline: 2px solid #e9a83a;
+  outline-offset: -2px;
+}
+
+.player-shell .video-js .vjs-play-progress,
+.player-shell .video-js .vjs-volume-level {
+  background-color: #e9a83a;
+}
+
+.player-shell .video-js .vjs-play-progress:before,
+.player-shell .video-js .vjs-volume-level:before {
+  color: #e9a83a;
+}
+
+.player-shell .video-js .vjs-load-progress {
+  background: rgba(247, 242, 231, 0.28);
+}
+
+.player-shell .video-js .vjs-load-progress div {
+  background: rgba(247, 242, 231, 0.45);
+}
+
+.player-shell .video-js .vjs-slider {
+  background-color: rgba(247, 242, 231, 0.18);
+}
+
+.player-shell .video-js .vjs-slider:focus {
+  box-shadow: 0 0 0 2px rgba(233, 168, 58, 0.55);
+}
+
+.player-shell .video-js .vjs-menu-button-popup .vjs-menu .vjs-menu-content {
+  background-color: rgba(22, 19, 14, 0.96);
+}
+
+.player-shell .video-js .vjs-menu li {
+  color: #f7f2e7;
+}
+
+.player-shell .video-js .vjs-menu li.vjs-menu-item:focus,
+.player-shell .video-js .vjs-menu li.vjs-menu-item:hover {
+  background-color: rgba(233, 168, 58, 0.22);
+  color: #f7f2e7;
+}
+
+.player-shell .video-js .vjs-menu li.vjs-selected,
+.player-shell .video-js .vjs-menu li.vjs-selected:focus,
+.player-shell .video-js .vjs-menu li.vjs-selected:hover {
+  background-color: #e9a83a;
+  color: #16130e;
+}
+
+.player-shell .video-js .vjs-text-track-cue > div {
+  background-color: rgba(22, 19, 14, 0.82) !important;
+  color: #f7f2e7 !important;
+}
+
+.player-shell .video-js .vjs-spinner:before,
+.player-shell .video-js .vjs-spinner:after {
+  border-top-color: #e9a83a;
+}
+
+.player-shell .video-js .vjs-mouse-display {
+  background-color: rgba(22, 19, 14, 0.9);
+}
+
+
+.player-shell .video-js .vjs-big-play-button {
+  width: 92px;
+  height: 92px;
+  line-height: 92px;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 46px;
+}
+
+.player-shell .video-js:hover .vjs-big-play-button,
+.player-shell .video-js .vjs-big-play-button:focus {
+  background: #f4c46c;
+  color: var(--accent-ink);
+}
+
+/* ---------- Controls ---------- */
+.player-shell .video-js {
+  font-size: 12px;
+}
+
+.player-shell .video-js .vjs-control-bar {
+  height: 4em;
+  padding: 0 0.6em;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0));
+}
+
+.player-shell .video-js .vjs-button > .vjs-icon-placeholder:before {
+  line-height: 2.2;
+  font-size: 1.9em;
+}
+
+.player-shell .video-js .vjs-time-control {
+  line-height: 4em;
+  font-size: 1.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-shell .video-js .vjs-progress-control .vjs-progress-holder {
+  height: 0.45em;
+  border-radius: 999px;
+}
+
+.player-shell .video-js .vjs-progress-control:hover .vjs-progress-holder {
+  height: 0.7em;
+}
+
+.player-shell .video-js .vjs-play-progress,
+.player-shell .video-js .vjs-load-progress,
+.player-shell .video-js .vjs-load-progress div {
+  border-radius: 999px;
+}
+
+.player-shell .video-js .vjs-play-progress:before {
+  font-size: 1.3em;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+}
+
+.player-shell .video-js .vjs-volume-bar {
+  margin: 1.75em 0.45em;
+}
+
+.player-shell .video-js .vjs-playback-rate .vjs-playback-rate-value {
+  line-height: 3.2;
+  font-size: 1.25em;
+}
+
+@media (max-width: 640px) {
+  .player-shell .video-js {
+    font-size: 11px;
+  }
+
+  /* Phones: keep the bar to what a thumb needs. */
+  .player-shell .video-js .vjs-volume-panel,
+  .player-shell .video-js .vjs-picture-in-picture-control {
+    display: none;
+  }
+}
+
+/* ---------- Hover preview on the progress bar ---------- */
+.tohu-preview {
+  position: absolute;
+  bottom: 3.6em;
+  left: 0;
+  display: none;
+  border: 2px solid #f7f2e7;
+  border-radius: 6px;
+  background-color: #000;
+  background-repeat: no-repeat;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.tohu-preview.show {
+  display: block;
+}
+
+@media (hover: none) {
+  .tohu-preview {
+    display: none !important;
+  }
+}
+
+/* ---------- Double-tap skip feedback ---------- */
+.tohu-skip-flash {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(12, 11, 9, 0.78);
+  color: #f7f2e7;
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.tohu-skip-flash[data-side="left"] {
+  left: 12%;
+}
+
+.tohu-skip-flash[data-side="right"] {
+  right: 12%;
+}
+
+.tohu-skip-flash.show {
+  opacity: 1;
+}
+
+/* ---------- Resume prompt ---------- */
+.resume-prompt {
+  position: absolute;
+  left: 20px;
+  bottom: 76px;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: rgba(12, 11, 9, 0.9);
+  border: 1px solid rgba(242, 238, 227, 0.18);
+  color: #f7f2e7;
+}
+
+.resume-prompt p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.resume-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.resume-prompt .play-btn {
+  border-radius: 999px;
+  min-height: 44px;
+}
+
+.resume-prompt .btn-ghost {
+  min-height: 44px;
+  color: #f7f2e7;
+}
+
+@media (max-width: 640px) {
+  .resume-prompt {
+    left: 10px;
+    right: 10px;
+    bottom: 58px;
+    padding: 10px 12px;
+  }
+}
+
+/* ---------- AirPlay ---------- */
+.airplay-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(242, 238, 227, 0.3);
+  background: rgba(12, 11, 9, 0.7);
+  color: #f7f2e7;
+}
+
+.airplay-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Up Next end screen with cover art ---------- */
+.up-next-poster.is-official {
+  width: auto;
+  height: min(78%, 330px);
+  aspect-ratio: 2 / 3;
+}
+
+.up-next-poster.is-official img {
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .up-next-poster.is-official {
+    width: auto;
+    height: 70%;
   }
 }

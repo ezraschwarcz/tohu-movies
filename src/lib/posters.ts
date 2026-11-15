@@ -1,0 +1,68 @@
+/** Films with official cover art in public/posters/<slug>.jpg (600px
+ *  wide). The poster cards use these; wide placements (the hero,
+ *  Continue watching, the player, share cards) keep using film stills.
+ *
+ *  To add art for a new film: put <slug>.jpg in public/posters and add
+ *  the slug to this list. A film not listed here falls back to a
+ *  hand-picked or automatic still with its title set over it. */
+export const OFFICIAL_POSTERS: ReadonlySet<string> = new Set([
+  "1000-times-good-night",
+  "108-stitches",
+  "a-stranger-in-paradise",
+  "a-true-story",
+  "after-the-ball",
+  "aftermath",
+  "apple-pie",
+  "come-back-to-me",
+  "dance-off",
+  "donner-pass",
+  "falcon-rising",
+  "farmland",
+  "friends-and-romans",
+  "from-the-rough",
+  "funeral-kings",
+  "genius-on-hold",
+  "hating-breitbart",
+  "hayride-2",
+  "hell-and-back",
+  "in-my-sleep",
+  "jake-squared",
+  "jesus-people",
+  "jinn",
+  "karma-calling",
+  "lloyd-the-conqueror",
+  "loving-the-bad-man",
+  "lucky-dog",
+  "missing-william",
+  "monster-mutt",
+  "mourning-son",
+  "norman",
+  "northern-soul",
+  "one-small-hitch",
+  "radio-free-albemuth",
+  "redemption-road",
+  "samsara",
+  "the-a-list",
+  "the-challenger",
+  "the-devils-violinist",
+  "the-girl-in-the-book",
+  "the-house-that-jack-built",
+  "the-lost-medallion",
+  "the-man-in-the-orange-jacket",
+  "the-playroom",
+  "the-sisterhood-of-night",
+  "the-suicide-theory",
+  "three-night-stand",
+  "tiger-eyes",
+  "to-end-all-wars",
+  "tomorrow-when-the-war-began",
+  "toys-in-the-attic",
+  "treasure-guards",
+  "underdogs",
+  "you-may-not-kiss-the-bride",
+  "zombeavers",
+]);
+
+export function officialPosterFor(slug: string): string | null {
+  return OFFICIAL_POSTERS.has(slug) ? `/posters/${slug}.jpg` : null;
+}

@@ -19,6 +19,7 @@ import JsonLd from "@/components/JsonLd";
 import FilmCard from "@/components/FilmCard";
 import FilmPlayerSection from "@/components/FilmPlayerSection";
 import ShareButton from "@/components/ShareButton";
+import { officialPosterFor } from "@/lib/posters";
 import StarRating from "@/components/StarRating";
 import WatchlistButton from "@/components/WatchlistButton";
 
@@ -101,14 +102,18 @@ export default async function FilmPage({
   const isSensitive = film.warnings.includes("988");
 
   const filmGenres = new Set(genresOf(film));
-  const more = films
+  // Related films, same-genre first. The first is the player's Up Next
+  // pick; the first five fill the Up next list beside the details;
+  // the following twelve fill the More films grid.
+  const related = films
     .filter((f) => f.slug !== film.slug)
     .sort((a, b) => {
       const aSame = genresOf(a).some((g) => filmGenres.has(g)) ? 0 : 1;
       const bSame = genresOf(b).some((g) => filmGenres.has(g)) ? 0 : 1;
       return aSame - bSame;
-    })
-    .slice(0, 6);
+    });
+  const upNext = related.slice(0, 5);
+  const more = related.slice(5, 17);
 
   const pageUrl = `${SITE_URL}/films/${film.slug}`;
   const poster = posterUrl(film, 1200);
@@ -164,22 +169,24 @@ export default async function FilmPage({
   };
 
   return (
-    <div className="wrap film-page">
+    <>
       <JsonLd data={filmJsonLd} />
-      <Link href="/" className="back-link">
-        ← Back to films
-      </Link>
-
-      <div className="player-section">
-        {isSensitive ? (
-          <div className="sensitive" role="note">
-            <strong>Sensitive content warning: </strong>
-            {film.warnings}
-          </div>
-        ) : null}
-        <FilmPlayerSection film={film} nextFilm={more[0] ?? null} />
+      {/* The player sits on a full-width black stage, edge to edge,
+          sized so the whole picture fits the screen height. */}
+      <div className="film-stage">
+        <div className="film-stage-in">
+          {isSensitive ? (
+            <div className="sensitive" role="note">
+              <strong>Sensitive content warning: </strong>
+              {film.warnings}
+            </div>
+          ) : null}
+          <FilmPlayerSection film={film} nextFilm={upNext[0] ?? null} />
+        </div>
       </div>
 
+      <div className="wrap film-page">
+      <div className="film-columns">
       <div className="film-details">
         <h1>{film.title}</h1>
         <p className="meta-row">
@@ -222,6 +229,40 @@ export default async function FilmPage({
         )}
       </div>
 
+      {upNext.length > 0 ? (
+        <aside className="next-list" aria-label="Up next">
+          <h2>Up next</h2>
+          <ul>
+            {upNext.map((f) => {
+              const art = officialPosterFor(f.slug);
+              return (
+                <li key={f.slug}>
+                  <Link href={`/films/${f.slug}`} className="next-item">
+                    <span className={`next-thumb${art ? " is-official" : ""}`}>
+                      <img
+                        src={art ?? posterUrl(f, 320)}
+                        alt=""
+                        width={art ? 96 : 160}
+                        height={art ? 144 : 90}
+                        loading="lazy"
+                      />
+                    </span>
+                    <span className="next-text">
+                      <span className="next-title">{f.title}</span>
+                      <span className="next-meta">
+                        {f.year} · {f.rating} · {formatRuntime(f.runtime_minutes)}
+                      </span>
+                      <span className="next-meta">{genresOf(f).join(", ")}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </aside>
+      ) : null}
+      </div>
+
       <CommentsSection
         filmSlug={film.slug}
         initialThreads={commentThreads.threads}
@@ -240,6 +281,7 @@ export default async function FilmPage({
           </div>
         </section>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }
