@@ -22,11 +22,14 @@ function Rail({
   title,
   films,
   ratings,
+  ranked = false,
 }: {
   id?: string;
   title: string;
   films: Film[];
   ratings: RatingsRecord;
+  /** Draw 1, 2, 3… numerals on the posters (Top 10 row). */
+  ranked?: boolean;
 }) {
   if (films.length === 0) return null;
   return (
@@ -35,9 +38,13 @@ function Rail({
         <h2>{title}</h2>
       </div>
       <div className="discovery-rail">
-        {films.map((film) => (
+        {films.map((film, i) => (
           <div className="discovery-item" key={film.slug}>
-            <FilmCard film={film} rating={ratings[film.slug] ?? null} />
+            <FilmCard
+              film={film}
+              rating={ratings[film.slug] ?? null}
+              rank={ranked ? i + 1 : undefined}
+            />
           </div>
         ))}
       </div>
@@ -152,7 +159,12 @@ export default function DiscoveryRows({
           Not sure? We will pick a film for you.
         </span>
       </div>
-      <Rail title="Trending on Tohu" films={trending} ratings={ratings} />
+      <Rail
+        title={`Top ${trending.length} on Tohu`}
+        films={trending}
+        ratings={ratings}
+        ranked
+      />
       <Rail
         id="new-on-tohu"
         title="New on Tohu"

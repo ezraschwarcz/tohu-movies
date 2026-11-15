@@ -3409,3 +3409,332 @@ footer .foot-copy {
   gap: 16px;
   margin-bottom: 20px;
 }
+
+/* ==========================================================
+ * Redesign v2 (November 2026)
+ * Dark-first, full-bleed hero, portrait poster cards, Top 10
+ * numerals, amber round play button. This block comes last and
+ * overrides the earlier rules; delete it to return to the
+ * previous look.
+ * ========================================================== */
+
+/* ---------- v2: dark-first palette ---------- */
+:root {
+  --bg: #0c0b09;
+  --bg2: #121110;
+  --panel: #171512;
+  --panel2: #221f1a;
+  --ink: #f2eee3;
+  --ink2: #b3ab99;
+  --line: #2e2b25;
+  --accent: #e9a83a;
+  --accent-ink: #1a1405;
+  --chip: #221f1a;
+  --chip-ink: #d3cbb8;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+/* ---------- v2: full-bleed hero ---------- */
+/* Desktop and tablet only: phones keep the portrait hero card. */
+@media (min-width: 641px) {
+  .hero {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: clamp(460px, 68vh, 680px);
+    background: var(--bg);
+  }
+
+  .hero img.bg {
+    object-position: 50% 25%;
+  }
+
+  .hero .shade {
+    background:
+      linear-gradient(to top, var(--bg) 0%, rgba(12, 11, 9, 0.6) 22%, rgba(12, 11, 9, 0) 50%),
+      linear-gradient(to right, rgba(12, 11, 9, 0.92) 0%, rgba(12, 11, 9, 0.62) 38%, rgba(12, 11, 9, 0.08) 72%);
+  }
+
+  .hero-in {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 48px max(20px, calc((100vw - 1240px) / 2 + 20px)) 64px;
+  }
+
+  .hero-in > * {
+    max-width: 600px;
+  }
+
+  .hero h1 {
+    font-size: clamp(44px, 7.4vw, 92px);
+    font-weight: 700;
+  }
+
+  .hero-nav.prev,
+  .hero-nav.next {
+    bottom: 56px;
+  }
+
+  .hero-nav.next {
+    right: max(20px, calc((100vw - 1240px) / 2 + 20px));
+  }
+
+  .hero-nav.prev {
+    right: calc(max(20px, calc((100vw - 1240px) / 2 + 20px)) + 54px);
+  }
+
+  .hero-dots {
+    left: max(20px, calc((100vw - 1240px) / 2 + 20px));
+    right: auto;
+    bottom: 30px;
+  }
+
+  .hero-count {
+    display: none;
+  }
+}
+
+.hero .play-btn,
+.discovery-head .play-btn {
+  border-radius: 999px;
+}
+
+/* ---------- v2: portrait poster cards ---------- */
+.grid {
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 28px 18px;
+}
+
+.discovery-rail {
+  grid-auto-columns: 176px;
+  gap: 18px;
+}
+
+.poster-wrap {
+  position: relative;
+}
+
+.poster {
+  display: block;
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid rgba(242, 238, 227, 0.08);
+  text-decoration: none;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.poster-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(12, 11, 9, 0.94) 0%,
+    rgba(12, 11, 9, 0.5) 34%,
+    rgba(12, 11, 9, 0) 62%
+  );
+}
+
+.poster-title {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  color: #f7f2e7;
+  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.04;
+  text-wrap: balance;
+  /* Never split a word across lines; sizes below keep the longest
+   * word inside the poster. */
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.poster-title.size-lg {
+  font-size: 26px;
+}
+
+.poster-title.size-md {
+  font-size: 21px;
+}
+
+.poster-title.size-sm {
+  font-size: 16.5px;
+}
+
+.poster-rank {
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  color: var(--accent);
+  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 58px;
+  line-height: 1;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+}
+
+.poster .play-ic {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 7, 5, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.card:hover .poster,
+.poster:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+}
+
+.card:hover .poster .play-ic,
+.poster:focus-visible .play-ic {
+  opacity: 1;
+}
+
+/* Watchlist button: a small pill on the poster's top right corner. */
+.poster-wrap .watchlist-btn.compact {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+  min-height: 32px;
+  padding: 0 11px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: rgba(12, 11, 9, 0.82);
+  color: #f7f2e7;
+  border: 1px solid rgba(242, 238, 227, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.25s ease;
+}
+
+.card:hover .poster-wrap .watchlist-btn.compact,
+.poster-wrap .watchlist-btn.compact:focus-visible,
+.poster-wrap .watchlist-btn.compact.saved {
+  opacity: 1;
+}
+
+.card:hover .poster-wrap .watchlist-btn.compact {
+  transform: translateY(-4px);
+}
+
+.poster-wrap .watchlist-btn.compact.saved {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+@media (hover: none) {
+  .poster-wrap .watchlist-btn.compact {
+    opacity: 1;
+  }
+}
+
+.card h3 {
+  font-size: 14.5px;
+  font-weight: 700;
+  margin: 10px 0 2px;
+}
+
+.card .m,
+.card .g {
+  font-size: 12.5px;
+}
+
+.card-score {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ---------- v2: player ---------- */
+.video-js .vjs-big-play-button {
+  width: 92px;
+  height: 92px;
+  line-height: 92px;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 46px;
+}
+
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+  background: #f4c46c;
+  color: var(--accent-ink);
+}
+
+/* ---------- v2: mobile ---------- */
+@media (max-width: 640px) {
+  /* The hero now sits outside .wrap, so it carries its own side
+   * margins to stay a rounded card on phones. */
+  .hero {
+    width: auto;
+    margin: 14px max(20px, env(safe-area-inset-right)) 0
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 12px;
+  }
+
+  .discovery-rail {
+    grid-auto-columns: 136px;
+    gap: 12px;
+  }
+
+  .poster-title.size-lg {
+    font-size: 21px;
+  }
+
+  .poster-title.size-md {
+    font-size: 16px;
+  }
+
+  .poster-title.size-sm {
+    font-size: 13.5px;
+  }
+
+  .poster-rank {
+    font-size: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poster,
+  .poster-wrap .watchlist-btn.compact {
+    transition: none;
+  }
+
+  .card:hover .poster,
+  .card:hover .poster-wrap .watchlist-btn.compact {
+    transform: none;
+  }
+}

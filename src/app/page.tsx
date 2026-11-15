@@ -52,13 +52,15 @@ export default async function HomePage() {
     getViewCounts(),
   ]);
   return (
-    <div className="wrap">
+    <>
       <JsonLd data={SITE_JSON_LD} />
       <Hero films={films} />
+      <div className="wrap">
       <HomePrompts films={films} />
       <ContinueWatching />
       <DiscoveryRows films={films} ratings={ratings} views={views} />
       <FilmGrid films={films} ratings={ratings} />
-    </div>
+      </div>
+    </>
   );
 }

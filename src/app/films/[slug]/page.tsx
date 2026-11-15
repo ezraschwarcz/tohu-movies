@@ -49,7 +49,6 @@ export async function generateMetadata({
   if (!film) {
     return { title: "Film not found" };
   }
-  const poster = posterUrl(film, 1200);
   const description =
     film.synopsis.length > 200
       ? `${film.synopsis.slice(0, 197)}…`
@@ -64,20 +63,11 @@ export async function generateMetadata({
       url: `${SITE_URL}/films/${film.slug}`,
       title: `${title} | Tohu Movies`,
       description,
-      images: [
-        {
-          url: poster,
-          width: 1200,
-          height: 675,
-          alt: `Still from ${film.title}`,
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} | Tohu Movies`,
       description,
-      images: [poster],
     },
   };
 }
