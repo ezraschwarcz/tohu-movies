@@ -66,3 +66,46 @@ export const OFFICIAL_POSTERS: ReadonlySet<string> = new Set([
 export function officialPosterFor(slug: string): string | null {
   return OFFICIAL_POSTERS.has(slug) ? `/posters/${slug}.jpg` : null;
 }
+
+/** Where each poster's title sits, for the phone banner. On most
+ *  phones the banner cannot show a whole poster and still fit the
+ *  screen, so it trims one end: this says which end to keep.
+ *  0 keeps the top, 50 the middle, 100 the bottom. Posters not listed
+ *  keep the top, where most titles and faces are. Set from a review
+ *  of all 55 posters on November 15, 2026. */
+const POSTER_FOCUS_Y: Record<string, number> = {
+  "108-stitches": 60,
+  "a-stranger-in-paradise": 100,
+  "a-true-story": 100,
+  "aftermath": 100,
+  "apple-pie": 100,
+  "come-back-to-me": 100,
+  "dance-off": 50,
+  "from-the-rough": 50,
+  "genius-on-hold": 100,
+  "hating-breitbart": 100,
+  "hayride-2": 50,
+  "jake-squared": 100,
+  "lloyd-the-conqueror": 100,
+  "mourning-son": 100,
+  "radio-free-albemuth": 100,
+  "redemption-road": 100,
+  "samsara": 100,
+  "the-devils-violinist": 100,
+  "the-girl-in-the-book": 60,
+  "the-house-that-jack-built": 100,
+  "the-lost-medallion": 100,
+  "the-man-in-the-orange-jacket": 60,
+  "the-playroom": 100,
+  "the-sisterhood-of-night": 50,
+  "tiger-eyes": 100,
+  "to-end-all-wars": 60,
+  "tomorrow-when-the-war-began": 100,
+  "toys-in-the-attic": 100,
+  "treasure-guards": 100,
+  "zombeavers": 100,
+};
+
+export function posterFocusY(slug: string): number {
+  return POSTER_FOCUS_Y[slug] ?? 0;
+}

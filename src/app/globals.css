@@ -4912,3 +4912,28 @@ footer .foot-copy {
     width: 20px;
   }
 }
+
+/* ---------- Hero on phones: edge to edge, no blur ----------
+ * The art always fills the card from edge to edge. When the screen is
+ * too short to show a whole poster, one end is trimmed, and each film
+ * keeps the end its title is on (--art-y, set per film in
+ * lib/posters.ts), so the title is never the part that goes. */
+@media (max-width: 640px) {
+  .hero.has-art .hero-art {
+    height: min(calc((100vw - 34px) * 1.5), calc(100vh - 300px));
+    height: min(calc((100vw - 34px) * 1.5), calc(100svh - 300px));
+  }
+
+  .hero.has-art .hero-art::before {
+    content: none;
+  }
+
+  .hero.has-art img.bg {
+    object-fit: cover;
+    object-position: 50% var(--art-y, 0%);
+  }
+}
+
+.player-video {
+  position: relative;
+}

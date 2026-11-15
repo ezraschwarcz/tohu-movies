@@ -9,7 +9,7 @@ import {
 } from "react";
 import { formatRuntime, posterUrl } from "@/lib/films";
 import { posterZoomFor } from "@/lib/posterZoom";
-import { officialPosterFor } from "@/lib/posters";
+import { officialPosterFor, posterFocusY } from "@/lib/posters";
 import type { Film } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
 
@@ -161,7 +161,11 @@ export default function Hero({ films }: { films: Film[] }) {
     <section
       className={`hero${fading ? " fading" : ""}${art ? " has-art" : ""}`}
       id="hero"
-      style={art ? ({ "--art": `url("${art}")` } as React.CSSProperties) : undefined}
+      style={
+        art
+          ? ({ "--art-y": `${posterFocusY(film.slug)}%` } as React.CSSProperties)
+          : undefined
+      }
       aria-roledescription="carousel"
       aria-label="Featured films"
       onFocusCapture={(e) => {

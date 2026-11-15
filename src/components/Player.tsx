@@ -847,27 +847,35 @@ export default function Player({
         </div>
       ) : null}
       {modal}
-      <video
-        ref={videoRef}
-        className="video-js vjs-big-play-centered"
-        controls
-        playsInline
-        crossOrigin="anonymous"
-        poster={posterUrl(film, 1280)}
-        preload="metadata"
-        data-testid="tohu-player"
-      >
-        {/* No <source> child here, deliberately. The source is set only
-            through the `sources` option in the videojs() call, so it is
-            always routed through VHS (videojs-http-streaming). A <source>
-            child lets the browser start loading the HLS stream natively
-            before video.js initializes, and the player then adopts that
-            native source instead of VHS — VHS never runs, so it never
-            creates the subtitle TextTrack from the manifest's SUBTITLES
-            group and the captions button never appears. (Reproduced and
-            fixed Nov 11, 2026.) If video.js fails to load, the poster
-            still shows. */}
-      </video>
+      {/* The video lives in its own wrapper. The player library moves
+          the <video> element into a container it builds, so React
+          must never place anything "before the video": that node is
+          no longer where React left it, and the browser refuses the
+          insert ("The object can not be found here"). The overlays
+          above are siblings of this wrapper, which never moves. */}
+      <div className="player-video">
+        <video
+          ref={videoRef}
+          className="video-js vjs-big-play-centered"
+          controls
+          playsInline
+          crossOrigin="anonymous"
+          poster={posterUrl(film, 1280)}
+          preload="metadata"
+          data-testid="tohu-player"
+        >
+          {/* No <source> child here, deliberately. The source is set only
+              through the `sources` option in the videojs() call, so it is
+              always routed through VHS (videojs-http-streaming). A <source>
+              child lets the browser start loading the HLS stream natively
+              before video.js initializes, and the player then adopts that
+              native source instead of VHS — VHS never runs, so it never
+              creates the subtitle TextTrack from the manifest's SUBTITLES
+              group and the captions button never appears. (Reproduced and
+              fixed Nov 11, 2026.) If video.js fails to load, the poster
+              still shows. */}
+        </video>
+      </div>
     </div>
   );
 }
