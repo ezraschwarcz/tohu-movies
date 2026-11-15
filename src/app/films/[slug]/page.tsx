@@ -2,17 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  durationSeconds,
   formatRuntime,
   genresOf,
   getFilmBySlug,
   getFilms,
   getRatings,
+  muxStreamUrl,
   posterUrl,
 } from "@/lib/films";
 import { SITE_URL } from "@/lib/site";
 import { getCommentThreads } from "@/lib/comments";
 import { getServerAuth } from "@/lib/supabase/server";
 import CommentsSection from "@/components/CommentsSection";
+import JsonLd from "@/components/JsonLd";
 import FilmCard from "@/components/FilmCard";
 import FilmPlayerSection from "@/components/FilmPlayerSection";
 import ShareButton from "@/components/ShareButton";
@@ -55,6 +58,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `/films/${film.slug}` },
     openGraph: {
       type: "video.movie",
       url: `${SITE_URL}/films/${film.slug}`,
@@ -116,8 +120,62 @@ export default async function FilmPage({
     })
     .slice(0, 6);
 
+  const pageUrl = `${SITE_URL}/films/${film.slug}`;
+  const poster = posterUrl(film, 1200);
+  const isoDuration = `PT${Math.floor(film.runtime_minutes / 60)}H${film.runtime_minutes % 60}M`;
+  const people = (list: string) =>
+    list
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean)
+      .map((name) => ({ "@type": "Person", name }));
+  const filmJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Movie",
+        "@id": `${pageUrl}#movie`,
+        name: film.title,
+        url: pageUrl,
+        description: film.synopsis,
+        image: poster,
+        datePublished: String(film.year),
+        duration: isoDuration,
+        contentRating: film.rating,
+        genre: film.genre.split(",").map((g) => g.trim()).filter(Boolean),
+        director: people(film.director),
+        actor: people(film.cast_text),
+        ...(rating && rating.count > 0
+          ? {
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: Number(rating.average.toFixed(1)),
+                ratingCount: rating.count,
+                bestRating: 5,
+                worstRating: 1,
+              },
+            }
+          : {}),
+      },
+      {
+        "@type": "VideoObject",
+        "@id": `${pageUrl}#video`,
+        name: `${film.title} (${film.year})`,
+        description: film.synopsis,
+        thumbnailUrl: [poster],
+        uploadDate: film.created_at,
+        duration: `PT${durationSeconds(film)}S`,
+        contentUrl: muxStreamUrl(film.playback_id),
+        embedUrl: pageUrl,
+        isFamilyFriendly: film.rating !== "R",
+        about: { "@id": `${pageUrl}#movie` },
+      },
+    ],
+  };
+
   return (
     <div className="wrap film-page">
+      <JsonLd data={filmJsonLd} />
       <Link href="/" className="back-link">
         ← Back to films
       </Link>

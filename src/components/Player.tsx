@@ -88,6 +88,7 @@ function forceEnglishCC(player: VideoJsPlayer) {
 }
 
 const UP_NEXT_SECONDS = 15;
+const VIEW_AFTER_SECONDS = 30;
 
 export default function Player({
   film,
@@ -158,6 +159,42 @@ export default function Player({
     let cancelled = false;
     let player: VideoJsPlayer | null = null;
     let lastSavedAt = 0;
+    let watchedSeconds = 0;
+    let lastTick = -1;
+    let viewRecorded = false;
+
+    /** Count one view after 30 seconds of actual playback (seeking
+     *  does not count), at most once per film per browser session,
+     *  for any viewer. Stores no personal data beyond the signed-in
+     *  user id the database attaches itself. Best effort: if the
+     *  view tracking migration has not run, the call fails quietly. */
+    function trackView() {
+      if (viewRecorded || !player || cancelled) return;
+      let current = 0;
+      try {
+        current = player.currentTime() ?? 0;
+      } catch {
+        return;
+      }
+      const delta = current - lastTick;
+      if (lastTick >= 0 && delta > 0 && delta < 2) watchedSeconds += delta;
+      lastTick = current;
+      if (watchedSeconds < VIEW_AFTER_SECONDS) return;
+      viewRecorded = true;
+      const key = `tohu-viewed-${film.slug}`;
+      try {
+        if (window.sessionStorage.getItem(key)) return;
+        window.sessionStorage.setItem(key, "1");
+      } catch {
+        // storage unavailable; still record once for this mount
+      }
+      void getBrowserSupabase()
+        .rpc("record_film_view", { p_slug: film.slug })
+        .then(
+          () => {},
+          () => {},
+        );
+    }
 
     /** Save the playback position for signed-in users only, throttled
      *  to at most once every 15 seconds (plus a forced save on pause).
@@ -276,6 +313,7 @@ export default function Player({
       // removes it from Continue watching.
       void resumeFromSaved(created);
       created.on("timeupdate", () => void savePosition(false));
+      created.on("timeupdate", trackView);
       created.on("pause", () => void savePosition(true));
       created.on("ended", () => {
         // Up Next end screen (any viewer, signed in or not).

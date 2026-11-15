@@ -76,6 +76,31 @@ export const getRatings = unstable_cache(
   { revalidate: REVALIDATE_SECONDS, tags: ["ratings"] },
 );
 
+/** Film slug -> views in the last 30 days, from the film_view_counts
+ *  database function (see supabase/migrations). Tolerant by design: if
+ *  the migration has not run yet, or the call fails, this returns an
+ *  empty record and the Trending row falls back to rating activity. */
+export const getViewCounts = unstable_cache(
+  async (): Promise<Record<string, number>> => {
+    try {
+      const supabase = createSupabaseClient();
+      const { data, error } = await supabase.rpc("film_view_counts", {
+        p_days: 30,
+      });
+      if (error || !Array.isArray(data)) return {};
+      const out: Record<string, number> = {};
+      for (const row of data as { film_slug: string; views: number }[]) {
+        out[row.film_slug] = Number(row.views) || 0;
+      }
+      return out;
+    } catch {
+      return {};
+    }
+  },
+  ["tohu-view-counts"],
+  { revalidate: 300, tags: ["views"] },
+);
+
 /** Mux HLS stream for a film. */
 export function muxStreamUrl(playbackId: string): string {
   return `https://stream.mux.com/${playbackId}.m3u8`;

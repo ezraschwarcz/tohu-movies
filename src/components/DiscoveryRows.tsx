@@ -48,9 +48,13 @@ function Rail({
 export default function DiscoveryRows({
   films,
   ratings,
+  views = {},
 }: {
   films: Film[];
   ratings: RatingsRecord;
+  /** Film slug -> views in the last 30 days. Empty until the view
+   *  tracking migration has run and films have been watched. */
+  views?: Record<string, number>;
 }) {
   const { query, hideRRated } = useSiteSearch();
   const { user } = useAuth();
@@ -62,19 +66,30 @@ export default function DiscoveryRows({
     [films, hideRRated],
   );
 
-  const trending = useMemo(
-    () =>
-      base
-        .filter((f) => (ratings[f.slug]?.count ?? 0) >= 1)
+  // Trending: real views (last 30 days) once view tracking has data;
+  // until then, rating activity, as before. Never invented numbers.
+  const trending = useMemo(() => {
+    const hasViews = base.some((f) => (views[f.slug] ?? 0) > 0);
+    if (hasViews) {
+      return base
+        .filter((f) => (views[f.slug] ?? 0) > 0)
         .sort((a, b) => {
-          const ra = ratings[a.slug]!;
-          const rb = ratings[b.slug]!;
-          if (rb.count !== ra.count) return rb.count - ra.count;
-          return rb.average - ra.average;
+          const dv = (views[b.slug] ?? 0) - (views[a.slug] ?? 0);
+          if (dv !== 0) return dv;
+          return (ratings[b.slug]?.count ?? 0) - (ratings[a.slug]?.count ?? 0);
         })
-        .slice(0, 10),
-    [base, ratings],
-  );
+        .slice(0, 10);
+    }
+    return base
+      .filter((f) => (ratings[f.slug]?.count ?? 0) >= 1)
+      .sort((a, b) => {
+        const ra = ratings[a.slug]!;
+        const rb = ratings[b.slug]!;
+        if (rb.count !== ra.count) return rb.count - ra.count;
+        return rb.average - ra.average;
+      })
+      .slice(0, 10);
+  }, [base, ratings, views]);
 
   const newest = useMemo(() => [...base].reverse().slice(0, 8), [base]);
 

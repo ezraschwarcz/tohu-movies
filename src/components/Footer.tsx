@@ -9,7 +9,7 @@ export default function Footer() {
       </p>
       <p className="foot-promo">{FOOTER_PROMO}</p>
       <p className="foot-copy">
-        &copy; 2027 Tohu Movies. All rights reserved. &middot; tohumovies.com
+        &copy; {new Date().getFullYear()} Tohu Movies. All rights reserved. &middot; tohumovies.com
       </p>
       <nav className="foot-links" aria-label="Legal">
         <Link href="/privacy">Privacy Policy</Link>
