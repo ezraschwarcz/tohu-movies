@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
   // on demand) is not available when Cache Components is on. See the
   // Next.js docs in node_modules/next/dist/docs (caching-without-cache-
   // components) and the revalidate exports on the pages.
+
+  // The share card reads its fonts from disk; make sure they ship with
+  // the route so a card for a newly added film can be drawn on demand.
+  outputFileTracingIncludes: {
+    "/films/[slug]/card.png": ["./assets/fonts/*"],
+  },
 };
 
 export default nextConfig;
