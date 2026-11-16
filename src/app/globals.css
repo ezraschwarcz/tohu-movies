@@ -5183,3 +5183,9 @@ footer .foot-copy {
     width: auto;
   }
 }
+
+.admin-section {
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
