@@ -6621,17 +6621,16 @@ div.cr-tile {
   row-gap: 6px;
 }
 
-/* Footer links on phones: two tidy columns instead of a wrapped row
- * with stray dots at the line ends. */
+/* Footer links on phones: a plain centered row that wraps, evenly
+ * spaced, with no dots (they strand at the line ends). */
 @media (max-width: 640px) {
   .foot-links {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2px 12px;
-    max-width: 340px;
-    margin: 18px auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 22px;
+    margin-top: 16px;
     font-size: 14px;
-    text-align: center;
   }
 
   .foot-links .sep {
@@ -6639,16 +6638,10 @@ div.cr-tile {
   }
 
   .foot-links a {
-    padding: 9px 4px;
-  }
-
-  .foot-links a:last-of-type:nth-of-type(odd) {
-    grid-column: 1 / -1;
+    padding: 7px 0;
   }
 
   .foot-links + .foot-links {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--line);
+    margin-top: 4px;
   }
 }
