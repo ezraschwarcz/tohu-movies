@@ -115,13 +115,6 @@ export function muxStillUrl(
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?width=${width}&time=${timeSeconds}`;
 }
 
-/** Portrait (2:3) poster crop of a film's still. Mux picks the crop
- *  around the subject (fit_mode=smartcrop), so faces stay in frame. */
-export function portraitPosterUrl(film: Film, width = 480): string {
-  const height = Math.round(width * 1.5);
-  return `https://image.mux.com/${film.playback_id}/thumbnail.jpg?width=${width}&height=${height}&fit_mode=smartcrop&time=${thumbTimeFor(film.slug)}`;
-}
-
 export function posterUrl(film: Film, width = 800): string {
   return muxStillUrl(film.playback_id, thumbTimeFor(film.slug), width);
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TabBar from "@/components/TabBar";
+import EmailOptInPrompt from "@/components/EmailOptInPrompt";
 import { AuthProvider } from "@/components/AuthProvider";
 import { SiteProvider } from "@/components/SiteProvider";
 import { ADSENSE_CLIENT, SITE_NAME, SITE_URL, TAGLINE } from "@/lib/site";
@@ -89,6 +90,7 @@ export default function RootLayout({
             <main className="page">{children}</main>
             <Footer />
             <TabBar />
+            <EmailOptInPrompt />
           </AuthProvider>
         </SiteProvider>
       </body>

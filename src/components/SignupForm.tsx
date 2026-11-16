@@ -35,6 +35,9 @@ export default function SignupForm({ next }: { next: string }) {
   /** Optional avatar preset picked at sign-up; rides in the sign-up
    *  metadata and the database trigger copies it onto the profile. */
   const [avatarPreset, setAvatarPreset] = useState<string | null>(null);
+  /** Optional emails: unticked by default, the member opts in. */
+  const [wantFridayPick, setWantFridayPick] = useState(false);
+  const [wantNewFilms, setWantNewFilms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
@@ -73,6 +76,11 @@ export default function SignupForm({ next }: { next: string }) {
             display_name: name,
             password_set: true,
             ...(avatarPreset ? { avatar_preset: avatarPreset } : {}),
+            // Seeds the member's email settings on first sign-in.
+            email_optin: {
+              friday_pick: wantFridayPick,
+              new_films: wantNewFilms,
+            },
           },
           emailRedirectTo: callbackUrl(),
         },
@@ -229,6 +237,35 @@ export default function SignupForm({ next }: { next: string }) {
               autoComplete="new-password"
             />
           </label>
+          <fieldset className="optin">
+            <legend>Emails from Tohu (optional)</legend>
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={wantFridayPick}
+                onChange={(e) => setWantFridayPick(e.target.checked)}
+              />
+              <span>
+                The Friday Pick
+                <span className="toggle-hint">
+                  One handpicked film every Friday.
+                </span>
+              </span>
+            </label>
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={wantNewFilms}
+                onChange={(e) => setWantNewFilms(e.target.checked)}
+              />
+              <span>
+                New film alerts
+                <span className="toggle-hint">
+                  A note when films are added.
+                </span>
+              </span>
+            </label>
+          </fieldset>
           {error ? (
             <p className="form-error" role="alert">
               {error}
