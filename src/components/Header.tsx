@@ -284,6 +284,9 @@ export default function Header() {
           <Link className="nav-link" href="/#now-streaming">
             Movies
           </Link>
+          <Link className="nav-link" href="/browse">
+            Browse
+          </Link>
           {user ? (
             <Link className="nav-link" href="/watchlist">
               My watchlist
