@@ -82,7 +82,12 @@ export default function StarRating({
 
   // Own rating is per-browser; read it on mount (client only).
   useEffect(() => {
-    setOwn(readOwnRatings()[filmSlug] ?? null);
+    const read = () => setOwn(readOwnRatings()[filmSlug] ?? null);
+    read();
+    // A signed-in member's ratings arrive from their account shortly
+    // after the page loads (see lib/ratingsSync).
+    window.addEventListener("tohu-ratings-synced", read);
+    return () => window.removeEventListener("tohu-ratings-synced", read);
   }, [filmSlug]);
 
   const rate = useCallback(

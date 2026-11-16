@@ -44,8 +44,11 @@ export default function PrivacyPage() {
         <li>
           <strong>Film ratings.</strong> When you tap a star, your rating is
           stored in our database along with a random anonymous identifier
-          generated in your browser. Ratings are not connected to an
-          account, and we cannot link a rating to you.
+          generated in your browser. If you are signed in, the rating
+          is also stored with your account, so your ratings follow you
+          between devices and appear on your profile, where only you
+          can see them. If you are not signed in, we cannot link a
+          rating to you.
         </li>
         <li>
           <strong>Account information (optional).</strong> You never need
@@ -68,10 +71,12 @@ export default function PrivacyPage() {
           you give to comments are stored with your account.
         </li>
         <li>
-          <strong>Watchlist and viewing progress.</strong> If you are
-          signed in, we store the films you save to your watchlist and how
-          far you have watched a film, so you can pick up where you left
-          off on any device. Only you can see these.
+          <strong>Watchlist and viewing history.</strong> If you are
+          signed in, we store the films you save to your watchlist, which
+          films you have watched and how far you got, so you can pick up
+          where you left off on any device and see your history on your
+          profile. Only you can see these, and you can remove any film
+          or clear your whole history from your profile.
         </li>
         <li>
           <strong>Email choices.</strong> We store which optional emails

@@ -1,5 +1,6 @@
 "use client";
 
+import { syncAccountRatings } from "@/lib/ratingsSync";
 import { readProfile } from "@/lib/profileRead";
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import {
@@ -137,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         await loadProfile(session.user.id);
         requestWelcomeEmail(session.user.id);
+        void syncAccountRatings(supabase, session.user.id);
       }
       if (!cancelled) setLoading(false);
     }
@@ -149,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         if (session?.user) {
           await loadProfile(session.user.id);
+          void syncAccountRatings(supabase, session.user.id);
         } else {
           setProfile(null);
         }
