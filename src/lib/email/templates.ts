@@ -4,6 +4,11 @@ import { SITE_URL } from "../site";
  *  card, logo, one amber button. Tables and inline styles only, since
  *  that is what email apps render reliably. */
 
+/** Postal address shown at the foot of every email (required by law
+ *  for marketing email, and good practice for the rest). */
+export const POSTAL_ADDRESS =
+  "Tohu Entertainment, LLC &middot; 9854 National Blvd. #302 &middot; Los Angeles, CA 90034";
+
 function esc(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -41,7 +46,7 @@ function layout(options: {
 ${options.body}
 </td></tr>
 <tr><td style="padding:20px 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#8d8676;">
-${options.footer}
+${options.footer}<br>${POSTAL_ADDRESS}
 </td></tr>
 </table>
 </td></tr>

@@ -16,6 +16,7 @@ import {
   safeNext,
 } from "@/lib/onboarding";
 import { firstTouch } from "@/lib/attribution";
+import GoogleButton, { GOOGLE_CLIENT_ID } from "./GoogleButton";
 import { trackSignupEvent } from "@/lib/track";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/site";
 
@@ -78,6 +79,9 @@ export default function AuthFlow({
   const [passkeySupported, setPasskeySupported] = useState(false);
   const [googleOn, setGoogleOn] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  // Google's on-page button (names Tohu, never leaves the site) when
+  // the client ID is configured; the redirect button otherwise.
+  const [googleOnPage, setGoogleOnPage] = useState(GOOGLE_CLIENT_ID !== "");
   const [resendIn, setResendIn] = useState(0);
   const [message, setMessage] = useState<string | null>(
     urlMessage === "password-reset"
@@ -354,6 +358,17 @@ export default function AuthFlow({
           </p>
           {googleOn ? (
             <>
+              {googleOnPage ? (
+                <GoogleButton
+                  onStart={() => {
+                    setError(null);
+                    trackSignupEvent("google_started");
+                  }}
+                  onSignedIn={(user) => finish(user)}
+                  onError={(m) => setError(m)}
+                  onUnavailable={() => setGoogleOnPage(false)}
+                />
+              ) : (
               <button
                 type="button"
                 className="btn-google"
@@ -368,6 +383,7 @@ export default function AuthFlow({
                 </svg>
                 {googleBusy ? "Opening Google…" : "Continue with Google"}
               </button>
+              )}
               <div className="auth-divider" role="separator">
                 <span>or</span>
               </div>

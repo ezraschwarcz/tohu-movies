@@ -1,13 +1,26 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { formatRuntime, genresOf, getFilmBySlug, posterUrl } from "@/lib/films";
 
 /** The share card for a film link (iMessage, WhatsApp, Facebook, X,
  *  Slack, Discord…): the film's still, darkened, with the title, the
- *  key facts, and "Watch free on Tohu Movies". 1200x630 is the size
- *  every major app expects. If the still cannot be fetched, the card
+ *  key facts, and "Watch free", in the site's own typefaces and logo.
+ *  1200x630 is the size every major app expects. The bottom strip is
+ *  left clear because X lays the page title over that corner. If the still cannot be fetched, the card
  *  still renders on a plain dark background, so a share never shows
  *  a broken image. */
 const size = { width: 1200, height: 630 };
+
+const LOGO =
+  "data:image/svg+xml;base64," +
+  Buffer.from(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#16130e"/><g fill="none" stroke="#e9a83a" stroke-width="10"><path d="M9 16h46"/><path d="M14 16v36M50 16v36M32 16v36"/><path d="M14 25l18 18 18-18"/></g></svg>',
+  ).toString("base64");
+
+function font(file: string): Promise<Buffer> {
+  return readFile(join(process.cwd(), "assets/fonts", file));
+}
 
 async function stillAsDataUrl(url: string): Promise<string | null> {
   try {
@@ -21,18 +34,23 @@ async function stillAsDataUrl(url: string): Promise<string | null> {
 }
 
 export async function renderShareCard(slug: string): Promise<ImageResponse> {
-  const film = await getFilmBySlug(slug);
+  const [film, narrowBold, medium, bold] = await Promise.all([
+    getFilmBySlug(slug),
+    font("archivo-narrow-latin-700-normal.woff"),
+    font("archivo-latin-500-normal.woff"),
+    font("archivo-latin-700-normal.woff"),
+  ]);
   const title = film?.title ?? "Tohu Movies";
   const facts = film
     ? [
         String(film.year),
         formatRuntime(film.runtime_minutes),
         film.rating,
-        genresOf(film).join(", "),
+        genresOf(film).slice(0, 3).join(", "),
       ].filter(Boolean)
     : ["Free independent movies"];
   const still = film ? await stillAsDataUrl(posterUrl(film, 960)) : null;
-  const titleSize = title.length > 28 ? 76 : title.length > 16 ? 96 : 124;
+  const titleSize = title.length > 26 ? 84 : title.length > 15 ? 108 : 140;
 
   return new ImageResponse(
     (
@@ -43,8 +61,8 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
           display: "flex",
           position: "relative",
           background: "#0c0b09",
-          color: "#f7f2e7",
-          fontFamily: "sans-serif",
+          color: "#f2eee3",
+          fontFamily: "Archivo",
         }}
       >
         {still ? (
@@ -54,14 +72,7 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
             alt=""
             width={1200}
             height={630}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: 1200,
-              height: 630,
-              objectFit: "cover",
-            }}
+            style={{ position: "absolute", top: 0, left: 0, width: 1200, height: 630, objectFit: "cover" }}
           />
         ) : null}
         <div
@@ -73,7 +84,7 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
             height: 630,
             display: "flex",
             background:
-              "linear-gradient(to top, rgba(12,11,9,0.96) 0%, rgba(12,11,9,0.7) 45%, rgba(12,11,9,0.25) 100%)",
+              "linear-gradient(to top, rgba(12,11,9,0.97) 0%, rgba(12,11,9,0.78) 50%, rgba(12,11,9,0.35) 100%)",
           }}
         />
         <div
@@ -84,38 +95,35 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
             justifyContent: "space-between",
             width: "100%",
             height: "100%",
-            padding: 56,
+            padding: "52px 60px 96px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", fontSize: 30, fontWeight: 700 }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={LOGO} alt="" width={60} height={60} />
             <div
               style={{
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 52,
-                height: 52,
-                marginRight: 16,
-                borderRadius: 12,
-                background: "#e9a83a",
-                color: "#1a1405",
-                fontSize: 24,
+                marginLeft: 18,
+                fontFamily: "Archivo Narrow",
+                fontWeight: 700,
+                fontSize: 40,
+                letterSpacing: 1,
               }}
             >
-              TM
+              <span>TOHU</span>
+              <span style={{ color: "#e9a83a", marginLeft: 12 }}>MOVIES</span>
             </div>
-            <span>TOHU&nbsp;</span>
-            <span style={{ color: "#e9a83a" }}>MOVIES</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div
               style={{
                 display: "flex",
-                fontSize: titleSize,
+                fontFamily: "Archivo Narrow",
                 fontWeight: 700,
-                lineHeight: 1,
+                fontSize: titleSize,
+                lineHeight: 0.98,
                 textTransform: "uppercase",
-                letterSpacing: -1,
               }}
             >
               {title}
@@ -124,19 +132,14 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
               style={{
                 display: "flex",
                 alignItems: "center",
-                marginTop: 26,
-                fontSize: 30,
-                color: "#d9d2c0",
+                marginTop: 28,
               }}
             >
-              {facts.join("  ·  ")}
-            </div>
-            <div style={{ display: "flex", marginTop: 30 }}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  padding: "14px 30px",
+                  padding: "13px 30px",
                   borderRadius: 999,
                   background: "#e9a83a",
                   color: "#1a1405",
@@ -144,13 +147,26 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
                   fontWeight: 700,
                 }}
               >
-                ▶&nbsp;&nbsp;Watch free
+                <svg width="22" height="24" viewBox="0 0 22 24" style={{ marginRight: 12 }}>
+                  <path d="M2 1.5v21L20.5 12z" fill="#1a1405" />
+                </svg>
+                Watch free
+              </div>
+              <div style={{ display: "flex", marginLeft: 26, fontSize: 30, fontWeight: 500, color: "#d9d2c0" }}>
+                {facts.join("  ·  ")}
               </div>
             </div>
           </div>
         </div>
       </div>
     ),
-    size,
+    {
+      ...size,
+      fonts: [
+        { name: "Archivo Narrow", data: narrowBold, weight: 700, style: "normal" },
+        { name: "Archivo", data: medium, weight: 500, style: "normal" },
+        { name: "Archivo", data: bold, weight: 700, style: "normal" },
+      ],
+    },
   );
 }

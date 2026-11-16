@@ -6192,3 +6192,11 @@ footer .foot-copy {
 .cr-stack > * {
   min-width: 0;
 }
+
+.google-holder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color-scheme: light;
+}
