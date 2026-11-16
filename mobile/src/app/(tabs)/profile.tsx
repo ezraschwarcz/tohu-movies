@@ -50,6 +50,33 @@ export default function ProfileScreen() {
     setNote('Saved.');
   }
 
+  function deleteAccount() {
+    Alert.alert(
+      'Delete your account?',
+      'This permanently removes your account, profile, comments, likes, watchlist and viewing progress. It cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete my account',
+          style: 'destructive',
+          onPress: async () => {
+            if (!user) return;
+            setBusy(true);
+            await supabase.storage.from('avatars').remove([`${user.id}/avatar.jpg`]).catch(() => {});
+            const { error } = await supabase.rpc('delete_my_account');
+            setBusy(false);
+            if (error) {
+              Alert.alert('Could not delete the account', error.message);
+              return;
+            }
+            await signOut().catch(() => {});
+            Alert.alert('Account deleted', 'Your account and its data have been removed.');
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
       <View style={styles.head}>
@@ -85,11 +112,12 @@ export default function ProfileScreen() {
       <View style={styles.group}>
         <Button
           kind="ghost"
-          label="Photo, bio and email settings"
+          label="Photo, bio, emails and blocked members"
           onPress={() => void WebBrowser.openBrowserAsync(`${SITE_URL}/profile`)}
         />
         <Button kind="ghost" label="Privacy Policy" onPress={() => void WebBrowser.openBrowserAsync(`${SITE_URL}/privacy`)} />
         <Button kind="ghost" label="Terms of Service" onPress={() => void WebBrowser.openBrowserAsync(`${SITE_URL}/terms`)} />
+        <Button kind="danger" label="Delete my account" onPress={deleteAccount} disabled={busy} />
         <Button
           kind="danger"
           label="Sign out"

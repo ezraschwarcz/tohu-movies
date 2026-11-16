@@ -55,6 +55,15 @@ export async function generateMetadata({
       ? `${film.synopsis.slice(0, 197)}…`
       : film.synopsis;
   const title = `${film.title} (${film.year})`;
+  // The share card is a plain, cached .png file address (see
+  // card.png/route.tsx). X would not show the earlier on-demand image.
+  const shareImage = {
+    url: `${SITE_URL}/films/${film.slug}/card.png`,
+    width: 1200,
+    height: 630,
+    type: "image/png",
+    alt: `${title}: watch free on Tohu Movies`,
+  };
   return {
     title,
     description,
@@ -64,11 +73,13 @@ export async function generateMetadata({
       url: `${SITE_URL}/films/${film.slug}`,
       title: `${title} | Tohu Movies`,
       description,
+      images: [shareImage],
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} | Tohu Movies`,
       description,
+      images: [shareImage],
     },
   };
 }

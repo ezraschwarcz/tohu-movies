@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { needsWelcome, safeNext } from "@/lib/onboarding";
+import { needsWelcome, placeholderName, safeNext } from "@/lib/onboarding";
 
 /** Where links in Tohu emails land (confirm, sign-in link, password
  *  reset). Two kinds of link are understood:
@@ -65,6 +65,28 @@ export async function GET(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
     if (user && needsWelcome(user)) {
+      // A new Google account arrives with no display name of ours. If
+      // the database filled one in from the email address, replace it
+      // with the first name from Google (or a neutral placeholder), so
+      // no part of an email address ever shows on a public comment.
+      if (user.app_metadata?.provider === "google" && user.email) {
+        const local = user.email.split("@")[0].toLowerCase();
+        const { data: row } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("id", user.id)
+          .maybeSingle();
+        const current = (
+          (row as { display_name?: string } | null)?.display_name ?? ""
+        ).trim();
+        if (!current || current.toLowerCase() === local || current.includes("@")) {
+          const full = String(
+            user.user_metadata?.full_name ?? user.user_metadata?.name ?? "",
+          ).trim();
+          const name = (full.split(/\s+/)[0] || placeholderName()).slice(0, 60);
+          await supabase.from("profiles").update({ display_name: name }).eq("id", user.id);
+        }
+      }
       return NextResponse.redirect(
         `${origin}/welcome?next=${encodeURIComponent(dest)}`,
       );

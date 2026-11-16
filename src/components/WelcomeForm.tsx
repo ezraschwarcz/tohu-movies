@@ -6,6 +6,7 @@ import { getBrowserSupabase } from "@/lib/supabase/client";
 import { AVATAR_PRESETS } from "@/lib/avatars";
 import { uploadAvatarPhoto } from "@/lib/photo";
 import { isPasskeyDisabledError } from "@/lib/passkeyError";
+import { trackSignupEvent } from "@/lib/track";
 import { useAuth } from "./AuthProvider";
 import Avatar from "./Avatar";
 import PhotoPicker from "./PhotoPicker";
@@ -133,6 +134,7 @@ export default function WelcomeForm({
           ...prefs,
         });
       }
+      trackSignupEvent("welcome_done");
       await markDone({ display_name: trimmed });
       await refreshProfile();
       leave();
@@ -146,6 +148,7 @@ export default function WelcomeForm({
 
   async function onSkip() {
     setBusy(true);
+    trackSignupEvent("welcome_skipped");
     await markDone();
     leave();
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { trackFilmEvent } from "@/lib/track";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -705,6 +706,19 @@ export default function Player({
       }
       created.on("timeupdate", () => void savePosition(false));
       created.on("timeupdate", trackView);
+      // Viewing funnel (control room, Insights): play pressed, then
+      // how far through the film the viewer got.
+      created.on("play", () => trackFilmEvent(film.slug, "play"));
+      created.on("timeupdate", () => {
+        const total = created.duration();
+        const at = created.currentTime();
+        if (!total || !Number.isFinite(total) || typeof at !== "number") return;
+        const share = at / total;
+        if (share >= 0.25) trackFilmEvent(film.slug, "q25");
+        if (share >= 0.5) trackFilmEvent(film.slug, "q50");
+        if (share >= 0.75) trackFilmEvent(film.slug, "q75");
+        if (share >= 0.95) trackFilmEvent(film.slug, "done");
+      });
       created.on("pause", () => void savePosition(true));
       created.on("playing", () => setResumeAt(null));
       created.on("ended", () => {

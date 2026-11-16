@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { getBrowserSupabase } from "@/lib/supabase/client";
 import { useAuth } from "./AuthProvider";
 import Avatar from "./Avatar";
 import { postComment, toggleCommentLike } from "@/lib/comments";
@@ -91,6 +92,69 @@ export default function CommentsSection({
     null,
   );
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  // Members the signed-in viewer has blocked: their comments are
+  // hidden on this device and every other one they sign in on.
+  const [blocked, setBlocked] = useState<Set<string>>(new Set());
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [safetyNote, setSafetyNote] = useState<{ id: string; text: string } | null>(null);
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (!userId) {
+      setBlocked(new Set());
+      return;
+    }
+    let cancelled = false;
+    void getBrowserSupabase()
+      .from("member_blocks")
+      .select("blocked_id")
+      .eq("blocker_id", userId)
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setBlocked(new Set((data as { blocked_id: string }[]).map((r) => r.blocked_id)));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  async function onReport(c: ThreadComment) {
+    setMenuFor(null);
+    const reason = window.prompt(
+      "What is wrong with this comment? (optional)\nAn admin will review it.",
+      "",
+    );
+    if (reason === null) return;
+    const { error: err } = await getBrowserSupabase().rpc("report_comment", {
+      p_comment: c.id,
+      p_reason: reason,
+    });
+    setSafetyNote({
+      id: c.id,
+      text: err
+        ? /own comment/i.test(err.message)
+          ? "You cannot report your own comment."
+          : "Could not send the report. Try again."
+        : "Thanks. An admin will review this comment.",
+    });
+  }
+
+  async function onBlock(c: ThreadComment) {
+    setMenuFor(null);
+    if (!userId) return;
+    const name = c.profiles?.display_name ?? "this member";
+    if (!window.confirm(`Block ${name}? You will no longer see their comments. You can undo this in your profile under Preferences.`)) {
+      return;
+    }
+    const { error: err } = await getBrowserSupabase()
+      .from("member_blocks")
+      .insert({ blocker_id: userId, blocked_id: c.user_id });
+    if (err && !/duplicate/i.test(err.message)) {
+      setSafetyNote({ id: c.id, text: "Could not block this member. Try again." });
+      return;
+    }
+    setBlocked((prev) => new Set(prev).add(c.user_id));
+  }
 
   const filmPath = `/films/${filmSlug}`;
   const loginHref = `/login?next=${encodeURIComponent(filmPath)}`;
@@ -237,9 +301,45 @@ export default function CommentsSection({
               <strong>{name}</strong>
             </Link>{" "}
             <time dateTime={c.created_at}>{timeAgo(c.created_at)}</time>
+            {c.user_id !== userId ? (
+              <span className="comment-more">
+                <button
+                  type="button"
+                  className="comment-more-btn"
+                  aria-label="More options for this comment"
+                  aria-expanded={menuFor === c.id}
+                  onClick={() => setMenuFor((cur) => (cur === c.id ? null : c.id))}
+                >
+                  ⋯
+                </button>
+                {menuFor === c.id ? (
+                  <span className="comment-menu" role="menu">
+                    {user ? (
+                      <>
+                        <button type="button" role="menuitem" onClick={() => void onReport(c)}>
+                          Report comment
+                        </button>
+                        <button type="button" role="menuitem" onClick={() => void onBlock(c)}>
+                          Block {name}
+                        </button>
+                      </>
+                    ) : (
+                      <Link role="menuitem" href={loginHref}>
+                        Sign in to report or block
+                      </Link>
+                    )}
+                  </span>
+                ) : null}
+              </span>
+            ) : null}
           </p>
           <p className="comment-body">{c.body}</p>
           {renderActions(c, threadId)}
+          {safetyNote?.id === c.id ? (
+            <p className="form-note" role="status">
+              {safetyNote.text}
+            </p>
+          ) : null}
         </div>
       </div>
     );
@@ -311,9 +411,9 @@ export default function CommentsSection({
         <p className="empty show">No comments yet. Be the first to share one.</p>
       ) : (
         <ul className="comment-list">
-          {threads.map((thread) => {
+          {threads.filter((t) => !blocked.has(t.user_id)).map((thread) => {
             const isOpen = expanded[thread.id] === true;
-            const replyCount = thread.replies.length;
+            const replyCount = thread.replies.filter((r) => !blocked.has(r.user_id)).length;
             return (
               <li key={thread.id} className="comment-thread">
                 {renderComment(thread, thread.id, false)}
@@ -390,7 +490,7 @@ export default function CommentsSection({
                     </button>
                     {isOpen ? (
                       <div className="reply-list">
-                        {thread.replies.map((reply) => (
+                        {thread.replies.filter((r) => !blocked.has(r.user_id)).map((reply) => (
                           <div key={reply.id}>
                             {renderComment(reply, thread.id, true)}
                           </div>

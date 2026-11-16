@@ -37,18 +37,21 @@ export function computeProfileCompletion(input: {
   passwordSet: boolean;
   favoriteGenres: string[];
 }): ProfileCompletion {
-  const hasName = Boolean(input.displayName?.trim());
+  // A password is no longer part of a complete profile: sign-in is by
+  // email code, so most members never set one. A real name (not the
+  // "Viewer 1234" placeholder a new account starts with) and favorite
+  // genres are what make a profile complete.
+  const name = input.displayName?.trim() ?? "";
+  const hasName = Boolean(name) && !/^Viewer \d{4}$/.test(name);
   const hasPassword = input.passwordSet;
   const genres = input.favoriteGenres.slice(0, 3);
-  const done = [hasName, hasPassword, genres.length > 0].filter(
-    Boolean,
-  ).length;
-  const percent = Math.round((done / 3) * 100);
+  const done = [hasName, genres.length > 0].filter(Boolean).length;
+  const percent = Math.round((done / 2) * 100);
   return {
     hasName,
     hasPassword,
     genres,
     percent,
-    complete: done === 3,
+    complete: done === 2,
   };
 }

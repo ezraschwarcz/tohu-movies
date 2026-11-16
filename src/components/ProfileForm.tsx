@@ -10,6 +10,7 @@ import {
 import { computeProfileCompletion } from "@/lib/profile";
 import { AVATAR_PRESETS, avatarPresetById } from "@/lib/avatars";
 import PhotoPicker from "./PhotoPicker";
+import AccountSafety from "./AccountSafety";
 import { uploadAvatarPhoto } from "@/lib/photo";
 import EmailPrefs from "./EmailPrefs";
 import Avatar from "./Avatar";
@@ -405,7 +406,7 @@ export default function ProfileForm({
   }, [isAdmin]);
 
   const viewTitles: Record<Exclude<ProfileView, "menu">, string> = {
-    complete: "Complete your profile",
+    complete: completion.complete ? "Favorite genres" : "Finish your profile",
     name: "Name and email",
     avatar: "Profile photo",
     security: "Sign-in & Security",
@@ -730,18 +731,14 @@ export default function ProfileForm({
                 <MenuIcon name="target" />
               </span>
               <span className="menu-label">
-                Complete your profile
+                {completion.complete ? "Favorite genres" : "Finish your profile"}
                 <span className="menu-hint">
                   {completion.complete
-                    ? "All set"
-                    : "Name, password, and favorite genres"}
+                    ? completion.genres.join(", ")
+                    : "A display name and your favorite genres"}
                 </span>
               </span>
-              {completion.complete ? (
-                <span className="menu-badge-done" aria-label="Complete">
-                  ✓
-                </span>
-              ) : (
+              {completion.complete ? null : (
                 <span className="menu-badge">{completion.percent}%</span>
               )}
               <span className="menu-chev" aria-hidden="true">
@@ -855,9 +852,8 @@ export default function ProfileForm({
       <section aria-label="Complete your profile" id="complete">
         <h2 className="profile-h2">Complete your profile</h2>
         {completion.complete ? (
-          <p className="form-note" role="status">
-            Profile complete. Your name, password, and favorite genres
-            are all set. You can change your genres any time below.
+          <p className="profile-line">
+            Pick up to 3. They shape the rows on your home page.
           </p>
         ) : (
           <>
@@ -872,7 +868,7 @@ export default function ProfileForm({
               <span style={{ width: `${completion.percent}%` }} />
             </div>
             <p className="profile-line">
-              {completion.percent}% complete. Three quick steps:
+              {completion.percent}% complete. Two quick steps:
             </p>
             <ul className="wizard-steps">
               <li>
@@ -889,23 +885,6 @@ export default function ProfileForm({
                     onClick={() => setView("name")}
                   >
                     Add yours
-                  </button>
-                )}
-              </li>
-              <li>
-                <span aria-hidden="true">
-                  {completion.hasPassword ? "✓" : "○"}
-                </span>{" "}
-                Password{" "}
-                {completion.hasPassword ? (
-                  <span className="toggle-hint">Done</span>
-                ) : (
-                  <button
-                    type="button"
-                    className="linklike"
-                    onClick={() => setView("security")}
-                  >
-                    Set one in Sign-in &amp; Security
                   </button>
                 )}
               </li>
@@ -1188,6 +1167,7 @@ export default function ProfileForm({
           </span>
         </label>
         <EmailPrefs userId={userId} />
+        <AccountSafety userId={userId} isAdmin={isAdmin} />
       </section>
 
       ) : null}

@@ -7,10 +7,7 @@ import { formatRuntime, genresOf, getFilmBySlug, posterUrl } from "@/lib/films";
  *  every major app expects. If the still cannot be fetched, the card
  *  still renders on a plain dark background, so a share never shows
  *  a broken image. */
-export const alt = "Watch free on Tohu Movies";
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
-export const revalidate = 3600;
+const size = { width: 1200, height: 630 };
 
 async function stillAsDataUrl(url: string): Promise<string | null> {
   try {
@@ -23,12 +20,7 @@ async function stillAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-export default async function Image({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+export async function renderShareCard(slug: string): Promise<ImageResponse> {
   const film = await getFilmBySlug(slug);
   const title = film?.title ?? "Tohu Movies";
   const facts = film
@@ -39,7 +31,7 @@ export default async function Image({
         genresOf(film).join(", "),
       ].filter(Boolean)
     : ["Free independent movies"];
-  const still = film ? await stillAsDataUrl(posterUrl(film, 1200)) : null;
+  const still = film ? await stillAsDataUrl(posterUrl(film, 960)) : null;
   const titleSize = title.length > 28 ? 76 : title.length > 16 ? 96 : 124;
 
   return new ImageResponse(

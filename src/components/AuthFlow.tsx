@@ -16,6 +16,8 @@ import {
   safeNext,
 } from "@/lib/onboarding";
 import { firstTouch } from "@/lib/attribution";
+import { trackSignupEvent } from "@/lib/track";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/site";
 
 /** One door for signing in and signing up.
  *
@@ -74,6 +76,8 @@ export default function AuthFlow({
   const [busy, setBusy] = useState(false);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [passkeySupported, setPasskeySupported] = useState(false);
+  const [googleOn, setGoogleOn] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const [message, setMessage] = useState<string | null>(
     urlMessage === "password-reset"
@@ -97,6 +101,17 @@ export default function AuthFlow({
       // ignore
     }
     setPasskeySupported(typeof window.PublicKeyCredential !== "undefined");
+    trackSignupEvent("page_open");
+    // Show "Continue with Google" only once Google sign-in has been
+    // switched on in Supabase, so the button never leads to an error.
+    fetch(`${SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: SUPABASE_ANON_KEY },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s: { external?: { google?: boolean } } | null) => {
+        if (s?.external?.google) setGoogleOn(true);
+      })
+      .catch(() => {});
     if (urlMessage === "password-reset") setStep("password");
   }, [urlMessage]);
 
@@ -161,6 +176,7 @@ export default function AuthFlow({
       } catch {
         // ignore
       }
+      trackSignupEvent("code_requested");
       setCode("");
       setStep("code");
       setResendIn(RESEND_SECONDS);
@@ -188,11 +204,29 @@ export default function AuthFlow({
       });
       if (err) throw err;
       if (!data.session) throw new Error("That code did not sign you in. Send a new one.");
+      trackSignupEvent("code_verified");
       finish(data.user);
     } catch (err) {
       setError(friendly(err, "That code did not work. Try again."));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onGoogle() {
+    setGoogleBusy(true);
+    setError(null);
+    trackSignupEvent("google_started");
+    const { error: err } = await getBrowserSupabase().auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(dest)}`,
+        queryParams: { prompt: "select_account" },
+      },
+    });
+    if (err) {
+      setError("Google sign-in could not start. Continue with your email instead.");
+      setGoogleBusy(false);
     }
   }
 
@@ -318,6 +352,27 @@ export default function AuthFlow({
             comment, keep a watchlist, and pick up where you left off. No
             password needed.
           </p>
+          {googleOn ? (
+            <>
+              <button
+                type="button"
+                className="btn-google"
+                onClick={() => void onGoogle()}
+                disabled={googleBusy}
+              >
+                <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+                  <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z" />
+                  <path fill="#4285F4" d="M46.6 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.7c-.6 3-2.2 5.5-4.7 7.2l7.6 5.9c4.5-4.1 7-10.2 7-17.6z" />
+                  <path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z" />
+                  <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z" />
+                </svg>
+                {googleBusy ? "Opening Google…" : "Continue with Google"}
+              </button>
+              <div className="auth-divider" role="separator">
+                <span>or</span>
+              </div>
+            </>
+          ) : null}
           <form className="auth-form" onSubmit={sendCode}>
             {emailField}
             {notes}
