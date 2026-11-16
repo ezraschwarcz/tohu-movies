@@ -23,7 +23,26 @@ export const getFilms = unstable_cache(
     if (error) {
       throw new Error(`Supabase films query failed: ${error.message}`);
     }
-    return (data ?? []) as Film[];
+    const films = (data ?? []) as Film[];
+    // Cover art uploaded from the admin page. A separate, forgiving
+    // query: before the control-room database update has run, the
+    // column does not exist and the films simply load without it.
+    const art = await supabase
+      .from("films")
+      .select("slug,poster_url")
+      .not("poster_url", "is", null);
+    if (!art.error && art.data) {
+      const bySlug = new Map(
+        (art.data as { slug: string; poster_url: string | null }[]).map(
+          (r) => [r.slug, r.poster_url],
+        ),
+      );
+      for (const film of films) {
+        const url = bySlug.get(film.slug);
+        if (url) film.poster_url = url;
+      }
+    }
+    return films;
   },
   ["tohu-films"],
   { revalidate: REVALIDATE_SECONDS, tags: ["films"] },
@@ -42,7 +61,18 @@ export const getFilmBySlug = unstable_cache(
     if (error) {
       throw new Error(`Supabase film query failed: ${error.message}`);
     }
-    return (data ?? null) as Film | null;
+    const film = (data ?? null) as Film | null;
+    if (film) {
+      const art = await supabase
+        .from("films")
+        .select("poster_url")
+        .eq("slug", slug)
+        .maybeSingle();
+      const url = (art.data as { poster_url?: string | null } | null)
+        ?.poster_url;
+      if (!art.error && url) film.poster_url = url;
+    }
+    return film;
   },
   ["tohu-film"],
   { revalidate: REVALIDATE_SECONDS, tags: ["films"] },

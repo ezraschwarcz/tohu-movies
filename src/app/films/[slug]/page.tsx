@@ -19,7 +19,7 @@ import JsonLd from "@/components/JsonLd";
 import FilmCard from "@/components/FilmCard";
 import FilmPlayerSection from "@/components/FilmPlayerSection";
 import ShareButton from "@/components/ShareButton";
-import { officialPosterFor } from "@/lib/posters";
+import { coverArtFor } from "@/lib/posters";
 import StarRating from "@/components/StarRating";
 import WatchlistButton from "@/components/WatchlistButton";
 
@@ -234,7 +234,7 @@ export default async function FilmPage({
           <h2>Up next</h2>
           <ul>
             {upNext.map((f) => {
-              const art = officialPosterFor(f.slug);
+              const art = coverArtFor(f);
               return (
                 <li key={f.slug}>
                   <Link href={`/films/${f.slug}`} className="next-item">

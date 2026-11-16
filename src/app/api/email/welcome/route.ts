@@ -3,7 +3,7 @@ import { sendEmail } from "@/lib/email/send";
 import { welcomeEmail, type EmailFilm } from "@/lib/email/templates";
 import { ensureEmailPrefs } from "@/lib/emailPrefs";
 import { getFilms, getViewCounts } from "@/lib/films";
-import { officialPosterFor } from "@/lib/posters";
+import { coverArtFor } from "@/lib/posters";
 import { SITE_URL } from "@/lib/site";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -65,7 +65,7 @@ export async function POST() {
       (a, b) => (views[b.slug] ?? 0) - (views[a.slug] ?? 0),
     );
     picks = ranked.slice(0, 3).map((f) => {
-      const art = officialPosterFor(f.slug);
+      const art = coverArtFor(f);
       return {
         slug: f.slug,
         title: f.title,

@@ -1,59 +1,31 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createServerSupabase, getServerAuth } from "@/lib/supabase/server";
-import { embeddedOne } from "@/lib/types";
+import { getServerAuth } from "@/lib/supabase/server";
 import AdminPanel from "@/components/AdminPanel";
 
-/** Admin panel: comment moderation and adding films. Protected by the
- *  profile's is_admin flag, checked here on every load. Non-admins and
- *  signed-out visitors get a 404, so the route does not reveal itself.
- *  This page is dynamic: it reads the session from the request's
- *  cookies. It needs the Phase 2 migration SQL run first (admin read
- *  access to pending comments, admin insert on films). */
+/** The admin control room: overview, films, comments, members, tools.
+ *  Protected by the profile's admin flag, checked here on every load;
+ *  everyone else gets a 404, so the page does not reveal itself. Every
+ *  action is checked again inside the database, so this page is a
+ *  convenience, not the lock. */
+export const metadata: Metadata = {
+  title: "Admin — Tohu Movies",
+  robots: { index: false, follow: false },
+};
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const { isAdmin } = await getServerAuth();
-  if (!isAdmin) {
+  const { isAdmin, userId } = await getServerAuth();
+  if (!isAdmin || !userId) {
     notFound();
   }
-
-  const supabase = await createServerSupabase();
-  const { data, error } = await supabase
-    .from("comments")
-    .select(
-      "id,film_slug,body,status,user_id,created_at,profiles(display_name),films(title)",
-    )
-    .eq("status", "pending")
-    .order("created_at", { ascending: true });
-  if (error) {
-    throw new Error(`Supabase pending comments query failed: ${error.message}`);
-  }
-
-  // Normalize the embedded joins (object or array) to one object each.
-  const pending = (
-    (data ?? []) as unknown as React.ComponentProps<
-      typeof AdminPanel
-    >["initialPending"]
-  ).map((c) => ({
-    ...c,
-    profiles: embeddedOne(
-      c.profiles as unknown as
-        | { display_name: string }
-        | { display_name: string }[]
-        | null,
-    ),
-    films: embeddedOne(
-      c.films as unknown as { title: string } | { title: string }[] | null,
-    ),
-  }));
-
   return (
     <div className="wrap admin-wrap">
       <div className="section-head">
-        <h2>Admin</h2>
-        <p className="now-count">Comment moderation and adding films</p>
+        <h2>Control room</h2>
+        <p className="now-count">Films, comments, members and tools</p>
       </div>
-      <AdminPanel initialPending={pending} />
+      <AdminPanel adminId={userId} />
     </div>
   );
 }

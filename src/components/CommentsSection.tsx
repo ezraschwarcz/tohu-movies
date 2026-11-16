@@ -233,7 +233,9 @@ export default function CommentsSection({
         />
         <div className="comment-main">
           <p className="comment-head">
-            <strong>{name}</strong>{" "}
+            <Link className="comment-author" href={`/u/${c.user_id}`}>
+              <strong>{name}</strong>
+            </Link>{" "}
             <time dateTime={c.created_at}>{timeAgo(c.created_at)}</time>
           </p>
           <p className="comment-body">{c.body}</p>

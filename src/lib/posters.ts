@@ -109,3 +109,13 @@ const POSTER_FOCUS_Y: Record<string, number> = {
 export function posterFocusY(slug: string): number {
   return POSTER_FOCUS_Y[slug] ?? 0;
 }
+
+/** The cover art to show for a film: art uploaded from the admin page
+ *  wins, then the built-in official cover art, else null (the caller
+ *  falls back to a still from the film). */
+export function coverArtFor(film: {
+  slug: string;
+  poster_url?: string | null;
+}): string | null {
+  return film.poster_url || officialPosterFor(film.slug);
+}

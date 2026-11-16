@@ -9,7 +9,8 @@ import {
 } from "@/lib/passkeyError";
 import { computeProfileCompletion } from "@/lib/profile";
 import { AVATAR_PRESETS, avatarPresetById } from "@/lib/avatars";
-import AvatarCropper from "./AvatarCropper";
+import PhotoPicker from "./PhotoPicker";
+import { uploadAvatarPhoto } from "@/lib/photo";
 import EmailPrefs from "./EmailPrefs";
 import Avatar from "./Avatar";
 import { useAuth } from "./AuthProvider";
@@ -182,7 +183,6 @@ export default function ProfileForm({
   );
   const [avatarBusy, setAvatarBusy] = useState(false);
   /** The photo being positioned in the cropper, or null. */
-  const [cropFile, setCropFile] = useState<File | null>(null);
   const [avatarSaved, setAvatarSaved] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const avatarTouched = useRef(false);
@@ -333,41 +333,19 @@ export default function ProfileForm({
     }
   }
 
-  /** Upload the square the member framed in the cropper. */
+  /** Upload the square the member framed in the cropper. Throws on
+   *  failure, so the photo control can show what went wrong. */
   async function onAvatarCropped(blob: Blob) {
     setAvatarBusy(true);
     setAvatarError(null);
     setAvatarSaved(null);
     try {
-      const supabase = getBrowserSupabase();
-      const path = `${userId}/avatar.jpg`;
-      const { error: uploadErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
-      if (uploadErr) {
-        if (/bucket|not found/i.test(uploadErr.message)) {
-          throw new Error(
-            "Photo upload needs the Phase 5.2 database update — presets still work.",
-          );
-        }
-        throw new Error(uploadErr.message);
-      }
-      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      // The cache-buster makes the new photo show at once: the URL is
-      // stable per user, so browsers would otherwise keep the old one.
-      const url = `${data.publicUrl}?v=${Date.now()}`;
+      const url = await uploadAvatarPhoto(getBrowserSupabase(), userId, blob);
       const { error: saveErr, fallback } = await persistAvatar(null, url);
-      if (saveErr) {
-        throw new Error(saveErr);
-      }
-      setAvatarSaved(fallback ? AVATAR_FALLBACK_NOTE : "Photo uploaded.");
-    } catch (err) {
-      setAvatarError(
-        err instanceof Error ? err.message : "Could not upload that photo.",
-      );
+      if (saveErr) throw new Error(saveErr);
+      setAvatarSaved(fallback ? AVATAR_FALLBACK_NOTE : "Photo saved.");
     } finally {
       setAvatarBusy(false);
-      setCropFile(null);
     }
   }
 
@@ -539,6 +517,28 @@ export default function ProfileForm({
     };
   }, []);
 
+  // Optional public bio. Loaded and saved forgivingly: before the
+  // control-room database update has run there is no bio column, and
+  // the display name must still save.
+  const [bio, setBio] = useState("");
+  const [bioReady, setBioReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const { data, error: err } = await getBrowserSupabase()
+        .from("profiles")
+        .select("bio")
+        .eq("id", userId)
+        .maybeSingle();
+      if (cancelled || err) return;
+      setBio(((data as { bio?: string | null } | null)?.bio ?? "") as string);
+      setBioReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   async function onSaveName(e: FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
@@ -552,16 +552,24 @@ export default function ProfileForm({
     const supabase = getBrowserSupabase();
     const { error: err } = await supabase
       .from("profiles")
-      .update({ display_name: trimmed })
+      .update(
+        bioReady
+          ? { display_name: trimmed, bio: bio.trim() || null }
+          : { display_name: trimmed },
+      )
       .eq("id", userId);
     setBusy(false);
     if (err) {
-      setError(err.message);
+      setError(
+        /row-level security|violates/i.test(err.message)
+          ? "Your profile could not be saved. If this keeps happening, contact us."
+          : err.message,
+      );
       return;
     }
     await refreshProfile();
     setSavedName(trimmed);
-    setSaved("Display name saved.");
+    setSaved("Saved.");
   }
 
   async function onAddPasskey() {
@@ -984,6 +992,21 @@ export default function ProfileForm({
               autoComplete="nickname"
             />
           </label>
+          {bioReady ? (
+            <label className="field">
+              <span>
+                Bio <span className="toggle-hint">(optional, public)</span>
+              </span>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value.slice(0, 300))}
+                placeholder="A line or two about you and the films you like"
+                rows={3}
+                maxLength={300}
+              />
+              <span className="field-count">{bio.length}/300</span>
+            </label>
+          ) : null}
           <label className="field">
             <span>Email</span>
             <input type="email" value={email} disabled readOnly />
@@ -999,8 +1022,11 @@ export default function ProfileForm({
             </p>
           ) : null}
           <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? "Saving…" : "Save display name"}
+            {busy ? "Saving…" : "Save"}
           </button>
+          <p className="auth-foot">
+            <Link href={`/u/${userId}`}>See your public profile</Link>
+          </p>
         </form>
       </section>
 
@@ -1053,32 +1079,10 @@ export default function ProfileForm({
         </div>
 
         <h3 className="profile-h3">Or upload your own photo</h3>
-        <label className="field">
-          <span>Choose a photo, then position and zoom it</span>
-          <input
-            type="file"
-            accept="image/*"
-            disabled={avatarBusy}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              e.target.value = "";
-              if (file) {
-                setAvatarError(null);
-                setAvatarSaved(null);
-                setCropFile(file);
-              }
-            }}
-          />
-        </label>
-
-        {cropFile ? (
-          <AvatarCropper
-            file={cropFile}
-            busy={avatarBusy}
-            onCancel={() => setCropFile(null)}
-            onSave={(blob) => void onAvatarCropped(blob)}
-          />
-        ) : null}
+        <p className="form-note">
+          Choose a photo, then drag and zoom to frame it.
+        </p>
+        <PhotoPicker busy={avatarBusy} onPhoto={onAvatarCropped} />
 
         {avatarError ? (
           <p className="form-error" role="alert">

@@ -227,7 +227,11 @@ export async function postComment(
     .select("id,film_slug,body,status,user_id,created_at")
     .single();
   if (error) {
-    throw new Error(error.message);
+    throw new Error(
+      /row-level security/i.test(error.message)
+        ? "Your account cannot post comments right now. If you think this is a mistake, contact us."
+        : error.message,
+    );
   }
   return { ...(data as unknown as Comment), profiles: null };
 }

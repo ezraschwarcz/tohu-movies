@@ -8,7 +8,7 @@ import { createPortal } from "react-dom";
  *  shows exactly what other members will see. Everything happens on the
  *  device; only the finished 512px square is uploaded. */
 
-const VIEW = 280; // on-screen crop square, px
+const MAX_VIEW = 280; // on-screen crop square on a roomy screen, px
 const OUT = 512; // saved image, px
 const MAX_ZOOM = 4;
 
@@ -18,7 +18,7 @@ export default function AvatarCropper({
   onCancel,
   onSave,
 }: {
-  file: File;
+  file: Blob;
   busy: boolean;
   onCancel: () => void;
   onSave: (blob: Blob) => void;
@@ -29,6 +29,9 @@ export default function AvatarCropper({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  /** The crop square shrinks to fit a small or short phone screen, so
+   *  the buttons under it are always reachable. */
+  const [VIEW, setView] = useState(MAX_VIEW);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const drag = useRef<{ id: number; x: number; y: number } | null>(null);
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
@@ -36,11 +39,23 @@ export default function AvatarCropper({
 
   useEffect(() => {
     setMounted(true);
+    const fit = () =>
+      setView(
+        Math.round(
+          Math.max(
+            170,
+            Math.min(MAX_VIEW, window.innerWidth - 78, window.innerHeight - 330),
+          ),
+        ),
+      );
+    fit();
+    window.addEventListener("resize", fit);
     const url = URL.createObjectURL(file);
     setSrc(url);
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
+      window.removeEventListener("resize", fit);
       URL.revokeObjectURL(url);
       document.body.style.overflow = previous;
     };
@@ -65,7 +80,7 @@ export default function AvatarCropper({
         y: Math.min(maxY, Math.max(-maxY, next.y)),
       };
     },
-    [natural, base],
+    [natural, base, VIEW],
   );
 
   function changeZoom(next: number) {
@@ -165,7 +180,7 @@ export default function AvatarCropper({
       <div className="cropper-panel">
         <h2 id="cropper-title">Position your photo</h2>
         <p className="cropper-hint">
-          Drag to move. Use the slider to zoom. The circle is what others see.
+          Drag to move. Pinch or use the slider to zoom. The circle is what others see.
         </p>
         <div
           className="cropper-stage"
