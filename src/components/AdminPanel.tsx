@@ -14,14 +14,17 @@ import Avatar from "./Avatar";
  *  - Films: add, edit, hide, delete, upload cover art, with a check
  *    that everything search engines and share cards need is filled in.
  *  - Comments: approve, reject, delete; search every comment.
- *  - Members: search, ban and unban, add and remove admins.
+ *  - Members: counts, search, ban and unban. Super admins give admin
+ *    access; any admin can remove a regular admin; a super admin's
+ *    access cannot be changed from the site.
+ *  - Log: everything admins did, newest first. Read-only.
  *  - Tools: the email check.
  *
  *  Every action goes through a database function that checks the
  *  caller is an admin (supabase/migrations/20261116_control_room.sql),
  *  so nothing here can be done by anyone else, whatever the page shows. */
 
-type Tab = "overview" | "films" | "comments" | "members" | "tools";
+type Tab = "overview" | "films" | "comments" | "members" | "log" | "tools";
 
 type Overview = {
   members: number;
@@ -87,9 +90,27 @@ type Member = {
   created_at: string;
   last_sign_in_at: string | null;
   is_admin: boolean;
+  is_super_admin?: boolean;
   is_banned: boolean;
   banned_reason: string | null;
   comments: number;
+};
+
+type MemberCounts = {
+  total: number;
+  new_7d: number;
+  admins: number;
+  super_admins: number;
+  banned: number;
+};
+
+type LogRow = {
+  id: number;
+  action: string;
+  target: string | null;
+  detail: string | null;
+  created_at: string;
+  admin: string;
 };
 
 const RATINGS = ["PG", "PG 13", "R", "NR", "TV PG"] as const;
@@ -134,7 +155,13 @@ async function call<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
   return data as T;
 }
 
-export default function AdminPanel({ adminId }: { adminId: string }) {
+export default function AdminPanel({
+  adminId,
+  isSuperAdmin = false,
+}: {
+  adminId: string;
+  isSuperAdmin?: boolean;
+}) {
   const [tab, setTab] = useState<Tab>("overview");
   const [pending, setPending] = useState<number | null>(null);
 
@@ -143,6 +170,7 @@ export default function AdminPanel({ adminId }: { adminId: string }) {
     { id: "films", label: "Films" },
     { id: "comments", label: "Comments" },
     { id: "members", label: "Members" },
+    { id: "log", label: "Log" },
     { id: "tools", label: "Tools" },
   ];
 
@@ -170,7 +198,10 @@ export default function AdminPanel({ adminId }: { adminId: string }) {
       ) : null}
       {tab === "films" ? <FilmsTab /> : null}
       {tab === "comments" ? <CommentsTab onPending={setPending} /> : null}
-      {tab === "members" ? <MembersTab adminId={adminId} /> : null}
+      {tab === "members" ? (
+        <MembersTab adminId={adminId} isSuperAdmin={isSuperAdmin} />
+      ) : null}
+      {tab === "log" ? <LogTab /> : null}
       {tab === "tools" ? <ToolsTab /> : null}
     </div>
   );
@@ -958,7 +989,13 @@ function CommentsTab({ onPending }: { onPending: (n: number) => void }) {
 
 const PAGE = 50;
 
-function MembersTab({ adminId }: { adminId: string }) {
+function MembersTab({
+  adminId,
+  isSuperAdmin,
+}: {
+  adminId: string;
+  isSuperAdmin: boolean;
+}) {
   const [filter, setFilter] = useState<"all" | "admins" | "banned">("all");
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<Member[] | null>(null);
@@ -968,6 +1005,15 @@ function MembersTab({ adminId }: { adminId: string }) {
   const [banning, setBanning] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [hide, setHide] = useState(true);
+  const [counts, setCounts] = useState<MemberCounts | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const loadCounts = useCallback(() => {
+    call<MemberCounts>("admin_member_counts").then(setCounts, () => {});
+  }, []);
+  useEffect(() => {
+    loadCounts();
+  }, [loadCounts]);
 
   const load = useCallback(
     async (offset: number) => {
@@ -999,7 +1045,47 @@ function MembersTab({ adminId }: { adminId: string }) {
       await call(fn, args);
       setBanning(null);
       setReason("");
+      setNotice(null);
       await load(0);
+      loadCounts();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /** Access changes go through the site's own endpoint, which makes the
+   *  change (the database decides whether it is allowed) and sends the
+   *  notification emails. */
+  async function setRole(m: Member, role: "member" | "admin" | "super_admin") {
+    const who = m.display_name || m.email;
+    const question =
+      role === "super_admin"
+        ? `Make ${who} a super admin?\n\nThey will be able to give admin access to others, and this cannot be undone from the site: a super admin's access can only be changed by hand in the database.`
+        : role === "admin"
+          ? `Make ${who} an admin?\n\nThey will be able to add, edit and hide films, review comments and ban members. They and every super admin will be emailed.`
+          : `Remove admin access from ${who}?\n\nThey and every super admin will be emailed.`;
+    if (!window.confirm(question)) return;
+    setBusyId(m.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/admin/role", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ userId: m.id, role }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        message?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || "The change was not made.");
+      }
+      setNotice(data.message ?? "Done.");
+      await load(0);
+      loadCounts();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -1021,9 +1107,25 @@ function MembersTab({ adminId }: { adminId: string }) {
         </div>
         <input type="search" className="cr-search" placeholder="Search by name or email" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search members" />
       </div>
+      {counts ? (
+        <p className="cr-counts" aria-live="polite">
+          <strong>{counts.total.toLocaleString("en-US")}</strong> member{counts.total === 1 ? "" : "s"}
+          <span>+{counts.new_7d.toLocaleString("en-US")} this week</span>
+          <span>
+            {counts.admins} admin{counts.admins === 1 ? "" : "s"}
+            {counts.super_admins ? ` (${counts.super_admins} super)` : ""}
+          </span>
+          <span>{counts.banned} banned</span>
+        </p>
+      ) : null}
       <p className="form-note">
-        A banned member can still watch, but cannot comment, like, or change their public profile. Admins can do everything on this page, including adding and removing other admins, so add them carefully.
+        A banned member can still watch, but cannot comment, like, or change their public profile. Only a super admin can give admin access. Any admin can remove a regular admin. A super admin&apos;s access cannot be changed from the site. Every change is emailed to the member and to all super admins, and is kept in the Log.
       </p>
+      {notice ? (
+        <p className="form-note" role="status">
+          {notice}
+        </p>
+      ) : null}
       {error ? <p className="form-error">{error}</p> : null}
       {rows === null && !error ? <p className="cr-loading">Loading…</p> : null}
       {rows && rows.length === 0 ? <p className="cr-empty">No members match.</p> : null}
@@ -1038,7 +1140,11 @@ function MembersTab({ adminId }: { adminId: string }) {
                   <p className="cr-item-title">
                     {m.display_name || "No name yet"}
                     {me ? <span className="cr-pill">You</span> : null}
-                    {m.is_admin ? <span className="cr-pill ok">Admin</span> : null}
+                    {m.is_super_admin ? (
+                      <span className="cr-pill ok">Super admin</span>
+                    ) : m.is_admin ? (
+                      <span className="cr-pill ok">Admin</span>
+                    ) : null}
                     {m.is_banned ? <span className="cr-pill warn">Banned</span> : null}
                   </p>
                   <p className="cr-muted">
@@ -1085,30 +1191,19 @@ function MembersTab({ adminId }: { adminId: string }) {
                         Ban
                       </button>
                     ) : null}
-                    {m.is_admin ? (
-                      <button
-                        type="button"
-                        className="btn-ghost"
-                        disabled={busyId === m.id}
-                        onClick={() => {
-                          if (window.confirm(`Remove admin access from ${m.display_name || m.email}?`)) {
-                            void run(m.id, "admin_set_admin", { p_user: m.id, p_admin: false });
-                          }
-                        }}
-                      >
-                        Remove admin
-                      </button>
-                    ) : !m.is_banned ? (
-                      <button
-                        type="button"
-                        className="btn-ghost"
-                        disabled={busyId === m.id}
-                        onClick={() => {
-                          if (window.confirm(`Make ${m.display_name || m.email} an admin? They will be able to do everything on this page, including removing you.`)) {
-                            void run(m.id, "admin_set_admin", { p_user: m.id, p_admin: true });
-                          }
-                        }}
-                      >
+                    {m.is_super_admin ? null : m.is_admin ? (
+                      <>
+                        {isSuperAdmin ? (
+                          <button type="button" className="btn-ghost" disabled={busyId === m.id} onClick={() => void setRole(m, "super_admin")}>
+                            Make super admin
+                          </button>
+                        ) : null}
+                        <button type="button" className="btn-ghost" disabled={busyId === m.id} onClick={() => void setRole(m, "member")}>
+                          Remove admin
+                        </button>
+                      </>
+                    ) : isSuperAdmin && !m.is_banned ? (
+                      <button type="button" className="btn-ghost" disabled={busyId === m.id} onClick={() => void setRole(m, "admin")}>
                         Make admin
                       </button>
                     ) : null}
@@ -1117,6 +1212,75 @@ function MembersTab({ adminId }: { adminId: string }) {
               </li>
             );
           })}
+        </ul>
+      ) : null}
+      {more ? (
+        <button type="button" className="btn-ghost" onClick={() => void load(rows?.length ?? 0)}>
+          Show more
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/* --------------------------------- Log -------------------------------- */
+
+function LogTab() {
+  const [query, setQuery] = useState("");
+  const [rows, setRows] = useState<LogRow[] | null>(null);
+  const [more, setMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(
+    async (offset: number) => {
+      try {
+        const list = await call<LogRow[]>("admin_list_log", {
+          p_search: query,
+          p_limit: 100,
+          p_offset: offset,
+        });
+        setRows((prev) => (offset === 0 || !prev ? list : [...prev, ...list]));
+        setMore(list.length === 100);
+        setError(null);
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    },
+    [query],
+  );
+
+  useEffect(() => {
+    const t = window.setTimeout(() => void load(0), query ? 300 : 0);
+    return () => window.clearTimeout(t);
+  }, [load, query]);
+
+  return (
+    <div className="cr-stack">
+      <div className="cr-bar">
+        <input type="search" className="cr-search" placeholder="Search the log by action, name or detail" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search the log" />
+      </div>
+      <p className="form-note">
+        Everything admins do in the control room is recorded here, newest first: films, comments, bans, access changes and the emails sent about them. The log is kept in the database and cannot be edited or deleted from the site.
+      </p>
+      {error ? <p className="form-error">{error}</p> : null}
+      {rows === null && !error ? <p className="cr-loading">Loading…</p> : null}
+      {rows && rows.length === 0 ? <p className="cr-empty">Nothing recorded yet.</p> : null}
+      {rows && rows.length > 0 ? (
+        <ul className="cr-log cr-log-full">
+          {rows.map((r) => (
+            <li key={r.id}>
+              <strong>{r.action}</strong>
+              {r.target ? <> · {r.target}</> : null}
+              {r.detail ? <> · {r.detail}</> : null}
+              <span>
+                {r.admin},{" "}
+                {new Date(r.created_at).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </span>
+            </li>
+          ))}
         </ul>
       ) : null}
       {more ? (

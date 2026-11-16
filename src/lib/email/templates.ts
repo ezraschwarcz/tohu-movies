@@ -122,3 +122,71 @@ You received this once because you created a Tohu Movies account. <a href="${esc
     text,
   };
 }
+
+/** Sent to a member whose admin access changed, and (as a notice) to
+ *  every super admin, so access never changes silently. */
+export function accessChangeEmail(input: {
+  /** "you" for the member's own email; their name for the notice. */
+  who: "you" | string;
+  role: "member" | "admin" | "super_admin";
+  actor: string;
+  when: string;
+}): { subject: string; html: string; text: string } {
+  const own = input.who === "you";
+  const label =
+    input.role === "super_admin"
+      ? "a super admin"
+      : input.role === "admin"
+        ? "an admin"
+        : "no longer an admin";
+  const subject = own
+    ? input.role === "member"
+      ? "Your Tohu Movies admin access was removed"
+      : `You are now ${label} on Tohu Movies`
+    : input.role === "member"
+      ? `Admin access removed: ${input.who}`
+      : `${input.who} is now ${label} on Tohu Movies`;
+  const headline = own
+    ? input.role === "member"
+      ? "Your admin access was removed"
+      : `You are now ${label}`
+    : input.role === "member"
+      ? `${input.who} is no longer an admin`
+      : `${input.who} is now ${label}`;
+  const what =
+    input.role === "super_admin"
+      ? "Super admins can do everything admins can, and are the only ones who can give admin access to others. A super admin's access can only be changed directly in the database."
+      : input.role === "admin"
+        ? "Admins can add, edit and hide films, review comments, and ban members from the control room."
+        : "The control room is no longer available on this account. Watching, comments and the watchlist work as before.";
+  const lines = [
+    `${input.actor} made this change on ${input.when}.`,
+    what,
+    own && input.role !== "member"
+      ? "Keep this account safe: turn on one-tap sign-in (a passkey) in your profile, and never share a sign-in code."
+      : "",
+    own
+      ? "If you were not expecting this, let the person named above know."
+      : "If this was not expected, review it in the control room under Log.",
+  ].filter(Boolean);
+  const body = `<h1 style="margin:0 0 14px;font-size:24px;line-height:1.2;color:#f2eee3;">${esc(headline)}</h1>${lines
+    .map(
+      (l) =>
+        `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#d9d2c0;">${esc(l)}</p>`,
+    )
+    .join("")}${
+    input.role !== "member" || !own
+      ? `<div style="padding-top:8px;">${button("Open the control room", `${SITE_URL}/admin`)}</div>`
+      : ""
+  }`;
+  return {
+    subject,
+    html: layout({
+      preview: headline,
+      body,
+      footer:
+        "You are receiving this because it concerns admin access on Tohu Movies. These notices cannot be switched off.",
+    }),
+    text: [headline, "", ...lines, "", `${SITE_URL}/admin`].join("\n"),
+  };
+}
