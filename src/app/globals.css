@@ -5091,3 +5091,14 @@ footer .foot-copy {
 .cropper-actions .btn-ghost {
   min-height: 44px;
 }
+
+/* Phone banner width: full width again (16px margins). The whole
+ * poster is still shown, so on most phones the card runs a little
+ * past the bottom of the screen and the page scrolls to the button. */
+@media (max-width: 640px) {
+  .hero.has-art,
+  .hero.hero-pending {
+    width: auto;
+    margin: 10px 16px 0;
+  }
+}
