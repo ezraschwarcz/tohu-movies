@@ -1,3 +1,4 @@
+import PeopleLinks from "@/components/PeopleLinks";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -218,11 +219,15 @@ export default async function FilmPage({
         <dl className="film-facts">
           <div>
             <dt>Director</dt>
-            <dd>{film.director}</dd>
+            <dd>
+              <PeopleLinks text={film.director} />
+            </dd>
           </div>
           <div>
             <dt>Cast</dt>
-            <dd>{film.cast_text}</dd>
+            <dd>
+              <PeopleLinks text={film.cast_text} />
+            </dd>
           </div>
           <div>
             <dt>Genre</dt>

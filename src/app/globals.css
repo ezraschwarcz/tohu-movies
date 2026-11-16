@@ -6599,4 +6599,24 @@ div.cr-tile {
   .ph-stat-value {
     font-size: 20px;
   }
+
+.person-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.person-link:hover {
+  text-decoration-color: var(--accent);
+}
+
+.submit-form {
+  max-width: 560px;
+  margin-top: 8px;
+}
+
+.foot-links {
+  flex-wrap: wrap;
+  row-gap: 6px;
 }
