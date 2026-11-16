@@ -155,6 +155,39 @@ export default function AdminPanel({
     }
   }
 
+  const [testBusy, setTestBusy] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    ok: boolean;
+    message: string;
+  } | null>(null);
+
+  async function sendTestEmail() {
+    setTestBusy(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/email/test", { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as {
+        status?: string;
+        message?: string;
+      };
+      setTestResult({
+        ok: data.status === "sent",
+        message:
+          data.message ??
+          (res.ok
+            ? "No answer from the site. Try again in a moment."
+            : "The site refused the request. Make sure you are signed in as the admin."),
+      });
+    } catch {
+      setTestResult({
+        ok: false,
+        message: "Could not reach the site. Check your connection and try again.",
+      });
+    } finally {
+      setTestBusy(false);
+    }
+  }
+
   return (
     <div className="admin-grid">
       <section aria-label="Pending comments">
@@ -347,6 +380,30 @@ export default function AdminPanel({
             {filmBusy ? "Adding…" : "Add film"}
           </button>
         </form>
+      </section>
+
+      <section aria-label="Email check" className="admin-section">
+        <h3 className="profile-h3">Email check</h3>
+        <p className="form-note">
+          Sends a test email to your own address and reports exactly what
+          happened.
+        </p>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => void sendTestEmail()}
+          disabled={testBusy}
+        >
+          {testBusy ? "Sending…" : "Send me a test email"}
+        </button>
+        {testResult ? (
+          <p
+            className={testResult.ok ? "form-note" : "form-error"}
+            role="status"
+          >
+            {testResult.message}
+          </p>
+        ) : null}
       </section>
     </div>
   );

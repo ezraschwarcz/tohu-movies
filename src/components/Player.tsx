@@ -646,6 +646,20 @@ export default function Player({
           // control bar (browsers that support PiP show it).
           pictureInPictureToggle: true,
         },
+        // Picture quality. By default the player picks a size from how
+        // large the video appears on the page, ignoring how sharp the
+        // screen is, so a phone could be handed 480p or 270p although
+        // 720p exists and its screen can show it. These settings make
+        // it count the screen's real pixels, start from a high
+        // estimate of the connection (it still steps down by itself
+        // on a slow one), and skip the deliberately low first choice.
+        html5: {
+          vhs: {
+            useDevicePixelRatio: true,
+            enableLowInitialPlaylist: false,
+            bandwidth: 8000000,
+          },
+        },
         // Keyboard shortcuts are handled below for the whole page, so
         // they work without first clicking the player.
         userActions: { hotkeys: false },
