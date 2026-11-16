@@ -42,6 +42,20 @@ const AuthContext = createContext<AuthContextValue>({
   refreshProfile: async () => {},
 });
 
+/** Ask the server to send the welcome email. The server decides
+ *  whether one is due (new account, not yet welcomed); this only
+ *  makes sure the question is asked once per browser session. */
+function requestWelcomeEmail(userId: string) {
+  try {
+    const key = `tohu-welcome-asked-${userId}`;
+    if (window.sessionStorage.getItem(key)) return;
+    window.sessionStorage.setItem(key, "1");
+  } catch {
+    return;
+  }
+  void fetch("/api/email/welcome", { method: "POST" }).catch(() => {});
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -122,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         await loadProfile(session.user.id);
+        requestWelcomeEmail(session.user.id);
       }
       if (!cancelled) setLoading(false);
     }

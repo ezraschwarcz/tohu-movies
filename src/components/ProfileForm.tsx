@@ -10,6 +10,7 @@ import {
 import { computeProfileCompletion } from "@/lib/profile";
 import { AVATAR_PRESETS, avatarPresetById } from "@/lib/avatars";
 import AvatarCropper from "./AvatarCropper";
+import EmailPrefs from "./EmailPrefs";
 import Avatar from "./Avatar";
 import { useAuth } from "./AuthProvider";
 import { useSiteSearch } from "./SiteProvider";
@@ -1182,6 +1183,7 @@ export default function ProfileForm({
             </span>
           </span>
         </label>
+        <EmailPrefs userId={userId} />
       </section>
 
       ) : null}
