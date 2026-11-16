@@ -6620,3 +6620,35 @@ div.cr-tile {
   flex-wrap: wrap;
   row-gap: 6px;
 }
+
+/* Footer links on phones: two tidy columns instead of a wrapped row
+ * with stray dots at the line ends. */
+@media (max-width: 640px) {
+  .foot-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 12px;
+    max-width: 340px;
+    margin: 18px auto 0;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .foot-links .sep {
+    display: none;
+  }
+
+  .foot-links a {
+    padding: 9px 4px;
+  }
+
+  .foot-links a:last-of-type:nth-of-type(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .foot-links + .foot-links {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+}
