@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getFilms } from "@/lib/films";
+import { allGenres, COLLECTIONS } from "@/lib/collections";
 import { SITE_URL } from "@/lib/site";
 
 /** Sitemap for search engines, generated from the live catalog so it can
@@ -22,6 +23,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 1,
     },
+    { url: `${SITE_URL}/browse`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/faq`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/contact`, changeFrequency: "yearly", priority: 0.4 },
+    ...COLLECTIONS.map((c) => ({
+      url: `${SITE_URL}/collections/${c.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
     {
       url: `${SITE_URL}/privacy`,
       changeFrequency: "yearly",
@@ -47,7 +57,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.8,
     }));
-    return [...staticEntries, ...filmEntries];
+    const genreEntries: MetadataRoute.Sitemap = allGenres(films).map((g) => ({
+      url: `${SITE_URL}/genre/${g.slug}`,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+    return [...staticEntries, ...genreEntries, ...filmEntries];
   } catch {
     return staticEntries;
   }

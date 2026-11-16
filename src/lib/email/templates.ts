@@ -195,3 +195,129 @@ export function accessChangeEmail(input: {
     text: [headline, "", ...lines, "", `${SITE_URL}/admin`].join("\n"),
   };
 }
+
+/* ------------------------------------------------------------------
+ * Optional emails: the Friday Pick, new-film alerts, reply notices.
+ * Each carries a one-click unsubscribe link for its own kind.
+ * ------------------------------------------------------------------ */
+
+export type EmailFilmDetail = EmailFilm & {
+  facts: string;
+  synopsis: string;
+};
+
+function optionalFooter(why: string, unsubscribeUrl: string): string {
+  return `Tohu Movies &middot; Free independent films &middot; <a href="${SITE_URL}" style="color:#b3ab99;">tohumovies.com</a><br>
+${why} <a href="${esc(unsubscribeUrl)}" style="color:#b3ab99;">Unsubscribe</a> &middot; <a href="${SITE_URL}/profile?view=preferences" style="color:#b3ab99;">Email settings</a>`;
+}
+
+function filmBlock(film: EmailFilmDetail, source: string): string {
+  const url = `${SITE_URL}/films/${esc(film.slug)}?utm_source=email&amp;utm_campaign=${source}`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+${film.poster ? `<td width="150" valign="top" style="padding:0 20px 0 0;"><a href="${url}"><img src="${esc(film.poster)}" width="150" alt="${esc(film.title)}" style="display:block;width:150px;height:auto;border-radius:10px;border:0;"></a></td>` : ""}
+<td valign="top">
+<p style="margin:0 0 6px;font-size:22px;line-height:1.2;font-weight:bold;color:#f2eee3;">${esc(film.title)}</p>
+<p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:#b3ab99;">${esc(film.facts)}</p>
+<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#d9d2c0;">${esc(film.synopsis)}</p>
+${button("Watch free", `${SITE_URL}/films/${film.slug}?utm_source=email&utm_campaign=${source}`)}
+</td></tr></table>`;
+}
+
+export function fridayPickEmail(input: {
+  name: string;
+  film: EmailFilmDetail;
+  note: string | null;
+  unsubscribeUrl: string;
+}): { subject: string; html: string; text: string } {
+  const first = input.name.trim().split(/\s+/)[0];
+  const hello = first && !/^Viewer$/i.test(first) ? `${first}, here` : "Here";
+  const body = `<p style="margin:0 0 10px;font-size:13px;font-weight:bold;letter-spacing:1px;color:#e9a83a;">THE FRIDAY PICK</p>
+<h1 style="margin:0 0 22px;font-size:24px;line-height:1.25;color:#f2eee3;">${esc(hello)} is this week&rsquo;s film.</h1>
+${input.note ? `<p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:#d9d2c0;">${esc(input.note)}</p>` : ""}
+${filmBlock(input.film, "friday-pick")}
+<p style="margin:26px 0 0;font-size:14px;line-height:1.6;color:#b3ab99;">Free to watch, no subscription. Enjoy your weekend.</p>`;
+  const link = `${SITE_URL}/films/${input.film.slug}?utm_source=email&utm_campaign=friday-pick`;
+  return {
+    subject: `The Friday Pick: ${input.film.title}`,
+    html: layout({
+      preview: input.note || input.film.synopsis.slice(0, 110),
+      body,
+      footer: optionalFooter("You asked for the Friday Pick.", input.unsubscribeUrl),
+    }),
+    text: [
+      `The Friday Pick: ${input.film.title}`,
+      input.film.facts,
+      "",
+      ...(input.note ? [input.note, ""] : []),
+      input.film.synopsis,
+      "",
+      `Watch free: ${link}`,
+      "",
+      `Unsubscribe: ${input.unsubscribeUrl}`,
+      "Tohu Entertainment, LLC, 9854 National Blvd. #302, Los Angeles, CA 90034",
+    ].join("\n"),
+  };
+}
+
+export function newFilmsEmail(input: {
+  films: EmailFilmDetail[];
+  unsubscribeUrl: string;
+}): { subject: string; html: string; text: string } {
+  const films = input.films.slice(0, 4);
+  const one = films.length === 1;
+  const headline = one ? `New on Tohu: ${films[0].title}` : `${films.length} new films on Tohu`;
+  const body = `<p style="margin:0 0 10px;font-size:13px;font-weight:bold;letter-spacing:1px;color:#e9a83a;">JUST ADDED</p>
+<h1 style="margin:0 0 24px;font-size:24px;line-height:1.25;color:#f2eee3;">${esc(headline)}</h1>
+${films.map((f) => filmBlock(f, "new-films")).join('<div style="height:28px;line-height:28px;">&nbsp;</div>')}`;
+  return {
+    subject: headline,
+    html: layout({
+      preview: one ? films[0].synopsis.slice(0, 110) : films.map((f) => f.title).join(", "),
+      body,
+      footer: optionalFooter("You asked for new-film alerts.", input.unsubscribeUrl),
+    }),
+    text: [
+      headline,
+      "",
+      ...films.flatMap((f) => [
+        `${f.title} (${f.facts})`,
+        f.synopsis,
+        `${SITE_URL}/films/${f.slug}?utm_source=email&utm_campaign=new-films`,
+        "",
+      ]),
+      `Unsubscribe: ${input.unsubscribeUrl}`,
+      "Tohu Entertainment, LLC, 9854 National Blvd. #302, Los Angeles, CA 90034",
+    ].join("\n"),
+  };
+}
+
+export function replyEmail(input: {
+  replier: string;
+  body: string;
+  filmTitle: string;
+  filmSlug: string;
+  unsubscribeUrl: string;
+}): { subject: string; html: string; text: string } {
+  const link = `${SITE_URL}/films/${input.filmSlug}?utm_source=email&utm_campaign=reply#comments`;
+  const body = `<h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#f2eee3;">${esc(input.replier)} replied to your comment on ${esc(input.filmTitle)}</h1>
+<p style="margin:0 0 24px;padding:14px 16px;border-left:3px solid #e9a83a;background:#221f1a;border-radius:6px;font-size:15px;line-height:1.6;color:#d9d2c0;">${esc(input.body)}</p>
+${button("See the conversation", link)}`;
+  return {
+    subject: `${input.replier} replied to your comment on ${input.filmTitle}`,
+    html: layout({
+      preview: input.body.slice(0, 110),
+      body,
+      footer: optionalFooter("You get these when someone replies to you.", input.unsubscribeUrl),
+    }),
+    text: [
+      `${input.replier} replied to your comment on ${input.filmTitle}:`,
+      "",
+      input.body,
+      "",
+      `See the conversation: ${link}`,
+      "",
+      `Stop reply emails: ${input.unsubscribeUrl}`,
+      "Tohu Entertainment, LLC, 9854 National Blvd. #302, Los Angeles, CA 90034",
+    ].join("\n"),
+  };
+}
