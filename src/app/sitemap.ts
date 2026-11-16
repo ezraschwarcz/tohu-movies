@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getFilms } from "@/lib/films";
 import { allGenres, COLLECTIONS } from "@/lib/collections";
+import { allPeople } from "@/lib/people";
 import { SITE_URL } from "@/lib/site";
 
 /** Sitemap for search engines, generated from the live catalog so it can
@@ -27,6 +28,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/faq`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/contact`, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE_URL}/submit`, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE_URL}/advertise`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/guidelines`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/copyright`, changeFrequency: "yearly", priority: 0.3 },
     ...COLLECTIONS.map((c) => ({
       url: `${SITE_URL}/collections/${c.slug}`,
       changeFrequency: "weekly" as const,
@@ -62,7 +67,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     }));
-    return [...staticEntries, ...genreEntries, ...filmEntries];
+    const peopleEntries: MetadataRoute.Sitemap = allPeople(films).map((p) => ({
+      url: `${SITE_URL}/people/${p.slug}`,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    }));
+    return [...staticEntries, ...genreEntries, ...filmEntries, ...peopleEntries];
   } catch {
     return staticEntries;
   }

@@ -25,6 +25,14 @@ export default function Footer() {
           &middot;
         </span>
         <Link href="/contact">Contact</Link>
+        <span className="sep" aria-hidden="true">
+          &middot;
+        </span>
+        <Link href="/submit">Submit your film</Link>
+        <span className="sep" aria-hidden="true">
+          &middot;
+        </span>
+        <Link href="/advertise">Advertise</Link>
       </nav>
       <nav className="foot-links" aria-label="Legal">
         <Link href="/privacy">Privacy Policy</Link>
@@ -36,6 +44,14 @@ export default function Footer() {
           &middot;
         </span>
         <Link href="/cookies">Cookie Notice</Link>
+        <span className="sep" aria-hidden="true">
+          &middot;
+        </span>
+        <Link href="/guidelines">Community Guidelines</Link>
+        <span className="sep" aria-hidden="true">
+          &middot;
+        </span>
+        <Link href="/copyright">Copyright</Link>
       </nav>
     </footer>
   );

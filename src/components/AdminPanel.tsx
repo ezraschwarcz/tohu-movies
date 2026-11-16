@@ -1713,6 +1713,93 @@ function EmailsTab() {
 
 /* -------------------------------- Tools ------------------------------- */
 
+type Submission = {
+  id: number;
+  title: string;
+  year: number | null;
+  role: string | null;
+  name: string;
+  email: string;
+  link: string | null;
+  rights: string | null;
+  message: string | null;
+  status: "new" | "reviewed" | "accepted" | "declined";
+  created_at: string;
+};
+
+function SubmissionsSection() {
+  const [rows, setRows] = useState<Submission[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setRows(await call<Submission[]>("admin_list_submissions"));
+      setError(null);
+    } catch (e) {
+      setError(
+        /database update/.test((e as Error).message)
+          ? "Film submissions need the submissions database update (supabase/migrations/20261119_submissions.sql)."
+          : (e as Error).message,
+      );
+    }
+  }, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function mark(id: number, status: Submission["status"]) {
+    try {
+      await call("admin_set_submission_status", { p_id: id, p_status: status });
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  return (
+    <section>
+      <h3 className="cr-h3">
+        Film submissions
+        {rows ? ` (${rows.filter((r) => r.status === "new").length} new)` : ""}
+      </h3>
+      {error ? <p className="form-note">{error}</p> : null}
+      {rows && rows.length === 0 ? (
+        <p className="cr-empty">None yet. They arrive from the Submit your film page.</p>
+      ) : null}
+      {rows && rows.length > 0 ? (
+        <ul className="cr-list">
+          {rows.map((r) => (
+            <li key={r.id} className={`cr-item${r.status === "new" ? "" : " dim"}`}>
+              <div className="cr-item-main">
+                <p className="cr-item-title">
+                  {r.title} {r.year ? <span className="cr-muted">({r.year})</span> : null}
+                  <span className={`cr-pill${r.status === "new" ? " warn" : ""}`}>{r.status}</span>
+                </p>
+                <p className="cr-muted">
+                  {r.name}
+                  {r.role ? `, ${r.role}` : ""} · <a href={`mailto:${r.email}`}>{r.email}</a> · {day(r.created_at)}
+                </p>
+                {r.link ? <p className="cr-muted">Watch: {r.link}</p> : null}
+                {r.rights ? <p className="cr-muted">Rights: {r.rights}</p> : null}
+                {r.message ? <p className="cr-body">{r.message}</p> : null}
+              </div>
+              <div className="cr-item-actions">
+                {(["reviewed", "accepted", "declined"] as const)
+                  .filter((st) => st !== r.status)
+                  .map((st) => (
+                    <button key={st} type="button" className="btn-ghost" onClick={() => void mark(r.id, st)}>
+                      Mark {st}
+                    </button>
+                  ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
 function ToolsTab() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
@@ -1761,6 +1848,7 @@ function ToolsTab() {
           </p>
         ) : null}
       </section>
+      <SubmissionsSection />
       <section>
         <h3 className="cr-h3">Your other dashboards</h3>
         <ul className="cr-links">
