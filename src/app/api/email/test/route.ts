@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
-import { getServerAuth } from "@/lib/supabase/server";
+import { createServerSupabase, getServerAuth } from "@/lib/supabase/server";
 
 /** Admin-only email check. Sends a short test message to the signed-in
  *  admin's own address and reports exactly what happened: sent, the
@@ -27,6 +27,16 @@ export async function POST() {
     html: `<div style="font-family:Arial,Helvetica,sans-serif;background:#0c0b09;color:#f2eee3;padding:28px;"><h1 style="margin:0 0 12px;font-size:22px;">It works.</h1><p style="margin:0;font-size:15px;line-height:1.6;color:#d9d2c0;">This is a test email from the Tohu Movies admin panel, sent at ${sentAt}. If you are reading it, the site can send email.</p></div>`,
     text: `It works. This is a test email from the Tohu Movies admin panel, sent at ${sentAt}.`,
   });
+  try {
+    const supabase = await createServerSupabase();
+    await supabase.rpc("admin_log_event", {
+      p_action: "Test email",
+      p_target: null,
+      p_detail: result.ok ? "Sent" : "Not sent",
+    });
+  } catch {
+    // Logging is best effort; the result below is what matters.
+  }
   if (result.ok) {
     return NextResponse.json({
       status: "sent",

@@ -5945,3 +5945,26 @@ footer .foot-copy {
     font-size: 26px;
   }
 }
+
+/* ---------- Control room: member counts and the full log ---------- */
+.cr-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--ink2);
+}
+
+.cr-counts strong {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin-right: 6px;
+}
+
+.cr-log-full li {
+  padding: 11px 0;
+}
