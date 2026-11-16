@@ -8,7 +8,7 @@ import "video.js/dist/video-js.css";
 import { durationSeconds, muxStreamUrl, posterUrl } from "@/lib/films";
 import { isAgeVerified } from "@/lib/ageGate";
 import { posterZoomFor } from "@/lib/posterZoom";
-import { officialPosterFor } from "@/lib/posters";
+import { coverArtFor } from "@/lib/posters";
 import { MUX_DATA_ENV_KEY, MUX_PLAYER_NAME } from "@/lib/site";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import type { Film } from "@/lib/types";
@@ -787,10 +787,10 @@ export default function Player({
       ) : null}
       {showUpNext && nextFilm ? (
         <div className="up-next" role="dialog" aria-label="Up next">
-          {officialPosterFor(nextFilm.slug) ? (
+          {coverArtFor(nextFilm) ? (
             <span className="up-next-poster is-official">
               <img
-                src={officialPosterFor(nextFilm.slug) as string}
+                src={coverArtFor(nextFilm) as string}
                 alt=""
                 width={600}
                 height={900}

@@ -15,6 +15,9 @@ export type Film = {
   warnings: string;
   playback_id: string;
   created_at: string;
+  /** Cover art uploaded from the admin page (a public image address).
+   *  Absent on films that use the built-in cover art or a still. */
+  poster_url?: string | null;
 };
 
 export type RatingSummary = {
@@ -46,6 +49,8 @@ export type Profile = {
    *  the Phase 5.2 SQL has run; readers tolerate them being absent. */
   avatar_preset?: string | null;
   avatar_url?: string | null;
+  /** Optional short public bio (control-room database update). */
+  bio?: string | null;
 };
 
 /** One comment, with the commenter's display name joined from profiles.

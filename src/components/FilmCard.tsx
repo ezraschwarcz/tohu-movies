@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatRuntime, genresOf } from "@/lib/films";
 import { posterArtFor } from "@/lib/posterArt";
-import { officialPosterFor } from "@/lib/posters";
+import { coverArtFor } from "@/lib/posters";
 import { posterZoomFor } from "@/lib/posterZoom";
 import type { Film, RatingSummary } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
@@ -42,7 +42,7 @@ export default function FilmCard({
 }) {
   const router = useRouter();
   const { ensureAllowed, modal } = useAgeGate();
-  const official = officialPosterFor(film.slug);
+  const official = coverArtFor(film);
   const art = posterArtFor(film);
 
   function open(e: React.MouseEvent) {

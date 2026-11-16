@@ -1,5 +1,6 @@
 "use client";
 
+import { rememberFirstTouch } from "@/lib/attribution";
 import {
   createContext,
   useCallback,
@@ -40,6 +41,11 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const [hideRRated, setHideRRatedState] = useState(false);
 
   // Pick up a ?q= link on first mount (client side only).
+  // Note once where this visitor first came from (see lib/attribution).
+  useEffect(() => {
+    rememberFirstTouch();
+  }, []);
+
   useEffect(() => {
     try {
       const q = new URLSearchParams(window.location.search).get("q");

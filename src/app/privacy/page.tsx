@@ -13,7 +13,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      meta="Last updated: November 15, 2026"
+      meta="Last updated: November 16, 2026"
       intro="Tohu Movies is a free, ad-supported streaming service. We believe privacy should be simple to understand, so this policy explains in plain language what we collect, why we collect it, and the choices you have. If you have any questions, write to privacy@tohumovies.com."
       footerNote={
         <>
@@ -53,7 +53,13 @@ export default function PrivacyPage() {
           email address and the display name you pick. If you set a
           password, it is stored in protected (hashed) form by our
           authentication provider and we cannot read it. You may also add
-          a profile photo or avatar and choose favorite genres.
+          a profile photo or avatar, a short bio, and choose favorite
+          genres. Your display name, photo, bio, the month you joined, and
+          your approved comments appear on a public member page. When an
+          account is created we also note a short label for where you
+          first came from (for example the name of the site that linked
+          to us), so we can tell which of our announcements people
+          respond to.
         </li>
         <li>
           <strong>Comments.</strong> If you post a comment while signed in,

@@ -9,7 +9,7 @@ import {
 } from "react";
 import { formatRuntime, posterUrl } from "@/lib/films";
 import { posterZoomFor } from "@/lib/posterZoom";
-import { officialPosterFor, posterFocusY } from "@/lib/posters";
+import { coverArtFor, posterFocusY } from "@/lib/posters";
 import type { Film } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
 
@@ -52,7 +52,7 @@ export default function Hero({ films }: { films: Film[] }) {
     const phone = window.matchMedia("(max-width: 640px)").matches;
     const held = featured.map((f) => {
       const img = new Image();
-      const art = officialPosterFor(f.slug);
+      const art = coverArtFor(f);
       img.src = phone && art ? art : posterUrl(f, 1600);
       return img;
     });
@@ -133,7 +133,7 @@ export default function Hero({ films }: { films: Film[] }) {
     return <section className="hero hero-pending" aria-hidden="true" />;
   }
   const current = film;
-  const art = officialPosterFor(film.slug);
+  const art = coverArtFor(film);
 
   /** Watch now: go to the film and start it playing. */
   function play() {
