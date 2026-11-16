@@ -66,12 +66,28 @@ export default async function ProfilePage({
       ? userMetadata.display_name
       : "";
 
-  const avatarPreset =
-    profile?.avatar_preset ??
-    (typeof userMetadata.avatar_preset === "string" ? userMetadata.avatar_preset : null);
-  const avatarUrl =
-    profile?.avatar_url ??
-    (typeof userMetadata.avatar_url === "string" ? userMetadata.avatar_url : null);
+  // The photo: read it from the profile row (where an uploaded photo is
+  // saved), falling back to what was chosen at sign-up.
+  const saved = await supabase
+    .from("profiles")
+    .select("avatar_preset,avatar_url")
+    .eq("id", userId)
+    .maybeSingle();
+  const row = (saved.error ? null : saved.data) as {
+    avatar_preset?: string | null;
+    avatar_url?: string | null;
+  } | null;
+  const hasSaved = Boolean(row?.avatar_preset || row?.avatar_url);
+  const avatarPreset = hasSaved
+    ? (row?.avatar_preset ?? null)
+    : typeof userMetadata.avatar_preset === "string"
+      ? userMetadata.avatar_preset
+      : null;
+  const avatarUrl = hasSaved
+    ? (row?.avatar_url ?? null)
+    : typeof userMetadata.avatar_url === "string"
+      ? userMetadata.avatar_url
+      : null;
 
   return (
     <div className="wrap ph-wrap">

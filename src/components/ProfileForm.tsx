@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import {
   isPasskeyDisabledError,
@@ -298,6 +299,8 @@ export default function ProfileForm({
     setAvatarPreset(nextPreset);
     setAvatarUrl(nextUrl);
     await refreshProfile();
+    // The profile header is drawn by the server: redraw it.
+    router.refresh();
     return { error: null, fallback };
   }
 
@@ -369,41 +372,57 @@ export default function ProfileForm({
     | "activity"
     | "preferences"
     | "admin";
-  const [view, setView] = useState<ProfileView>("menu");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedView = searchParams.get("view");
+  const [view, setViewState] = useState<ProfileView>("menu");
+  /** Open a section and keep the address in step, so the buttons in
+   *  the profile header (which are links) always land where they say. */
+  const setView = useCallback((next: ProfileView) => {
+    setViewState(next);
+    try {
+      window.history.replaceState(
+        null,
+        "",
+        next === "menu" ? "/profile?tab=settings" : `/profile?view=${next}`,
+      );
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [view]);
 
-  // Deep links from the header account menu: /profile?view=security
-  // opens that section directly. Read once on mount (the component
-  // remounts per navigation); admin only opens for admins.
-  useEffect(() => {
-    try {
-      const requested = new URLSearchParams(window.location.search).get(
-        "view",
-      );
-      const valid: ProfileView[] = [
-        "menu",
-        "complete",
-        "name",
-        "avatar",
-        "security",
-        "activity",
-        "preferences",
-        "admin",
-      ];
-      if (
-        requested &&
-        (valid as string[]).includes(requested) &&
-        (requested !== "admin" || isAdmin)
-      ) {
-        setView(requested as ProfileView);
-      }
-    } catch {
-      // ignore: no deep link
+  // Links such as /profile?view=security (the account menu, emails,
+  // the buttons in the profile header) open that section. Followed
+  // every time the address changes, not only on first load.
+  const [followedView, setFollowedView] = useState<string | null | undefined>(
+    undefined,
+  );
+  if (requestedView !== followedView) {
+    setFollowedView(requestedView);
+    const valid: ProfileView[] = [
+      "menu",
+      "complete",
+      "name",
+      "avatar",
+      "security",
+      "activity",
+      "preferences",
+      "admin",
+    ];
+    if (
+      requestedView &&
+      (valid as string[]).includes(requestedView) &&
+      (requestedView !== "admin" || isAdmin)
+    ) {
+      setViewState(requestedView as ProfileView);
+    } else if (!requestedView) {
+      setViewState("menu");
     }
-  }, [isAdmin]);
+  }
 
   const viewTitles: Record<Exclude<ProfileView, "menu">, string> = {
     complete: completion.complete ? "Favorite genres" : "Finish your profile",
@@ -570,6 +589,7 @@ export default function ProfileForm({
     }
     await refreshProfile();
     setSavedName(trimmed);
+    router.refresh();
     setSaved("Saved.");
   }
 
