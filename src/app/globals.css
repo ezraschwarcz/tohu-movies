@@ -6330,6 +6330,276 @@ div.cr-tile {
   margin-top: 8px;
 }
 
+/* ---------- Profile home ---------- */
+.ph-wrap {
+  max-width: 900px;
+  padding-top: 30px;
+  padding-bottom: 60px;
+}
+
+.ph-wrap .profile-hub {
+  max-width: none;
+  padding: 0;
+}
+
+/* The header above already shows who you are. */
+.ph-wrap .profile-id-card {
+  display: none;
+}
+
+.ph-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.ph-id {
+  min-width: 0;
+}
+
+.ph-name {
+  margin: 0 0 4px;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.05;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.ph-meta {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.ph-meta a {
+  color: var(--accent);
+}
+
+.ph-bio {
+  margin: 8px 0 0;
+  max-width: 560px;
+  font-size: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ph-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.ph-actions .btn-ghost {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  text-decoration: none;
+}
+
+.ph-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 26px 0 22px;
+}
+
+.ph-stat {
+  display: grid;
+  gap: 2px;
+  padding: 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+  text-align: center;
+}
+
+.ph-stat:hover {
+  border-color: var(--accent);
+}
+
+.ph-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-stat-label {
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+.ph-tabs {
+  margin-bottom: 26px;
+}
+
+.ph-tabs .cr-tab {
+  text-decoration: none;
+}
+
+.ph-overview {
+  display: grid;
+  gap: 34px;
+}
+
+.ph-history-wrap {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+}
+
+.ph-history-wrap > .btn-ghost {
+  width: auto;
+}
+
+.ph-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.ph-history li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.ph-history-art img,
+.ph-history-art .ph-noart {
+  display: block;
+  width: 48px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--bg2);
+}
+
+.ph-history-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.ph-history-title {
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.ph-history-title span {
+  font-weight: 400;
+  color: var(--ink2);
+}
+
+.ph-history-meta {
+  font-size: 13px;
+  color: var(--ink2);
+}
+
+.ph-bar {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.ph-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.ph-rated {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 18px 14px;
+}
+
+.ph-rated li {
+  display: grid;
+  gap: 6px;
+}
+
+.ph-rated a {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.ph-rated img,
+.ph-rated .ph-noart {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--bg2);
+}
+
+.ph-rated-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ph-stars {
+  color: var(--accent);
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.ph-stars span {
+  color: var(--line);
+}
+
+.ph-latest {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ph-latest li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.ph-latest a {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .ph-top {
+    gap: 16px;
+  }
+
+  .ph-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ph-stat-value {
+    font-size: 20px;
+  }
+
 .person-link {
   color: inherit;
   text-decoration: underline;
