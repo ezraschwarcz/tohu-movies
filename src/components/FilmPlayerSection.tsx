@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { isAgeVerified } from "@/lib/ageGate";
 import { posterUrl } from "@/lib/films";
+import { trackFilmEvent } from "@/lib/track";
 import type { Film } from "@/lib/types";
 import { AgeGateModal } from "./AgeGate";
 import Player from "./Player";
@@ -25,6 +26,10 @@ export default function FilmPlayerSection({
     film.rating === "R" ? null : true,
   );
   const [gateOpen, setGateOpen] = useState(false);
+
+  useEffect(() => {
+    trackFilmEvent(film.slug, "open");
+  }, [film.slug]);
 
   useEffect(() => {
     if (film.rating !== "R") return;

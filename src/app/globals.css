@@ -5968,3 +5968,227 @@ footer .foot-copy {
 .cr-log-full li {
   padding: 11px 0;
 }
+
+/* Profile screens: consistent breathing room between the pieces of a
+ * section (notes, chip groups, buttons used to touch each other). */
+.profile-card section > * + *,
+.profile-card section > div > * + * {
+  margin-top: 16px;
+}
+
+.profile-card section > .profile-h2 + * {
+  margin-top: 0;
+}
+
+.profile-card .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.profile-card .chips > * {
+  margin: 0;
+}
+
+/* ---------- Google button, comment menu, account safety, insights ---------- */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f1f1f;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-google:disabled {
+  opacity: 0.7;
+}
+
+.comment-more {
+  position: relative;
+  float: right;
+}
+
+.comment-more-btn {
+  min-width: 36px;
+  min-height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.comment-more-btn:hover {
+  background: var(--panel2);
+  color: var(--ink);
+}
+
+.comment-menu {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  z-index: 5;
+  display: grid;
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.comment-menu button,
+.comment-menu a {
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.comment-menu button:hover,
+.comment-menu a:hover {
+  background: var(--panel2);
+}
+
+.safety-block {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.safety-block > * + * {
+  margin-top: 12px;
+}
+
+.safety-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.safety-actions .btn-ghost,
+.safety-block > .btn-ghost {
+  width: auto;
+}
+
+.cr-funnel {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.cr-funnel li {
+  display: grid;
+  grid-template-columns: minmax(120px, 210px) minmax(0, 1fr) minmax(90px, auto);
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.cr-funnel-track {
+  height: 22px;
+  border-radius: 6px;
+  background: var(--panel2);
+  overflow: hidden;
+}
+
+.cr-funnel-bar {
+  display: block;
+  height: 100%;
+  border-radius: 6px;
+  background: var(--accent);
+}
+
+.cr-funnel-value {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.cr-funnel-value small {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--ink2);
+}
+
+.cr-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.cr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cr-table th,
+.cr-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+
+.cr-table th:first-child,
+.cr-table td:first-child {
+  text-align: left;
+  white-space: normal;
+  min-width: 160px;
+}
+
+.cr-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink2);
+  background: var(--panel);
+}
+
+.cr-table tr:last-child td {
+  border-bottom: none;
+}
+
+.cr-table a {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .cr-funnel li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .cr-funnel-track {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+.cr-stack > * {
+  min-width: 0;
+}

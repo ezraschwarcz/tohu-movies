@@ -2,7 +2,7 @@ import { useEvent, useEventListener } from 'expo';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import Button from '@/components/Button';
 import FilmRail from '@/components/FilmRail';
@@ -14,6 +14,7 @@ import { colors, space } from '@/lib/theme';
 
 type FilmComment = {
   id: string;
+  user_id: string;
   body: string;
   created_at: string;
   profiles: { display_name: string } | { display_name: string }[] | null;
@@ -172,7 +173,7 @@ function FilmDetails({ film, films }: { film: Film; films: Film[] }) {
   const loadComments = useCallback(async () => {
     const { data } = await supabase
       .from('comments')
-      .select('id,body,created_at,profiles(display_name)')
+      .select('id,user_id,body,created_at,profiles(display_name)')
       .eq('film_slug', film.slug)
       .eq('status', 'approved')
       .order('created_at', { ascending: false })
@@ -182,6 +183,51 @@ function FilmDetails({ film, films }: { film: Film; films: Film[] }) {
   useEffect(() => {
     void loadComments();
   }, [loadComments]);
+
+  // Report a comment / block a member (required by the app stores).
+  const [blocked, setBlocked] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!userId) {
+      setBlocked(new Set());
+      return;
+    }
+    let cancelled = false;
+    void supabase
+      .from('member_blocks')
+      .select('blocked_id')
+      .eq('blocker_id', userId)
+      .then(({ data }) => {
+        if (!cancelled && data) setBlocked(new Set((data as { blocked_id: string }[]).map((r) => r.blocked_id)));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  function commentOptions(c: FilmComment, name: string) {
+    if (!userId) {
+      router.push('/sign-in');
+      return;
+    }
+    Alert.alert(name, undefined, [
+      {
+        text: 'Report comment',
+        onPress: async () => {
+          const { error } = await supabase.rpc('report_comment', { p_comment: c.id, p_reason: null });
+          Alert.alert(error ? 'Could not send the report' : 'Thanks', error ? 'Try again in a moment.' : 'An admin will review this comment.');
+        },
+      },
+      {
+        text: `Block ${name}`,
+        style: 'destructive',
+        onPress: async () => {
+          const { error } = await supabase.from('member_blocks').insert({ blocker_id: userId, blocked_id: c.user_id });
+          if (!error || /duplicate/i.test(error.message)) setBlocked((prev) => new Set(prev).add(c.user_id));
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }
 
   async function post() {
     const text = draft.trim();
@@ -278,12 +324,23 @@ function FilmDetails({ film, films }: { film: Film; films: Film[] }) {
         {comments.length === 0 ? (
           <Text style={styles.small}>No comments yet. Be the first.</Text>
         ) : (
-          comments.map((c) => {
+          comments.filter((c) => !blocked.has(c.user_id)).map((c) => {
             const p = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles;
+            const name = p?.display_name ?? 'A viewer';
             return (
               <View key={c.id} style={styles.comment}>
+                {c.user_id !== userId ? (
+                  <Pressable
+                    onPress={() => commentOptions(c, name)}
+                    hitSlop={10}
+                    style={styles.commentMore}
+                    accessibilityRole="button"
+                    accessibilityLabel="Report or block">
+                    <Text style={styles.commentMoreText}>⋯</Text>
+                  </Pressable>
+                ) : null}
                 <Text style={styles.commentName}>
-                  {p?.display_name ?? 'A viewer'}
+                  {name}
                   <Text style={styles.small}>
                     {'  '}
                     {new Date(c.created_at).toLocaleDateString()}
@@ -320,6 +377,8 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   comment: { paddingVertical: space.md, borderTopWidth: 1, borderTopColor: colors.line, gap: 4 },
+  commentMore: { position: 'absolute', right: 0, top: 8, zIndex: 1, paddingHorizontal: 8 },
+  commentMoreText: { color: colors.ink2, fontSize: 22, fontWeight: '800' },
   commentName: { color: colors.ink, fontSize: 14, fontWeight: '800' },
   commentBody: { color: colors.ink, fontSize: 15, lineHeight: 22 },
 });

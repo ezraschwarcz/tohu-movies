@@ -276,8 +276,7 @@ export default function HomePrompts({ films }: { films: Film[] }) {
         }
       >
         <strong>Complete your profile.</strong> You are{" "}
-        {completion.percent}% there. A display name, a password, and
-        your favorite genres make sign-in easier and your home page
+        {completion.percent}% there. A display name and your favorite genres make sign-in easier and your home page
         more yours.
         <div
           className="wizard-progress"

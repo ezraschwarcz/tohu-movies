@@ -60,19 +60,17 @@ walks you through signing in to Apple and Google the first time.
 
 These are store rules, not optional polish:
 
-1. **Delete account inside the app.** Apple requires it for any app
-   that lets people create an account. Not built yet.
-2. **Report and block for comments.** Both stores require a way to
-   report a comment and block a member in apps with user comments.
-   Not built yet (the admin ban tools on the website are the other half).
+1. **Delete account inside the app.** Built: Profile, Delete my account.
+2. **Report and block for comments.** Built: the ⋯ beside each comment.
+   Reports go to the website's control room (Comments, Reported).
 3. **Age rating.** Answer the stores' questionnaires truthfully; with R
    rated horror the app will be rated 17+ / Mature.
 4. **Sign in with Apple** is only required if you add Google or
    Facebook sign-in. Email codes alone do not need it.
 5. **Ads.** The app has none yet. Ads in apps use Google AdMob (a
    separate product from AdSense) or video ads through Mux/Google IMA.
-6. **Real icon and screenshots.** `assets/images/icon.png` is the
-   website logo scaled up as a placeholder; replace it with a 1024px original.
+6. **Screenshots.** The icon is a full 1024px drawing of the Tohu mark;
+   the stores also need phone screenshots.
 
 ## Where things are
 

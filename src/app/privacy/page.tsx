@@ -13,7 +13,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      meta="Last updated: November 16, 2026"
+      meta="Last updated: November 17, 2026"
       intro="Tohu Movies is a free, ad-supported streaming service. We believe privacy should be simple to understand, so this policy explains in plain language what we collect, why we collect it, and the choices you have. If you have any questions, write to privacy@tohumovies.com."
       footerNote={
         <>
@@ -91,6 +91,13 @@ export default function PrivacyPage() {
           example, buffering, playback errors, and how much of a film was
           watched) so we can keep playback smooth. This data is tied to an
           anonymous viewer identifier, not to your identity.
+        </li>
+        <li>
+          <strong>Usage totals.</strong> We keep daily totals of how
+          often each film&apos;s page is opened, how often play is pressed,
+          and how far through films viewers get, and of how many people
+          start and finish signing up. These are counts only, with no
+          record of who.
         </li>
         <li>
           <strong>View counts.</strong> When a film has played for about 30
@@ -233,8 +240,9 @@ export default function PrivacyPage() {
           <strong>Your account.</strong> You can change your display name,
           photo, favorite genres, and email choices in your profile at any
           time. To delete your account and the information stored with it,
-          write to privacy@tohumovies.com from the email address on the
-          account.
+          open your profile, choose Preferences, and use Delete my
+          account. You can also block other members there, and report
+          any comment from the menu beside it.
         </li>
         <li>
           <strong>Advertising.</strong> You can opt out of personalized
