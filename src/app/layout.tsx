@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TabBar from "@/components/TabBar";
 import EmailOptInPrompt from "@/components/EmailOptInPrompt";
+import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/components/AuthProvider";
 import { SiteProvider } from "@/components/SiteProvider";
 import { ADSENSE_CLIENT, SITE_NAME, SITE_URL, TAGLINE } from "@/lib/site";
@@ -91,6 +92,10 @@ export default function RootLayout({
             <Footer />
             <TabBar />
             <EmailOptInPrompt />
+            {/* Vercel Web Analytics: page views and visitors, counted
+                without cookies. Does nothing until Web Analytics is
+                enabled for the project in Vercel. */}
+            <Analytics />
           </AuthProvider>
         </SiteProvider>
       </body>
