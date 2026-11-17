@@ -20,6 +20,11 @@ if (dsn) {
     },
     // Noise from browser extensions and ad scripts, not from Tohu.
     ignoreErrors: ["ResizeObserver loop", "Non-Error promise rejection captured"],
-    denyUrls: [/extensions\//i, /^chrome:\/\//i, /googlesyndication\.com/i, /doubleclick\.net/i],
+    denyUrls: [
+      /^(chrome|moz|safari-web)-extension:\/\//i,
+      /^chrome:\/\//i,
+      /^https:\/\/([a-z0-9-]+\.)*googlesyndication\.com\//i,
+      /^https:\/\/([a-z0-9-]+\.)*doubleclick\.net\//i,
+    ],
   });
 }
