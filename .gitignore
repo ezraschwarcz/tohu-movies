@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+mobile/node_modules/
+
+# Build output and caches
+.next/
+out/
+build/
+*.tsbuildinfo
+mobile/.expo/
+mobile/dist/
+
+# Local environment and secrets
+.env
+.env*.local
+.vercel/
+
+# Logs and system files
+npm-debug.log*
+*.log
+.DS_Store

@@ -773,7 +773,8 @@ button {
   padding: 5px 3px;
   font-size: 21px;
   line-height: 1;
-  color: var(--line);
+  /* Empty stars must stay visible: at least 4.5:1 on the dark page. */
+  color: #8d8676;
   -webkit-tap-highlight-color: transparent;
   transition: color 0.15s ease, transform 0.12s ease;
 }
@@ -812,7 +813,7 @@ button {
 }
 
 .stars.on-dark .star-btn {
-  color: rgba(247, 242, 231, 0.28);
+  color: rgba(247, 242, 231, 0.55);
 }
 
 .stars.on-dark .star-btn.filled {
@@ -1268,7 +1269,7 @@ footer .foot-copy {
 }
 
 .foot-links .sep {
-  color: var(--line);
+  color: #8d8676;
   font-weight: 400;
 }
 

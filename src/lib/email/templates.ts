@@ -6,8 +6,13 @@ import { SITE_URL } from "../site";
 
 /** Postal address shown at the foot of every email (required by law
  *  for marketing email, and good practice for the rest). */
+/** The mailing address the law asks marketing emails to carry. Mail apps
+ *  like to turn addresses into blue map links; the styles in layout() and
+ *  this span keep it the same grey as the rest of the footer. */
 export const POSTAL_ADDRESS =
-  "Tohu Entertainment, LLC &middot; 9854 National Blvd. #302 &middot; Los Angeles, CA 90034";
+  '<span class="address" style="color:#8d8676;text-decoration:none;">Tohu Entertainment, LLC<br><span style="white-space:nowrap;">9854 National Blvd. #302,</span> <span style="white-space:nowrap;">Los Angeles, CA 90034</span></span>';
+
+const FOOTER_LINK = "color:#b3ab99;text-decoration:underline;";
 
 function esc(value: string): string {
   return value
@@ -32,9 +37,22 @@ function layout(options: {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
+<meta name="supported-color-schemes" content="dark light">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <title>Tohu Movies</title>
+<style>
+a[x-apple-data-detectors], .address a { color: inherit !important; text-decoration: none !important; font: inherit !important; }
+@media only screen and (max-width: 480px) {
+  .card { padding: 28px 22px !important; }
+  .film-poster, .film-text { display: block !important; width: 100% !important; }
+  .film-poster { padding: 0 0 18px !important; }
+  .film-poster img { width: 160px !important; }
+  .foot { padding: 22px 8px 0 !important; }
+}
+</style>
 </head>
 <body style="margin:0;padding:0;background:#0c0b09;">
+<div role="article" aria-roledescription="email" aria-label="Tohu Movies" lang="en">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${esc(options.preview)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0c0b09;">
 <tr><td align="center" style="padding:32px 16px;">
@@ -42,15 +60,17 @@ function layout(options: {
 <tr><td style="padding:0 4px 20px;font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:bold;letter-spacing:1px;color:#f2eee3;">
 <img src="${SITE_URL}/logo-192.png" width="36" height="36" alt="" style="vertical-align:middle;border:0;border-radius:8px;margin-right:10px;"><span style="vertical-align:middle;">TOHU <span style="color:#e9a83a;">MOVIES</span></span>
 </td></tr>
-<tr><td style="background:#171512;border:1px solid #2e2b25;border-radius:14px;padding:36px 32px;font-family:Arial,Helvetica,sans-serif;color:#f2eee3;">
+<tr><td class="card" style="background:#171512;border:1px solid #2e2b25;border-radius:14px;padding:36px 32px;font-family:Arial,Helvetica,sans-serif;color:#f2eee3;">
 ${options.body}
 </td></tr>
-<tr><td style="padding:20px 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#8d8676;">
-${options.footer}<br>${POSTAL_ADDRESS}
+<tr><td class="foot" style="padding:24px 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.75;color:#8d8676;">
+<p style="margin:0 0 14px;">${options.footer}</p>
+<p style="margin:0;">${POSTAL_ADDRESS}</p>
 </td></tr>
 </table>
 </td></tr>
 </table>
+</div>
 </body>
 </html>`;
 }
@@ -97,8 +117,8 @@ ${
 ${button("Browse all films", `${SITE_URL}/#now-streaming`)}
 <p style="margin:26px 0 0;font-size:14px;line-height:1.6;color:#b3ab99;">The Tohu Movies team</p>`;
 
-  const footer = `Tohu Movies &middot; Free independent films &middot; <a href="${SITE_URL}" style="color:#b3ab99;">tohumovies.com</a><br>
-You received this once because you created a Tohu Movies account. <a href="${esc(input.preferencesUrl)}" style="color:#b3ab99;">Choose which emails you get</a>.`;
+  const footer = `You received this once because you created a Tohu Movies account.<br>
+<a href="${esc(input.preferencesUrl)}" style="${FOOTER_LINK}">Choose which emails you get</a>`;
 
   const text = [
     `Welcome to Tohu, ${first}.`,
@@ -207,15 +227,15 @@ export type EmailFilmDetail = EmailFilm & {
 };
 
 function optionalFooter(why: string, unsubscribeUrl: string): string {
-  return `Tohu Movies &middot; Free independent films &middot; <a href="${SITE_URL}" style="color:#b3ab99;">tohumovies.com</a><br>
-${why} <a href="${esc(unsubscribeUrl)}" style="color:#b3ab99;">Unsubscribe</a> &middot; <a href="${SITE_URL}/profile?view=preferences" style="color:#b3ab99;">Email settings</a>`;
+  return `${why}<br>
+<a href="${esc(unsubscribeUrl)}" style="${FOOTER_LINK}">Unsubscribe</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;<a href="${SITE_URL}/profile?view=preferences" style="${FOOTER_LINK}">Email settings</a>`;
 }
 
 function filmBlock(film: EmailFilmDetail, source: string): string {
   const url = `${SITE_URL}/films/${esc(film.slug)}?utm_source=email&amp;utm_campaign=${source}`;
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-${film.poster ? `<td width="150" valign="top" style="padding:0 20px 0 0;"><a href="${url}"><img src="${esc(film.poster)}" width="150" alt="${esc(film.title)}" style="display:block;width:150px;height:auto;border-radius:10px;border:0;"></a></td>` : ""}
-<td valign="top">
+${film.poster ? `<td class="film-poster" width="150" valign="top" style="padding:0 20px 0 0;"><a href="${url}"><img src="${esc(film.poster)}" width="150" alt="${esc(film.title)}" style="display:block;width:150px;height:auto;border-radius:10px;border:0;"></a></td>` : ""}
+<td class="film-text" valign="top">
 <p style="margin:0 0 6px;font-size:22px;line-height:1.2;font-weight:bold;color:#f2eee3;">${esc(film.title)}</p>
 <p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:#b3ab99;">${esc(film.facts)}</p>
 <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#d9d2c0;">${esc(film.synopsis)}</p>
@@ -263,16 +283,20 @@ export function newFilmsEmail(input: {
   films: EmailFilmDetail[];
   unsubscribeUrl: string;
 }): { subject: string; html: string; text: string } {
+  const total = input.films.length;
   const films = input.films.slice(0, 4);
-  const one = films.length === 1;
-  const headline = one ? `New on Tohu: ${films[0].title}` : `${films.length} new films on Tohu`;
+  const more = total - films.length;
+  const one = total === 1;
+  const headline = one ? `New on Tohu: ${films[0].title}` : `${total} new films on Tohu`;
+  const browse = `${SITE_URL}/browse?utm_source=email&utm_campaign=new-films`;
   const body = `<p style="margin:0 0 10px;font-size:13px;font-weight:bold;letter-spacing:1px;color:#e9a83a;">JUST ADDED</p>
 <h1 style="margin:0 0 24px;font-size:24px;line-height:1.25;color:#f2eee3;">${esc(headline)}</h1>
-${films.map((f) => filmBlock(f, "new-films")).join('<div style="height:28px;line-height:28px;">&nbsp;</div>')}`;
+${films.map((f) => filmBlock(f, "new-films")).join('<div style="height:28px;line-height:28px;">&nbsp;</div>')}
+${more > 0 ? `<p style="margin:28px 0 0;font-size:15px;line-height:1.6;color:#d9d2c0;">And ${more} more. <a href="${browse}" style="color:#e9a83a;">See everything new on Tohu</a>.</p>` : ""}`;
   return {
     subject: headline,
     html: layout({
-      preview: one ? films[0].synopsis.slice(0, 110) : films.map((f) => f.title).join(", "),
+      preview: one ? films[0].synopsis.slice(0, 110) : input.films.map((f) => f.title).join(", ").slice(0, 110),
       body,
       footer: optionalFooter("You asked for new-film alerts.", input.unsubscribeUrl),
     }),
@@ -285,6 +309,7 @@ ${films.map((f) => filmBlock(f, "new-films")).join('<div style="height:28px;line
         `${SITE_URL}/films/${f.slug}?utm_source=email&utm_campaign=new-films`,
         "",
       ]),
+      ...(more > 0 ? [`And ${more} more: ${browse}`, ""] : []),
       `Unsubscribe: ${input.unsubscribeUrl}`,
       "Tohu Entertainment, LLC, 9854 National Blvd. #302, Los Angeles, CA 90034",
     ].join("\n"),
