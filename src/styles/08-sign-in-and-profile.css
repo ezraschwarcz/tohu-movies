@@ -1,0 +1,511 @@
+/* Passkeys, profile, phone tap targets, bottom tab bar. */
+
+/* ---------- Phase 3: passkey sign-in and profile ---------- */
+.btn-passkey {
+  display: block;
+  width: 100%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: 8px;
+  padding: 13px 18px;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-passkey:hover {
+  filter: brightness(1.07);
+}
+
+.btn-passkey:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 0 20px;
+  color: var(--ink2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.auth-divider span {
+  white-space: nowrap;
+}
+
+.profile-h2 {
+  font-size: 21px;
+  font-weight: 800;
+  margin: 34px 0 12px;
+}
+
+.profile-h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 18px 0 8px;
+}
+
+.profile-line {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink2);
+  margin: 0 0 10px;
+}
+
+.profile-line a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.profile-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14.5px;
+}
+
+.profile-row a {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.profile-stars {
+  color: var(--accent);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.toggle-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.toggle-hint {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink2);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+.film-actions {
+  margin: 16px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.watchlist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.watchlist-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.watchlist-btn.saved {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.watchlist-btn.compact {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  margin-top: 8px;
+}
+
+.watchlist-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.comments {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.comments-note {
+  font-size: 14px;
+  color: var(--ink2);
+  margin: 0 0 18px;
+}
+
+/* Comments, YouTube-style (Phase 5.2): no cards — an avatar, the
+ * name and time, the text, and a quiet actions row (like, reply).
+ * Replies indent under their thread behind an expander. */
+.comment-list {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.comment-thread {
+  min-width: 0;
+}
+
+.comment-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.comment-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-head {
+  font-size: 13px;
+  color: var(--ink2);
+  margin: 0 0 3px;
+}
+
+.comment-head strong {
+  color: var(--ink);
+  font-size: 13.5px;
+}
+
+.comment-body {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 3px 0 0 -10px;
+}
+
+.comment-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink2);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.comment-action:hover {
+  background: var(--chip);
+  color: var(--ink);
+}
+
+.comment-like.liked {
+  color: var(--accent);
+}
+
+.comment-like.liked:hover {
+  color: var(--accent);
+}
+
+.replies-toggle {
+  margin: 2px 0 0 38px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.replies-toggle:hover {
+  background: var(--chip);
+}
+
+.reply-list {
+  margin: 8px 0 0 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reply-note {
+  margin-left: 48px;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 680px;
+}
+
+/* Composer: your avatar beside the box, actions right-aligned. */
+.comment-form.comment-composer {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.comment-composer-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.comment-form.reply-composer {
+  margin: 8px 0 4px 48px;
+  max-width: none;
+}
+
+.reply-composer .field textarea {
+  min-height: 60px;
+}
+
+.comment-like-error {
+  max-width: 680px;
+  margin: 0 0 14px;
+}
+
+.signin-prompt {
+  font-size: 15px;
+  margin: 0;
+}
+
+.signin-prompt a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.admin-wrap {
+  padding-top: 28px;
+}
+
+.continue-row {
+  margin-top: 8px;
+  /* Same containment as .discovery: the rail scrolls inside its
+   * section, never widening the page. contain is what actually
+   * stops the overflow reaching the root in WebKit (see .discovery
+   * note); overflow hidden alone is not enough there. */
+  overflow: hidden;
+  max-width: 100%;
+  contain: layout paint;
+}
+
+/* Horizontal cards: the landscape poster on the left, title, progress,
+ * and Resume on the right. Up to 3 per row on desktop, 1 per row on
+ * mobile. A single item is a substantial wide card, not a small
+ * thumbnail lost in empty space. */
+
+/* Suggestions row under a sparse watchlist. */
+.suggest-row {
+  margin-top: 36px;
+}
+
+@media (max-width: 640px) {
+  /* The sign-in area shares the top row with the wordmark (logo left,
+   * Sign in right) instead of sitting alone on its own full-width row.
+   * No order or flex-basis here: it keeps the default order 0, so it
+   * stays in row 1, and margin-left auto pushes it to the right edge.
+   * Search (order 3) and nav (order 4) still wrap below. The area may
+   * shrink (min-width 0 on it and on the name) so a long display name
+   * plus Sign out still fits in the top row at 360px; the name
+   * truncates with an ellipsis instead of wrapping. */
+  .auth-area {
+    margin-left: auto;
+    justify-content: flex-end;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+}
+
+/* ---------- Phase 3: mobile tap targets (audit) ---------- */
+@media (max-width: 640px) {
+  /* Hero dots: the visible dot stays 9px, but the button is 44px so
+   * it is a real tap target. The dot is drawn with ::before because
+   * the button's own background would fill the whole hit area. */
+  .hero-dot {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: none;
+  }
+
+  .hero-dot::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(247, 242, 231, 0.45);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .hero-dot.active {
+    background: transparent;
+    transform: none;
+  }
+
+  .hero-dot.active::before {
+    background: #e9a83a;
+    transform: scale(1.25);
+  }
+
+  /* Star rating buttons: taller hit area on touch screens. */
+  .stars .star-btn {
+    padding: 12px 6px;
+  }
+}
+
+/* ---------- Phase 4: Peacock-style bottom tab bar (mobile only) ---------- */
+.tabbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* Clearance so the fixed tab bar never covers the footer or the
+   * last row of content. */
+  body {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .tabbar {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    z-index: 60;
+    width: min(420px, calc(100% - 32px));
+    align-items: stretch;
+    justify-content: space-around;
+    padding: 8px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--panel) 86%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .tabbar-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 2px 4px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink2);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 999px;
+  }
+
+  .tabbar-link svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .tabbar-link.active {
+    color: var(--accent);
+  }
+
+  .tabbar-link:active {
+    transform: scale(0.96);
+  }
+}

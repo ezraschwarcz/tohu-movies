@@ -1,0 +1,15 @@
+{
+  "path": "https://www.tohumovies.com/",
+  "recurse": true,
+  "concurrency": 10,
+  "timeout": 20000,
+  "retry": true,
+  "skip": [
+    "^https://(stream|image)\\.mux\\.com",
+    "^https://(x|twitter)\\.com",
+    "^https://(www\\.)?(facebook|instagram|linkedin|reddit|tiktok)\\.com",
+    "^https://(pagead2|accounts|www)\\.google(syndication)?\\.com",
+    "/api/",
+    "/films/[^/]+/card\\.png$"
+  ]
+}

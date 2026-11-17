@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useHydrated, useViewportSize } from "@/lib/clientState";
 
 /** Photo cropper for the profile picture: drag the photo to position
  *  it, use the slider (or pinch / scroll) to zoom, and save. The circle
@@ -23,43 +24,34 @@ export default function AvatarCropper({
   onCancel: () => void;
   onSave: (blob: Blob) => void;
 }) {
-  const [src, setSrc] = useState<string | null>(null);
+  // A temporary address for the chosen photo, released when it changes.
+  const src = useMemo(() => URL.createObjectURL(file), [file]);
+  useEffect(() => () => URL.revokeObjectURL(src), [src]);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  // Drawn on <body> in the browser only.
+  const mounted = useHydrated();
   /** The crop square shrinks to fit a small or short phone screen, so
    *  the buttons under it are always reachable. */
-  const [VIEW, setView] = useState(MAX_VIEW);
+  const viewport = useViewportSize();
+  const VIEW = Math.round(
+    Math.max(170, Math.min(MAX_VIEW, viewport.width - 78, viewport.height - 330)),
+  );
   const imgRef = useRef<HTMLImageElement | null>(null);
   const drag = useRef<{ id: number; x: number; y: number } | null>(null);
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
 
+  // Keep the page behind the cropper from scrolling while it is open.
   useEffect(() => {
-    setMounted(true);
-    const fit = () =>
-      setView(
-        Math.round(
-          Math.max(
-            170,
-            Math.min(MAX_VIEW, window.innerWidth - 78, window.innerHeight - 330),
-          ),
-        ),
-      );
-    fit();
-    window.addEventListener("resize", fit);
-    const url = URL.createObjectURL(file);
-    setSrc(url);
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("resize", fit);
-      URL.revokeObjectURL(url);
       document.body.style.overflow = previous;
     };
-  }, [file]);
+  }, []);
 
   // The photo always covers the square: at zoom 1 its shorter side
   // exactly fills it.
@@ -196,7 +188,6 @@ export default function AvatarCropper({
           onWheel={(e) => changeZoom(zoom - e.deltaY * 0.0015)}
         >
           {src ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               ref={imgRef}
               src={src}

@@ -35,7 +35,6 @@ export default async function BrowsePage() {
                 {list.slice(0, 3).map((f) => {
                   const art = coverArtFor(f);
                   return art ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img key={f.slug} src={art} alt="" loading="lazy" />
                   ) : null;
                 })}

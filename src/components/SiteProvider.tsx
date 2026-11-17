@@ -1,6 +1,7 @@
 "use client";
 
 import { rememberFirstTouch } from "@/lib/attribution";
+import { useQueryParam, useStoredValue, writeStoredValue } from "@/lib/clientState";
 import {
   createContext,
   useCallback,
@@ -37,52 +38,25 @@ const SiteContext = createContext<SiteContextValue>({
 });
 
 export function SiteProvider({ children }: { children: ReactNode }) {
-  const [query, setQueryState] = useState("");
-  const [hideRRated, setHideRRatedState] = useState(false);
+  // The search box starts from a ?q= link, if any; once the visitor
+  // types, their text wins (null means "not typed yet").
+  const linkedQuery = useQueryParam("q");
+  const [typedQuery, setTypedQuery] = useState<string | null>(null);
+  const query = typedQuery ?? linkedQuery;
+  // The "hide R-rated films" choice is kept in this browser.
+  const hideRRated = useStoredValue(HIDE_R_KEY) === "1";
 
-  // Pick up a ?q= link on first mount (client side only).
   // Note once where this visitor first came from (see lib/attribution).
   useEffect(() => {
     rememberFirstTouch();
   }, []);
 
-  useEffect(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get("q");
-      if (q) setQueryState(q);
-    } catch {
-      // ignore
-    }
-    // run once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Read the saved R-rated preference once on mount (client only).
-  useEffect(() => {
-    try {
-      setHideRRatedState(
-        window.localStorage.getItem(HIDE_R_KEY) === "1",
-      );
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const setQuery = useCallback((q: string) => {
-    setQueryState(q);
+    setTypedQuery(q);
   }, []);
 
   const setHideRRated = useCallback((hide: boolean) => {
-    setHideRRatedState(hide);
-    try {
-      if (hide) {
-        window.localStorage.setItem(HIDE_R_KEY, "1");
-      } else {
-        window.localStorage.removeItem(HIDE_R_KEY);
-      }
-    } catch {
-      // ignore
-    }
+    writeStoredValue(HIDE_R_KEY, hide ? "1" : null);
   }, []);
 
   const value = useMemo(

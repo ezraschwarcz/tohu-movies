@@ -1,0 +1,503 @@
+/* Error screens, photo cropper, email settings and invitation. */
+
+/* ---------- Error screens ---------- */
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.error-actions .play-btn {
+  border-radius: 999px;
+}
+
+.error-detail {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink2);
+  word-break: break-word;
+}
+
+.player-failed-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  background: rgba(8, 7, 5, 0.82);
+  color: #f7f2e7;
+}
+
+.player-failed-body p {
+  margin: 0;
+}
+
+.player-failed-body .play-btn {
+  border-radius: 999px;
+}
+
+/* ---------- Hero on phones: sized to fit the screen ----------
+ * The card (poster + facts + Watch button + dots) is sized from the
+ * screen's height so all of it is visible at once, between the header
+ * and the tab bar, instead of running off the bottom. It sits centered
+ * and narrower than the screen, like the big services' apps. */
+
+@media (max-width: 640px) {
+  /* All six dots share the card's width, each still an easy tap. */
+  .hero.has-art .hero-dots {
+    box-sizing: border-box;
+  }
+}
+
+/* ---------- Hero on phones, final form (Peacock-style) ----------
+ * This block replaces the two phone layouts above it. The card runs
+ * nearly the full width of the screen with rounded corners; the cover
+ * art fills it; a dark fade at the bottom carries the facts line and
+ * a centered Watch button. Its height follows the poster's own shape
+ * but never exceeds what the screen can show, so the next row always
+ * peeks in below. */
+@media (max-width: 640px) {
+  .hero.has-art,
+  .hero.hero-pending {
+    display: block;
+    position: relative;
+    aspect-ratio: auto;
+    height: min(calc((100vw - 32px) * 1.5), calc(100vh - 262px));
+    height: min(calc((100vw - 32px) * 1.5), calc(100svh - 262px));
+    min-height: 360px;
+    border: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+
+  .hero.has-art .hero-art,
+  .hero.has-art picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  /* Anchored to the top, so when a short screen trims the poster it
+   * trims the credits at the bottom, not the faces or the title. */
+  .hero.has-art img.bg {
+    transform: none;
+  }
+
+  .hero.has-art .shade {
+    background: linear-gradient(
+      to top,
+      rgba(8, 7, 5, 0.96) 0%,
+      rgba(8, 7, 5, 0.86) 14%,
+      rgba(8, 7, 5, 0.45) 26%,
+      rgba(8, 7, 5, 0) 38%
+    );
+  }
+
+  .hero.has-art .hero-in {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    display: flex;
+  }
+
+  .hero.has-art .hero-in > * {
+    max-width: none;
+  }
+
+  .hero.has-art .meta-row {
+    gap: 4px 6px;
+  }
+
+  .hero.has-art .play-btn {
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    pointer-events: auto;
+  }
+
+  /* Small dots tucked under the button; swiping is the main way to
+   * move between films. */
+  .hero.has-art .hero-dots {
+    width: auto;
+    justify-content: center;
+  }
+
+  .hero.has-art .hero-dot {
+    min-width: 0;
+    height: 26px;
+  }
+
+  .hero.has-art .hero-dot::before {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The facts sit in a dark pill, so they stay readable even where a
+   * poster's own lettering runs underneath. */
+  .hero.has-art .meta-row {
+    text-shadow: none;
+  }
+}
+
+/* ---------- Hero on phones: art never covered ----------
+ * Supersedes the fade-over-art version above. The card keeps its
+ * near-full width and rounded corners, but is split in two: the cover
+ * art on top, shown whole with nothing printed over it, and a slim
+ * bar beneath with the facts on the left and Watch now on the right.
+ * On a shorter phone the art is scaled to fit the height and the
+ * space beside it is filled with a soft blur of the same art. */
+@media (max-width: 640px) {
+  .hero.has-art {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    border: 1px solid var(--line);
+  }
+
+  .hero.has-art .hero-art {
+    position: relative;
+    inset: auto;
+    flex: none;
+    width: 100%;
+    overflow: hidden;
+    background: #0c0b09;
+  }
+
+  .hero.has-art .hero-art::before {
+    position: absolute;
+    inset: -40px;
+    background-image: var(--art);
+    background-size: cover;
+    background-position: center;
+    filter: blur(26px) brightness(0.5);
+  }
+
+  .hero.has-art picture {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero.has-art .shade {
+    display: none;
+  }
+
+  .hero.has-art .hero-in {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    justify-content: space-between;
+    pointer-events: auto;
+  }
+
+  .hero.has-art .meta-row {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  .hero.has-art .hero-in > div {
+    flex: none;
+  }
+
+  .hero.has-art .play-btn {
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 18px;
+    font-size: 13px;
+  }
+
+  .hero.has-art .hero-dots {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 2px 0 4px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero.has-art .hero-dots {
+    padding: 0;
+    gap: 2px;
+  }
+
+  .hero.has-art .hero-dot {
+    flex: none;
+    width: 20px;
+  }
+}
+
+/* ---------- Hero on phones: edge to edge, no blur ----------
+ * The art always fills the card from edge to edge. When the screen is
+ * too short to show a whole poster, one end is trimmed, and each film
+ * keeps the end its title is on (--art-y, set per film in
+ * lib/posters.ts), so the title is never the part that goes. */
+@media (max-width: 640px) {
+
+  .hero.has-art .hero-art::before {
+    content: none;
+  }
+}
+
+.player-video {
+  position: relative;
+}
+
+/* ---------- Hero on phones: whole poster, never trimmed ----------
+ * Final phone layout. The poster is always shown whole, in its own
+ * 2:3 shape, with the facts and Watch now in the bar beneath. The
+ * card is as wide as it can be while keeping the Watch button on
+ * screen, and never narrower than three quarters of the screen. */
+@media (max-width: 640px) {
+
+  .hero.has-art .hero-art {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 2 / 3;
+  }
+
+  .hero.has-art img.bg {
+    object-fit: cover;
+    object-position: 50% 50%;
+  }
+
+  .hero.has-art .hero-in {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 12px 0;
+    text-align: center;
+  }
+
+  .hero.has-art .meta-row {
+    justify-content: center;
+  }
+
+  .hero.has-art .play-btn {
+    width: 100%;
+  }
+}
+
+/* ---------- Profile photo cropper ---------- */
+.cropper-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(8, 7, 5, 0.84);
+}
+
+.cropper-panel {
+  width: 100%;
+  max-width: 360px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 22px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.cropper-panel h2 {
+  margin: 0;
+  font-size: 24px;
+  text-transform: uppercase;
+}
+
+.cropper-hint {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+  text-align: center;
+}
+
+.cropper-stage {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0c0b09;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cropper-stage:active {
+  cursor: grabbing;
+}
+
+.cropper-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.cropper-stage img {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+}
+
+/* Dims everything outside the circle, so the circle reads as the
+ * final picture. */
+.cropper-mask {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 200px rgba(8, 7, 5, 0.62);
+  outline: 2px solid rgba(247, 242, 231, 0.9);
+  outline-offset: -2px;
+  pointer-events: none;
+}
+
+.cropper-zoom {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.cropper-zoom input {
+  flex: 1;
+  min-height: 32px;
+  accent-color: var(--accent);
+}
+
+.cropper-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cropper-actions .play-btn {
+  border-radius: 999px;
+  min-height: 44px;
+}
+
+.cropper-actions .btn-ghost {
+  min-height: 44px;
+}
+
+/* Phone banner width: full width again (16px margins). The whole
+ * poster is still shown, so on most phones the card runs a little
+ * past the bottom of the screen and the page scrolls to the button. */
+@media (max-width: 640px) {
+  .hero.has-art,
+  .hero.hero-pending {
+    width: auto;
+    margin: 10px 16px 0;
+  }
+}
+
+/* ---------- Email settings and sign-up opt-in ---------- */
+.email-prefs {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.optin {
+  margin: 14px 0 6px;
+  padding: 12px 14px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.optin legend {
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+
+/* ---------- One-time email invitation card ---------- */
+.optin-card {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 60;
+  width: min(360px, calc(100vw - 32px));
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+.optin-card h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.optin-card p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+.optin-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.optin-card-actions .play-btn {
+  border-radius: 999px;
+  min-height: 44px;
+}
+
+.optin-card-actions .play-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.optin-card-actions .btn-ghost {
+  min-height: 44px;
+}
+
+@media (max-width: 640px) {
+  /* Sits above the bottom tab bar. */
+  .optin-card {
+    left: 16px;
+    right: 16px;
+    bottom: 96px;
+    width: auto;
+  }
+}

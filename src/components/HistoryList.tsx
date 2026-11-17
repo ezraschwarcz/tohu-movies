@@ -77,9 +77,15 @@ export default function HistoryList({
           const art = coverArtFor({ slug: r.film_slug, poster_url: r.poster_url });
           return (
             <li key={r.film_slug}>
-              <Link href={`/films/${r.film_slug}`} className="ph-history-art">
+              {/* The picture repeats the title link beside it, so it is
+                  skipped by screen readers and the Tab key. */}
+              <Link
+                href={`/films/${r.film_slug}`}
+                className="ph-history-art"
+                aria-hidden="true"
+                tabIndex={-1}
+              >
                 {art ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={art} alt="" loading="lazy" />
                 ) : (
                   <span className="ph-noart" />

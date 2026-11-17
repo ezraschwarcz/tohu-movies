@@ -1,0 +1,86 @@
+# Runs on every pull request (and on main after a merge). All of these are
+# open-source tools. A red X on the pull request means one failed: open
+# "Details" to see which check and why. Vercel's preview is separate.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code:
+    name: Lint, types, unused code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: ESLint
+        run: npm run lint
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Knip (unused files, exports and packages)
+        run: npx --yes knip@5 --no-progress
+
+  tests:
+    name: Browser tests (desktop and phone)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+        env:
+          CI: "1"
+      - name: Keep the test report when something fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
+
+  security:
+    name: Security scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (passwords or keys saved by mistake)
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz | tar xz gitleaks
+          ./gitleaks git . --no-banner --redact --config .gitleaks.toml
+      - name: OSV-Scanner (known problems in packages, site and phone app)
+        run: |
+          curl -sSL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.2.2/osv-scanner_linux_amd64
+          chmod +x osv-scanner
+          ./osv-scanner scan source --config osv-scanner.toml -r .
+      - name: Semgrep (common security mistakes in the code)
+        run: |
+          pip install --quiet semgrep
+          semgrep scan --error --metrics=off \
+            --config p/javascript --config p/typescript --config p/react --config p/nextjs --config p/secrets \
+            --exclude-rule typescript.react.portability.i18next.jsx-not-internationalized \
+            --exclude-rule javascript.lang.correctness.missing-template-string-indicator \
+            --exclude-rule javascript.lang.security.html-in-template-string \
+            --exclude-rule generic.secrets.gitleaks.generic-api-key \
+            src

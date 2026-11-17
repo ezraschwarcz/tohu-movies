@@ -1,0 +1,355 @@
+/* Film page, player frame, age gate. */
+
+/* ---------- Film page / player ---------- */
+
+.player-shell {
+  background: #16130e;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.player-shell .video-js {
+  aspect-ratio: 16 / 9;
+}
+
+.player-placeholder {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #141310;
+  box-shadow: var(--shadow);
+}
+
+.player-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.player-placeholder .gate-note {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 18px 20px;
+  background: linear-gradient(to top, rgba(8, 7, 5, 0.92), transparent);
+  color: #f7f2e7;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.film-details {
+  max-width: 1020px;
+  margin: 0 auto;
+}
+
+.film-details h1 {
+  font-size: clamp(34px, 5vw, 54px);
+  line-height: 1;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  margin: 0 0 12px;
+}
+
+.film-details .meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.film-details p.syn {
+  font-size: 16.5px;
+  line-height: 1.65;
+  color: var(--ink);
+  max-width: 75ch;
+  margin: 0 0 16px;
+}
+
+.film-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 28px;
+  margin: 20px 0;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.film-facts dt {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-bottom: 3px;
+}
+
+.film-facts dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.warn {
+  margin-top: 18px;
+  font-size: 13.5px;
+  color: var(--ink2);
+  line-height: 1.55;
+  max-width: 75ch;
+}
+
+.warn strong {
+  color: var(--ink);
+}
+
+.sensitive {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #e9a83a;
+  border-radius: 8px;
+  background: rgba(233, 168, 58, 0.12);
+  color: var(--ink);
+  font-size: 14.5px;
+  line-height: 1.6;
+  max-width: 75ch;
+}
+
+.sensitive strong {
+  color: var(--accent);
+}
+
+.more-films {
+  margin-top: 44px;
+}
+
+/* Video.js player, themed to the site: ink #16130e, amber #e9a83a */
+.video-js {
+  width: 100%;
+  background: #16130e;
+  color: #f7f2e7;
+  font-family: inherit;
+  font-size: 10px;
+}
+
+.video-js .vjs-poster {
+  background-size: cover;
+}
+
+.video-js .vjs-big-play-button {
+  background-color: rgba(233, 168, 58, 0.94);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+  background-color: #e9a83a;
+}
+
+.video-js .vjs-control-bar {
+  background-color: rgba(22, 19, 14, 0.92);
+}
+
+.video-js .vjs-control:focus {
+  outline: 2px solid #e9a83a;
+  outline-offset: -2px;
+}
+
+.video-js .vjs-play-progress,
+.video-js .vjs-volume-level {
+  background-color: #e9a83a;
+}
+
+.video-js .vjs-play-progress:before,
+.video-js .vjs-volume-level:before {
+  color: #e9a83a;
+}
+
+.video-js .vjs-load-progress {
+  background: rgba(247, 242, 231, 0.28);
+}
+
+.video-js .vjs-load-progress div {
+  background: rgba(247, 242, 231, 0.45);
+}
+
+.video-js .vjs-slider {
+  background-color: rgba(247, 242, 231, 0.18);
+}
+
+.video-js .vjs-slider:focus {
+  box-shadow: 0 0 0 2px rgba(233, 168, 58, 0.55);
+}
+
+.video-js .vjs-menu-button-popup .vjs-menu .vjs-menu-content {
+  background-color: rgba(22, 19, 14, 0.96);
+}
+
+.video-js .vjs-menu li {
+  color: #f7f2e7;
+}
+
+.video-js .vjs-menu li.vjs-menu-item:focus,
+.video-js .vjs-menu li.vjs-menu-item:hover {
+  background-color: rgba(233, 168, 58, 0.22);
+  color: #f7f2e7;
+}
+
+.video-js .vjs-menu li.vjs-selected,
+.video-js .vjs-menu li.vjs-selected:focus,
+.video-js .vjs-menu li.vjs-selected:hover {
+  background-color: #e9a83a;
+  color: #16130e;
+}
+
+.video-js .vjs-text-track-cue > div {
+  background-color: rgba(22, 19, 14, 0.82) !important;
+  color: #f7f2e7 !important;
+}
+
+.video-js .vjs-spinner:before,
+.video-js .vjs-spinner:after {
+  border-top-color: #e9a83a;
+}
+
+.video-js .vjs-mouse-display {
+  background-color: rgba(22, 19, 14, 0.9);
+}
+
+/* ---------- Age gate ---------- */
+.age-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(8, 7, 5, 0.78);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.age-gate.open {
+  display: flex;
+}
+
+.age-panel {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  max-width: 440px;
+  width: 100%;
+  padding: 28px 26px;
+  box-shadow: var(--shadow);
+}
+
+.age-panel .age-badge {
+  display: inline-block;
+  background: #b3382e;
+  color: #fff;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  border-radius: 5px;
+  padding: 4px 10px;
+  margin-bottom: 12px;
+}
+
+.age-panel h2 {
+  font-size: 23px;
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+
+.age-panel p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink2);
+  margin: 0 0 16px;
+}
+
+.age-panel label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.age-panel input[type="date"] {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+  margin-bottom: 6px;
+}
+
+.age-panel input[type="date"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.age-error {
+  display: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #b3382e;
+  line-height: 1.5;
+  margin: 6px 0 0;
+}
+
+.age-error.show {
+  display: block;
+}
+
+.age-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.age-confirm {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: 8px;
+  padding: 13px 18px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.age-confirm:hover {
+  filter: brightness(1.07);
+}
+
+.age-cancel {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink2);
+  border-radius: 8px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.age-note {
+  font-size: 12.5px;
+  color: var(--ink2);
+  margin: 14px 0 0;
+  line-height: 1.55;
+}

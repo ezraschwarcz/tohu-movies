@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { AVATAR_PRESETS } from "@/lib/avatars";
 import { uploadAvatarPhoto } from "@/lib/photo";
 import { isPasskeyDisabledError } from "@/lib/passkeyError";
 import { trackSignupEvent } from "@/lib/track";
+import { useHydrated } from "@/lib/clientState";
 import { useAuth } from "./AuthProvider";
 import Avatar from "./Avatar";
 import PhotoPicker from "./PhotoPicker";
@@ -32,15 +33,12 @@ export default function WelcomeForm({
   const [newFilms, setNewFilms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
-  const [passkeySupported, setPasskeySupported] = useState(false);
+  const hydrated = useHydrated();
+  const passkeySupported = hydrated && typeof window.PublicKeyCredential !== "undefined";
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [passkeyAdded, setPasskeyAdded] = useState(false);
   const [passkeyNote, setPasskeyNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setPasskeySupported(typeof window.PublicKeyCredential !== "undefined");
-  }, []);
 
   async function markDone(extra: Record<string, unknown> = {}) {
     try {

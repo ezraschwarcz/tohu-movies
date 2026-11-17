@@ -66,7 +66,6 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
         }}
       >
         {still ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={still}
             alt=""
@@ -99,7 +98,7 @@ export async function renderShareCard(slug: string): Promise<ImageResponse> {
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            { }
             <img src={LOGO} alt="" width={60} height={60} />
             <div
               style={{

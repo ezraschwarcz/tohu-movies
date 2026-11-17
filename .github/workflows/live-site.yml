@@ -1,0 +1,44 @@
+# Checks the live site every Monday, and whenever started by hand from the
+# Actions tab: accessibility (pa11y), speed and search basics (Lighthouse)
+# and broken links (linkinator). All open source.
+name: Live site checks
+
+on:
+  schedule:
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pa11y:
+    name: Accessibility (pa11y)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx --yes pa11y-ci@5 --config .pa11yci.json
+
+  lighthouse:
+    name: Speed, SEO, best practices (Lighthouse)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The report link is printed at the end of this step's log.
+      - run: npx --yes @lhci/cli@0.15 autorun --config=lighthouserc.json
+
+  links:
+    name: Broken links (linkinator)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx --yes linkinator@6 --config linkinator.config.json

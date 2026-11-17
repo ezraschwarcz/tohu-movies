@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import AvatarCropper from "./AvatarCropper";
 import { preparePhoto } from "@/lib/photo";
+import { useMediaQuery } from "@/lib/clientState";
 
 /** Choose (or, on a phone, take) a photo, then position and zoom it.
  *  The same control on desktop and mobile. `onPhoto` receives the
@@ -18,19 +19,12 @@ export default function PhotoPicker({
 }) {
   const chooseRef = useRef<HTMLInputElement | null>(null);
   const cameraRef = useRef<HTMLInputElement | null>(null);
-  const [touch, setTouch] = useState(false);
+  // Phones and tablets get separate "take a photo" and "choose one" buttons.
+  const touch = useMediaQuery("(pointer: coarse)");
   const [preparing, setPreparing] = useState(false);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      setTouch(window.matchMedia("(pointer: coarse)").matches);
-    } catch {
-      // older browsers: just show the one button
-    }
-  }, []);
 
   async function onPicked(input: HTMLInputElement) {
     const file = input.files?.[0];

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { formatRuntime } from "@/lib/films";
 import {
   computeProfileCompletion,
@@ -29,6 +29,48 @@ const RESUME_SESSION_KEY = "tohu-resume-prompt-shown";
 const SIGNIN_NUDGE_KEY = "tohu-signin-nudge-dismissed";
 const INSTALL_KEY = "tohu-install-dismissed";
 const RATINGS_KEY = "tohu-ratings-v1";
+
+/** What this page load knows about the visitor's browser, read once
+ *  when the home page first appears: when they last visited (before this
+ *  visit was stamped), how many films this device has rated, and whether
+ *  Safari on an iPhone needs the manual "Add to Home Screen" tip. */
+type Visit = {
+  now: number;
+  previousVisit: number | null;
+  ratedCount: number;
+  iosInstall: boolean;
+};
+
+let visit: Visit | null = null;
+function readVisit(): Visit {
+  if (visit) return visit;
+  const previousVisit = readTime(LAST_VISIT_KEY);
+  writeTime(LAST_VISIT_KEY);
+  let ratedCount = 0;
+  try {
+    const raw = window.localStorage.getItem(RATINGS_KEY);
+    ratedCount = raw ? Object.keys(JSON.parse(raw) as Record<string, number>).length : 0;
+  } catch {
+    // ignore
+  }
+  const ua = window.navigator.userAgent;
+  visit = {
+    now: Date.now(),
+    previousVisit,
+    ratedCount,
+    iosInstall: !isStandalone() && /iphone|ipad|ipod/i.test(ua) && /safari/i.test(ua) && !/crios|fxios|chrome/i.test(ua),
+  };
+  return visit;
+}
+const noSubscribe = () => () => {};
+
+/** Opened from the home screen as an installed app: never offer to install. */
+function isStandalone(): boolean {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as { standalone?: boolean }).standalone === true
+  );
+}
 
 function readTime(key: string): number | null {
   try {
@@ -107,65 +149,46 @@ function Popup({
 
 export default function HomePrompts({ films }: { films: Film[] }) {
   const { loading, user, profile } = useAuth();
-  const [ready, setReady] = useState(false);
+  const thisVisit = useSyncExternalStore(noSubscribe, readVisit, () => null);
   const [resume, setResume] = useState<{
     film: Film;
     position: number;
   } | null>(null);
-  const [newCount, setNewCount] = useState(0);
-  const [ratedCount, setRatedCount] = useState(0);
   const [installEvent, setInstallEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [iosInstall, setIosInstall] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  // Gather every prompt's eligibility once the auth state is known.
+  const previousVisit = thisVisit?.previousVisit ?? null;
+  const newCount = useMemo(
+    () =>
+      previousVisit === null
+        ? 0
+        : films.filter((f) => new Date(f.created_at).getTime() > previousVisit).length,
+    [films, previousVisit],
+  );
+  const ratedCount = thisVisit?.ratedCount ?? 0;
+  const iosInstall = thisVisit?.iosInstall ?? false;
+  const now = thisVisit?.now ?? 0;
+
+  // Chrome and Android offer their own install prompt; keep it for the
+  // "Add to home screen" pop-up.
   useEffect(() => {
-    if (loading) return;
+    if (isStandalone()) return;
+    const onBip = (e: Event) => {
+      e.preventDefault();
+      setInstallEvent(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", onBip);
+    return () => window.removeEventListener("beforeinstallprompt", onBip);
+  }, []);
+
+  // Welcome back: the film they were last watching (signed in only),
+  // offered once per browser session.
+  useEffect(() => {
+    if (loading || !user) return;
     let cancelled = false;
-
-    // New since last visit: compute from the PREVIOUS visit time,
-    // then stamp this visit. First ever visit: no prompt.
-    const prevVisit = readTime(LAST_VISIT_KEY);
-    if (prevVisit !== null) {
-      const n = films.filter(
-        (f) => new Date(f.created_at).getTime() > prevVisit,
-      ).length;
-      if (!cancelled) setNewCount(n);
-    }
-    writeTime(LAST_VISIT_KEY);
-
-    // Films this device rated (anonymous localStorage ratings).
-    try {
-      const raw = window.localStorage.getItem(RATINGS_KEY);
-      const parsed = raw ? (JSON.parse(raw) as Record<string, number>) : {};
-      if (!cancelled) setRatedCount(Object.keys(parsed).length);
-    } catch {
-      // ignore
-    }
-
-    // Install: already installed / standalone never prompts.
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as { standalone?: boolean }).standalone === true;
-    if (!standalone) {
-      const ua = window.navigator.userAgent;
-      const isIos = /iphone|ipad|ipod/i.test(ua);
-      const isSafari =
-        /safari/i.test(ua) && !/crios|fxios|chrome/i.test(ua);
-      if (isIos && isSafari) setIosInstall(true);
-      const onBip = (e: Event) => {
-        e.preventDefault();
-        if (!cancelled) {
-          setInstallEvent(e as BeforeInstallPromptEvent);
-        }
-      };
-      window.addEventListener("beforeinstallprompt", onBip);
-    }
-
-    // Resume entry (signed-in only), once per browser session.
+    const userId = user.id;
     async function loadResume() {
-      if (!user) return;
       try {
         if (window.sessionStorage.getItem(RESUME_SESSION_KEY)) return;
       } catch {
@@ -177,7 +200,7 @@ export default function HomePrompts({ films }: { films: Film[] }) {
         .select(
           "film_slug,position_seconds,duration_seconds,updated_at,films(*)",
         )
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("updated_at", { ascending: false })
         .limit(1);
       if (cancelled) return;
@@ -197,12 +220,10 @@ export default function HomePrompts({ films }: { films: Film[] }) {
       }
     }
     void loadResume();
-
-    setReady(true);
     return () => {
       cancelled = true;
     };
-  }, [loading, user, films]);
+  }, [loading, user]);
 
   const completion = useMemo(() => {
     if (!user) return null;
@@ -218,7 +239,7 @@ export default function HomePrompts({ films }: { films: Film[] }) {
     });
   }, [user, profile]);
 
-  if (!ready || loading) return null;
+  if (!thisVisit || loading) return null;
 
   function hide(kind: string) {
     setDismissed((prev) => new Set(prev).add(kind));
@@ -257,7 +278,7 @@ export default function HomePrompts({ films }: { films: Film[] }) {
     !completion.complete &&
     !dismissed.has("profile") &&
     (profileDismissedAt === null ||
-      Date.now() - profileDismissedAt > 30 * DAY_MS)
+      now - profileDismissedAt > 30 * DAY_MS)
   ) {
     return (
       <Popup
@@ -319,7 +340,7 @@ export default function HomePrompts({ films }: { films: Film[] }) {
     !user &&
     ratedCount >= 2 &&
     !dismissed.has("signin") &&
-    (nudgeDismissedAt === null || Date.now() - nudgeDismissedAt > 7 * DAY_MS)
+    (nudgeDismissedAt === null || now - nudgeDismissedAt > 7 * DAY_MS)
   ) {
     return (
       <Popup
@@ -345,7 +366,7 @@ export default function HomePrompts({ films }: { films: Film[] }) {
   const installDismissedAt = readTime(INSTALL_KEY);
   const installCapped =
     installDismissedAt !== null &&
-    Date.now() - installDismissedAt <= 30 * DAY_MS;
+    now - installDismissedAt <= 30 * DAY_MS;
   if (
     !dismissed.has("install") &&
     !installCapped &&

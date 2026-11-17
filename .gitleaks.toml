@@ -1,0 +1,16 @@
+# Gitleaks settings: the defaults, plus values that look like keys but are
+# safe to publish. Anything else it finds fails the check.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public by design"
+regexes = [
+  # Names of settings saved in the visitor's browser, not secrets.
+  '''^tohu-[a-z0-9-]+$''',
+  # Supabase's publishable key: meant to be in the browser; the database
+  # rules decide what it can do.
+  '''^sb_publishable_[A-Za-z0-9_-]+$''',
+  # Mux Data environment key: identifies where viewing stats go, public.
+  '''^29p9bv2jmen9ll64po[a-z0-9]+$''',
+]

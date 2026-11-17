@@ -99,11 +99,15 @@ export default function CommentsSection({
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [safetyNote, setSafetyNote] = useState<{ id: string; text: string } | null>(null);
   const userId = user?.id ?? null;
+  // Clear what was loaded for the previous person when someone signs
+  // out or a different member signs in (adjusted while drawing).
+  const [loadedFor, setLoadedFor] = useState<string | null>(userId);
+  if (loadedFor !== (userId)) {
+    setLoadedFor(userId);
+    setBlocked(new Set());
+  }
   useEffect(() => {
-    if (!userId) {
-      setBlocked(new Set());
-      return;
-    }
+    if (!userId) return;
     let cancelled = false;
     void getBrowserSupabase()
       .from("member_blocks")

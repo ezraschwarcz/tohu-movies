@@ -1,0 +1,546 @@
+/* Redesign v2: dark palette, full-bleed hero, player and phone overrides. */
+
+/* ==========================================================
+ * Redesign v2 (November 2026)
+ * Dark-first, full-bleed hero, portrait poster cards, Top 10
+ * numerals, amber round play button. Comes after the earlier files
+ * and overrides them; the earlier rules it fully replaced have been
+ * removed, so this file is now part of the base look.
+ * ========================================================== */
+
+/* ---------- v2: dark-first palette ---------- */
+:root {
+  --bg: #0c0b09;
+  --bg2: #121110;
+  --panel: #171512;
+  --panel2: #221f1a;
+  --ink: #f2eee3;
+  --ink2: #b3ab99;
+  --line: #2e2b25;
+  --accent: #e9a83a;
+  --accent-ink: #1a1405;
+  --chip: #221f1a;
+  --chip-ink: #d3cbb8;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+/* ---------- v2: full-bleed hero ---------- */
+/* Desktop and tablet only: phones keep the portrait hero card. */
+@media (min-width: 641px) {
+  .hero {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: clamp(460px, 68vh, 680px);
+    background: var(--bg);
+  }
+
+  .hero img.bg {
+    object-position: 50% 25%;
+  }
+
+  .hero .shade {
+    background:
+      linear-gradient(to top, var(--bg) 0%, rgba(12, 11, 9, 0.6) 22%, rgba(12, 11, 9, 0) 50%),
+      linear-gradient(to right, rgba(12, 11, 9, 0.92) 0%, rgba(12, 11, 9, 0.62) 38%, rgba(12, 11, 9, 0.08) 72%);
+  }
+
+  .hero-in {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 48px max(20px, calc((100vw - 1240px) / 2 + 20px)) 64px;
+  }
+
+  .hero-in > * {
+    max-width: 600px;
+  }
+
+  .hero h1 {
+    font-size: clamp(44px, 7.4vw, 92px);
+    font-weight: 700;
+  }
+
+  .hero-nav.prev,
+  .hero-nav.next {
+    bottom: 56px;
+  }
+
+  .hero-nav.next {
+    right: max(20px, calc((100vw - 1240px) / 2 + 20px));
+  }
+
+  .hero-nav.prev {
+    right: calc(max(20px, calc((100vw - 1240px) / 2 + 20px)) + 54px);
+  }
+
+  .hero-dots {
+    left: max(20px, calc((100vw - 1240px) / 2 + 20px));
+    right: auto;
+    bottom: 30px;
+  }
+
+  .hero-count {
+    display: none;
+  }
+}
+
+.hero .play-btn,
+.discovery-head .play-btn {
+  border-radius: 999px;
+}
+
+/* ---------- v2.2: full-bleed poster cards ----------
+ * A 2:3 poster filled edge to edge by a frame hand-picked for each
+ * film, with the title over the bottom. */
+.grid {
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 26px 18px;
+}
+
+.discovery-rail {
+  grid-auto-columns: 176px;
+  gap: 18px;
+}
+
+.poster-wrap {
+  position: relative;
+}
+
+.poster {
+  display: block;
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid rgba(242, 238, 227, 0.1);
+  color: #f7f2e7;
+  text-decoration: none;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+/* The whole card is the film's art: a hand-picked frame, centered on
+ * its subject by object-position (set per film, lib/posterArt.ts).
+ * Letterboxed films are pre-scaled so their black bars fall outside. */
+.poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(var(--poster-zoom, 1));
+}
+
+/* On official art the Watchlist pill sits bottom right, clear of the
+ * title lettering that posters usually carry near the top. */
+.poster-wrap.has-official .watchlist-btn.compact {
+  top: auto;
+  bottom: 8px;
+}
+
+.card .m {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Official cover art is never zoomed and stays centered. */
+.poster img.poster-official {
+  transform: none;
+  object-position: 50% 50%;
+}
+
+.card h3.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 9px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card h3.card-title + .m {
+  margin-top: 2px;
+}
+
+.poster-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(12, 11, 9, 0.95) 0%,
+    rgba(12, 11, 9, 0.62) 26%,
+    rgba(12, 11, 9, 0) 56%
+  );
+}
+
+.poster-rank {
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  color: var(--accent);
+  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
+  /* A dark tab behind the numeral keeps it readable on any artwork. */
+  top: 0;
+  left: 0;
+  min-width: 44px;
+  padding: 4px 10px 6px;
+  text-align: center;
+  background: rgba(12, 11, 9, 0.88);
+  border-bottom-right-radius: 10px;
+}
+
+.poster-text {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poster-title {
+  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.04;
+  text-wrap: balance;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+  /* Never split a word across lines; the sizes below keep the
+   * longest word inside the poster. */
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.poster-title.size-lg {
+  font-size: 27px;
+}
+
+.poster-title.size-md {
+  font-size: 21px;
+}
+
+.poster-title.size-sm {
+  font-size: 16.5px;
+}
+
+.poster-sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(247, 242, 231, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poster .play-ic {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 7, 5, 0.35);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.poster .play-ic span {
+  width: 44px;
+  height: 44px;
+}
+
+.card:hover .poster,
+.poster:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+}
+
+.card:hover .poster .play-ic,
+.poster:focus-visible .play-ic {
+  opacity: 1;
+}
+
+/* Watchlist button: a small pill on the poster's top right corner. */
+.poster-wrap .watchlist-btn.compact {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  border-radius: 999px;
+  background: rgba(12, 11, 9, 0.82);
+  color: #f7f2e7;
+  border: 1px solid rgba(242, 238, 227, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.25s ease;
+}
+
+.card:hover .poster-wrap .watchlist-btn.compact,
+.poster-wrap .watchlist-btn.compact:focus-visible,
+.poster-wrap .watchlist-btn.compact.saved {
+  opacity: 1;
+}
+
+.card:hover .poster-wrap .watchlist-btn.compact {
+  transform: translateY(-4px);
+}
+
+.poster-wrap .watchlist-btn.compact.saved {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+@media (hover: none) {
+  .poster-wrap .watchlist-btn.compact {
+    opacity: 1;
+  }
+}
+
+.card .m {
+  display: block;
+  margin-top: 8px;
+  font-size: 12.5px;
+}
+
+.card-score {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ---------- v2.1: page arrives at the top ----------
+ * Next.js scrolls a new page into view; this keeps its first line
+ * clear of the sticky header instead of tucked beneath it. */
+.wrap {
+  scroll-margin-top: 140px;
+}
+
+/* ---------- v2.1: Continue watching ----------
+ * One compact row that scrolls sideways, never a stack: at most six
+ * films in progress, each a wide still with its progress bar. */
+.cw-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 264px;
+  gap: 16px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 2px 12px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.cw-card {
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+.cw-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid rgba(242, 238, 227, 0.1);
+  color: #f7f2e7;
+  text-decoration: none;
+  transition: border-color 0.2s ease;
+}
+
+.cw-thumb:hover,
+.cw-thumb:focus-visible {
+  border-color: var(--accent);
+}
+
+.cw-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(var(--poster-zoom, 1));
+}
+
+.cw-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(12, 11, 9, 0.9) 0%,
+    rgba(12, 11, 9, 0.25) 55%,
+    rgba(12, 11, 9, 0) 100%
+  );
+}
+
+.cw-title {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 16px;
+  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.05;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cw-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background: rgba(242, 238, 227, 0.25);
+}
+
+.cw-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.cw-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.cw-left {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cw-remove {
+  flex: none;
+  min-height: 32px;
+  padding: 0 4px;
+  background: none;
+  border: 0;
+  color: var(--ink2);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cw-remove:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .cw-rail {
+    grid-auto-columns: 220px;
+    gap: 12px;
+  }
+
+  .cw-remove {
+    min-height: 44px;
+  }
+}
+
+/* ---------- v2: player ---------- */
+.video-js .vjs-big-play-button {
+  width: 92px;
+  height: 92px;
+  line-height: 92px;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 46px;
+}
+
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+  background: #f4c46c;
+  color: var(--accent-ink);
+}
+
+/* ---------- v2: mobile ---------- */
+@media (max-width: 640px) {
+  /* The hero now sits outside .wrap, so it carries its own side
+   * margins to stay a rounded card on phones. */
+  .hero {
+    width: auto;
+    margin: 14px max(20px, env(safe-area-inset-right)) 0
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 12px;
+  }
+
+  .discovery-rail {
+    grid-auto-columns: 136px;
+    gap: 12px;
+  }
+
+  .poster-title.size-lg {
+    font-size: 21px;
+  }
+
+  .poster-title.size-md {
+    font-size: 16px;
+  }
+
+  .poster-title.size-sm {
+    font-size: 13.5px;
+  }
+
+  .poster-rank {
+    font-size: 30px;
+    min-width: 36px;
+    padding: 3px 8px 5px;
+  }
+
+  .poster-text {
+    left: 10px;
+    right: 10px;
+    bottom: 9px;
+  }
+
+  .poster-sub {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poster,
+  .poster-wrap .watchlist-btn.compact {
+    transition: none;
+  }
+
+  .card:hover .poster,
+  .card:hover .poster-wrap .watchlist-btn.compact {
+    transform: none;
+  }
+}

@@ -1,0 +1,442 @@
+[
+ {
+  "slug": "jinn",
+  "title": "Jinn",
+  "year": 2014,
+  "genre": "Horror, Thriller, Fantasy",
+  "rating": "PG 13",
+  "runtime_minutes": 97
+ },
+ {
+  "slug": "zombeavers",
+  "title": "Zombeavers",
+  "year": 2014,
+  "genre": "Horror, Comedy",
+  "rating": "R",
+  "runtime_minutes": 77
+ },
+ {
+  "slug": "dance-off",
+  "title": "Dance Off",
+  "year": 2014,
+  "genre": "Musical, Comedy",
+  "rating": "TV PG",
+  "runtime_minutes": 94
+ },
+ {
+  "slug": "aftermath",
+  "title": "Aftermath",
+  "year": 2013,
+  "genre": "Crime, Thriller",
+  "rating": "R",
+  "runtime_minutes": 82
+ },
+ {
+  "slug": "after-the-ball",
+  "title": "After the Ball",
+  "year": 2015,
+  "genre": "Romance, Comedy",
+  "rating": "PG",
+  "runtime_minutes": 102
+ },
+ {
+  "slug": "the-house-that-jack-built",
+  "title": "The House That Jack Built",
+  "year": 2013,
+  "genre": "Drama",
+  "rating": "NR",
+  "runtime_minutes": 88
+ },
+ {
+  "slug": "the-man-in-the-orange-jacket",
+  "title": "The Man in the Orange Jacket",
+  "year": 2014,
+  "genre": "Horror, Thriller",
+  "rating": "NR",
+  "runtime_minutes": 71
+ },
+ {
+  "slug": "the-sisterhood-of-night",
+  "title": "The Sisterhood of Night",
+  "year": 2014,
+  "genre": "Mystery, Thriller, Drama",
+  "rating": "PG 13",
+  "runtime_minutes": 103
+ },
+ {
+  "slug": "one-small-hitch",
+  "title": "One Small Hitch",
+  "year": 2013,
+  "genre": "Romance, Comedy",
+  "rating": "NR",
+  "runtime_minutes": 105
+ },
+ {
+  "slug": "the-a-list",
+  "title": "The A-List",
+  "year": 2015,
+  "genre": "Comedy, Drama",
+  "rating": "NR",
+  "runtime_minutes": 107
+ },
+ {
+  "slug": "apple-pie",
+  "title": "Apple Pie",
+  "year": 1975,
+  "genre": "Comedy, Fantasy",
+  "rating": "NR",
+  "runtime_minutes": 77
+ },
+ {
+  "slug": "the-girl-in-the-book",
+  "title": "The Girl in the Book",
+  "year": 2015,
+  "genre": "Drama",
+  "rating": "NR",
+  "runtime_minutes": 88
+ },
+ {
+  "slug": "from-the-rough",
+  "title": "From the Rough",
+  "year": 2014,
+  "genre": "Drama, Sport",
+  "rating": "PG",
+  "runtime_minutes": 98
+ },
+ {
+  "slug": "the-suicide-theory",
+  "title": "The Suicide Theory",
+  "year": 2014,
+  "genre": "Thriller, Drama",
+  "rating": "R",
+  "runtime_minutes": 96
+ },
+ {
+  "slug": "lucky-dog",
+  "title": "Lucky Dog",
+  "year": 2014,
+  "genre": "Comedy, Family",
+  "rating": "PG",
+  "runtime_minutes": 88
+ },
+ {
+  "slug": "friends-and-romans",
+  "title": "Friends and Romans",
+  "year": 2014,
+  "genre": "Comedy",
+  "rating": "NR",
+  "runtime_minutes": 98
+ },
+ {
+  "slug": "the-challenger",
+  "title": "The Challenger",
+  "year": 2015,
+  "genre": "Drama, Sport",
+  "rating": "PG 13",
+  "runtime_minutes": 95
+ },
+ {
+  "slug": "mourning-son",
+  "title": "Mourning Son",
+  "year": 2015,
+  "genre": "Documentary",
+  "rating": "NR",
+  "runtime_minutes": 109
+ },
+ {
+  "slug": "hell-and-back",
+  "title": "Hell and Back",
+  "year": 2015,
+  "genre": "Animation, Comedy, Fantasy",
+  "rating": "R",
+  "runtime_minutes": 86
+ },
+ {
+  "slug": "108-stitches",
+  "title": "108 Stitches",
+  "year": 2014,
+  "genre": "Comedy, Romance, Sport",
+  "rating": "R",
+  "runtime_minutes": 119
+ },
+ {
+  "slug": "jake-squared",
+  "title": "Jake Squared",
+  "year": 2013,
+  "genre": "Romance, Comedy, Drama",
+  "rating": "R",
+  "runtime_minutes": 101
+ },
+ {
+  "slug": "the-playroom",
+  "title": "The Playroom",
+  "year": 2012,
+  "genre": "Drama",
+  "rating": "NR",
+  "runtime_minutes": 82
+ },
+ {
+  "slug": "a-stranger-in-paradise",
+  "title": "A Stranger in Paradise",
+  "year": 2013,
+  "genre": "Action, Thriller",
+  "rating": "NR",
+  "runtime_minutes": 83
+ },
+ {
+  "slug": "redemption-road",
+  "title": "Redemption Road",
+  "year": 2010,
+  "genre": "Drama",
+  "rating": "PG 13",
+  "runtime_minutes": 96
+ },
+ {
+  "slug": "tiger-eyes",
+  "title": "Tiger Eyes",
+  "year": 2012,
+  "genre": "Drama",
+  "rating": "PG 13",
+  "runtime_minutes": 93
+ },
+ {
+  "slug": "toys-in-the-attic",
+  "title": "Toys in the Attic",
+  "year": 2009,
+  "genre": "Animation, Family, Fantasy",
+  "rating": "PG",
+  "runtime_minutes": 78
+ },
+ {
+  "slug": "the-lost-medallion",
+  "title": "The Lost Medallion",
+  "year": 2013,
+  "genre": "Family, Adventure",
+  "rating": "PG",
+  "runtime_minutes": 98
+ },
+ {
+  "slug": "falcon-rising",
+  "title": "Falcon Rising",
+  "year": 2014,
+  "genre": "Action, Adventure",
+  "rating": "R",
+  "runtime_minutes": 101
+ },
+ {
+  "slug": "funeral-kings",
+  "title": "Funeral Kings",
+  "year": 2012,
+  "genre": "Comedy, Drama",
+  "rating": "R",
+  "runtime_minutes": 85
+ },
+ {
+  "slug": "come-back-to-me",
+  "title": "Come Back To Me",
+  "year": 2014,
+  "genre": "Horror, Thriller",
+  "rating": "R",
+  "runtime_minutes": 96
+ },
+ {
+  "slug": "jesus-people",
+  "title": "Jesus People",
+  "year": 2009,
+  "genre": "Comedy",
+  "rating": "NR",
+  "runtime_minutes": 88
+ },
+ {
+  "slug": "underdogs",
+  "title": "Underdogs",
+  "year": 2013,
+  "genre": "Drama, Sport",
+  "rating": "PG",
+  "runtime_minutes": 104
+ },
+ {
+  "slug": "1000-times-good-night",
+  "title": "1,000 Times Good Night",
+  "year": 2013,
+  "genre": "Drama",
+  "rating": "NR",
+  "runtime_minutes": 118
+ },
+ {
+  "slug": "treasure-guards",
+  "title": "Treasure Guards",
+  "year": 2011,
+  "genre": "Adventure, Action",
+  "rating": "NR",
+  "runtime_minutes": 93
+ },
+ {
+  "slug": "to-end-all-wars",
+  "title": "To End All Wars",
+  "year": 2001,
+  "genre": "War, Drama",
+  "rating": "R",
+  "runtime_minutes": 121
+ },
+ {
+  "slug": "tomorrow-when-the-war-began",
+  "title": "Tomorrow When The War Began",
+  "year": 2010,
+  "genre": "Action, Adventure, War",
+  "rating": "R",
+  "runtime_minutes": 104
+ },
+ {
+  "slug": "three-night-stand",
+  "title": "Three Night Stand",
+  "year": 2013,
+  "genre": "Romance, Comedy, Drama",
+  "rating": "NR",
+  "runtime_minutes": 92
+ },
+ {
+  "slug": "the-devils-violinist",
+  "title": "The Devil's Violinist",
+  "year": 2013,
+  "genre": "Biography, Drama, Music",
+  "rating": "R",
+  "runtime_minutes": 122
+ },
+ {
+  "slug": "samsara",
+  "title": "Samsara",
+  "year": 2011,
+  "genre": "Documentary",
+  "rating": "PG 13",
+  "runtime_minutes": 102
+ },
+ {
+  "slug": "radio-free-albemuth",
+  "title": "Radio Free Albemuth",
+  "year": 2010,
+  "genre": "Sci-Fi, Drama, Thriller",
+  "rating": "R",
+  "runtime_minutes": 111
+ },
+ {
+  "slug": "monster-mutt",
+  "title": "Monster Mutt",
+  "year": 2011,
+  "genre": "Family, Comedy",
+  "rating": "PG",
+  "runtime_minutes": 88
+ },
+ {
+  "slug": "norman",
+  "title": "Norman",
+  "year": 2010,
+  "genre": "Drama, Comedy",
+  "rating": "R",
+  "runtime_minutes": 99
+ },
+ {
+  "slug": "karma-calling",
+  "title": "Karma Calling",
+  "year": 2009,
+  "genre": "Comedy, Drama",
+  "rating": "NR",
+  "runtime_minutes": 89
+ },
+ {
+  "slug": "you-may-not-kiss-the-bride",
+  "title": "You May Not Kiss The Bride",
+  "year": 2011,
+  "genre": "Romance, Comedy, Action",
+  "rating": "PG 13",
+  "runtime_minutes": 99
+ },
+ {
+  "slug": "lloyd-the-conqueror",
+  "title": "Lloyd the Conqueror",
+  "year": 2011,
+  "genre": "Comedy, Fantasy",
+  "rating": "R",
+  "runtime_minutes": 98
+ },
+ {
+  "slug": "in-my-sleep",
+  "title": "In My Sleep",
+  "year": 2010,
+  "genre": "Thriller, Mystery",
+  "rating": "PG 13",
+  "runtime_minutes": 105
+ },
+ {
+  "slug": "northern-soul",
+  "title": "Northern Soul",
+  "year": 2014,
+  "genre": "Drama, Music",
+  "rating": "PG 13",
+  "runtime_minutes": 102
+ },
+ {
+  "slug": "hating-breitbart",
+  "title": "Hating Breitbart",
+  "year": 2012,
+  "genre": "Documentary",
+  "rating": "PG 13",
+  "runtime_minutes": 93
+ },
+ {
+  "slug": "loving-the-bad-man",
+  "title": "Loving The Bad Man",
+  "year": 2010,
+  "genre": "Drama",
+  "rating": "PG 13",
+  "runtime_minutes": 104
+ },
+ {
+  "slug": "genius-on-hold",
+  "title": "Genius on Hold",
+  "year": 2012,
+  "genre": "Documentary",
+  "rating": "PG",
+  "runtime_minutes": 91
+ },
+ {
+  "slug": "farmland",
+  "title": "Farmland",
+  "year": 2014,
+  "genre": "Documentary",
+  "rating": "NR",
+  "runtime_minutes": 77
+ },
+ {
+  "slug": "hayride-2",
+  "title": "Hayride 2",
+  "year": 2015,
+  "genre": "Horror",
+  "rating": "R",
+  "runtime_minutes": 92
+ },
+ {
+  "slug": "missing-william",
+  "title": "Missing William",
+  "year": 2014,
+  "genre": "Drama, Romance",
+  "rating": "PG",
+  "runtime_minutes": 91
+ },
+ {
+  "slug": "donner-pass",
+  "title": "Donner Pass",
+  "year": 2012,
+  "genre": "Horror",
+  "rating": "R",
+  "runtime_minutes": 86
+ },
+ {
+  "slug": "a-true-story",
+  "title": "A True Story",
+  "year": 2013,
+  "genre": "Comedy, Drama",
+  "rating": "NR",
+  "runtime_minutes": 96
+ }
+]
