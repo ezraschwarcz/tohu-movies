@@ -1,0 +1,22 @@
+# Scans the live site for accessibility problems with pa11y (open source),
+# every Monday and whenever you start it from the Actions tab.
+# A red X means pa11y found a problem; open the run to see which page and why.
+name: Accessibility check
+
+on:
+  schedule:
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pa11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx --yes pa11y-ci@5 --config .pa11yci.json

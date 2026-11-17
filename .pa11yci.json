@@ -1,0 +1,34 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "runners": ["axe", "htmlcs"],
+    "wait": 3000,
+    "timeout": 60000,
+    "levelCapWhenNeedsReview": "warning",
+    "viewport": { "width": 1280, "height": 900 },
+    "chromeLaunchConfig": { "args": ["--no-sandbox", "--force-prefers-reduced-motion"] }
+  },
+  "urls": [
+    "https://www.tohumovies.com/",
+    "https://www.tohumovies.com/browse",
+    "https://www.tohumovies.com/genre/drama",
+    "https://www.tohumovies.com/films/jinn",
+    "https://www.tohumovies.com/about",
+    "https://www.tohumovies.com/contact",
+    "https://www.tohumovies.com/faq",
+    "https://www.tohumovies.com/guidelines",
+    "https://www.tohumovies.com/copyright",
+    "https://www.tohumovies.com/advertise",
+    "https://www.tohumovies.com/submit",
+    "https://www.tohumovies.com/privacy",
+    "https://www.tohumovies.com/login",
+    {
+      "url": "https://www.tohumovies.com/films/jinn",
+      "viewport": { "width": 390, "height": 844, "isMobile": true, "hasTouch": true }
+    },
+    {
+      "url": "https://www.tohumovies.com/",
+      "viewport": { "width": 390, "height": 844, "isMobile": true, "hasTouch": true }
+    }
+  ]
+}

@@ -83,6 +83,9 @@ export function nextFriday(now = new Date()): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** The hour (UTC) the daily cron runs; see vercel.json. */
+const NEW_FILMS_HOUR_UTC = 15;
+
 type Recipient = { user_id: string; email: string; name: string; unsub_token: string };
 
 export type RunSummary = {
@@ -203,34 +206,43 @@ export async function runDailyEmails(db: SupabaseClient): Promise<RunSummary> {
     }
   }
 
-  // 3. New films, one email per film added in the last week.
-  const fresh = await db.rpc("email_new_films");
-  for (const { slug } of (fresh.data ?? []) as { slug: string }[]) {
-    const film = bySlug.get(slug);
-    if (!film) continue;
+  // 3. New films: at most one email per member per day, listing every
+  //    film added since the previous daily run. The window is the 24 hours
+  //    ending at the most recent 15:00 UTC (the cron time), so a run started
+  //    by hand from the admin page covers the same films and the same day,
+  //    and a film is only ever announced on one day. A film loaded in bulk
+  //    (a whole library at once) goes out as one email, not one per film.
+  const end = new Date();
+  if (end.getUTCHours() < NEW_FILMS_HOUR_UTC) end.setUTCDate(end.getUTCDate() - 1);
+  end.setUTCHours(NEW_FILMS_HOUR_UTC, 0, 0, 0);
+  const start = end.getTime() - 24 * 60 * 60 * 1000;
+  const fresh = films
+    .filter((f) => {
+      const added = Date.parse(f.created_at);
+      return added >= start && added < end.getTime();
+    })
+    .reverse();
+  if (fresh.length > 0) {
+    const day = end.toISOString().slice(0, 10);
     const list = await db.rpc("email_recipients", {
       p_kind: "new_films",
-      p_key: slug,
+      p_key: day,
       p_limit: 500,
     });
-    let stop = false;
+    if (list.error) summary.notes.push(`new films: ${list.error.message}`);
     for (const m of (list.data ?? []) as Recipient[]) {
       const unsub = unsubscribeUrl(m.unsub_token, "new_films");
       const ok = await deliver(
         "new_films",
-        slug,
+        day,
         m.user_id,
         m.email,
-        newFilmsEmail({ films: [filmForEmail(film)], unsubscribeUrl: unsub }),
+        newFilmsEmail({ films: fresh.map(filmForEmail), unsubscribeUrl: unsub }),
         unsub,
         "new_films",
       );
-      if (!ok) {
-        stop = true;
-        break;
-      }
+      if (!ok) break;
     }
-    if (stop) break;
   }
 
   return summary;
