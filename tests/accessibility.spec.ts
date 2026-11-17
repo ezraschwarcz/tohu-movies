@@ -26,7 +26,9 @@ for (const { path, who } of pages) {
     await page.waitForLoadState("networkidle");
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-      // Known and tracked: the films do not have captions yet.
+      // Every film has captions, but they arrive inside the video stream
+      // (Mux, English, auto-generated) and are added by the player, so
+      // axe cannot see them in the page and would report them missing.
       .disableRules(["video-caption"])
       .analyze();
     const failures = results.violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length}) ${v.nodes[0]?.target.join(" ")}`);
