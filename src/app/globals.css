@@ -6621,16 +6621,16 @@ div.cr-tile {
   row-gap: 6px;
 }
 
-/* Footer links on phones: a plain centered row that wraps, evenly
- * spaced, with no dots (they strand at the line ends). */
+/* Footer links on phones: centered rows with no dots, sized so no
+ * link is ever stranded on a line of its own. */
 @media (max-width: 640px) {
   .foot-links {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 4px 22px;
-    margin-top: 16px;
-    font-size: 14px;
+    gap: 0 14px;
+    margin-top: 12px;
+    font-size: 13px;
   }
 
   .foot-links .sep {
@@ -6638,10 +6638,25 @@ div.cr-tile {
   }
 
   .foot-links a {
-    padding: 7px 0;
+    white-space: nowrap;
+    padding: 8px 0;
   }
 
   .foot-links + .foot-links {
-    margin-top: 4px;
+    margin-top: 0;
+  }
+
+  /* Four links, then two: keeps "Advertise" beside "Submit your film". */
+  .foot-links[aria-label="Site"] {
+    max-width: 264px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 350px) {
+  .foot-links {
+    gap: 0 10px;
+    font-size: 12px;
   }
 }
