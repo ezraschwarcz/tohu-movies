@@ -1,6 +1,7 @@
 # Checks the live site every Monday, and whenever started by hand from the
 # Actions tab: accessibility (pa11y), speed and search basics (Lighthouse)
-# and broken links (linkinator). All open source.
+# broken links (linkinator), an attack scan (OWASP ZAP) and the database
+# check (private data stays private). All open source.
 name: Live site checks
 
 on:
@@ -42,3 +43,32 @@ jobs:
         with:
           node-version: 22
       - run: npx --yes linkinator@6 --config linkinator.config.json
+
+  database:
+    name: Database locked to visitors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/db/live.test.mjs
+
+  zap:
+    name: Attack scan (OWASP ZAP baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Looks at the live site the way an attacker would, without attacking
+      # it: a passive scan. Fails only on serious findings; the full report
+      # is attached to the run.
+      - run: |
+          mkdir -p zap && chmod 777 zap
+          docker run --rm -v "$PWD/zap:/zap/wrk" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t https://www.tohumovies.com -r report.html -I -m 3
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap/report.html
+          retention-days: 30

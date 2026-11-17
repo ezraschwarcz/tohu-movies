@@ -21,6 +21,8 @@ const env = {
 
 export default defineConfig({
   testDir: "tests",
+  // Browser tests only; the database tests in tests/db run with node --test.
+  testMatch: "**/*.spec.ts",
   timeout: 60_000,
   expect: { timeout: 15_000 },
   fullyParallel: true,
