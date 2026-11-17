@@ -1,6 +1,8 @@
 // Age verification for R rated films. Stored only in the visitor's
 // browser (localStorage), matching the live site. No account, no server.
-const KEY = "tohu-age-verified-v1";
+/** Where the "I am 18 or older" answer is kept in this browser. */
+export const AGE_VERIFIED_KEY = "tohu-age-verified-v1";
+const KEY = AGE_VERIFIED_KEY;
 
 export function isAgeVerified(): boolean {
   if (typeof window === "undefined") return false;

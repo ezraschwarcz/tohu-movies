@@ -1,0 +1,90 @@
+/* Design tokens (colours, fonts) and page basics. */
+
+/* Tohu Movies design system. The site is dark (the palette in
+ * 10-redesign-v2.css is the one in use). Brand: ink #16130e, amber
+ * #e9a83a, Archivo (body) and Archivo Narrow (display headings). */
+
+:root {
+  --hero-ink: #f7f2e7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* The page itself must never scroll sideways. Rails (Continue
+   * Watching, discovery rows) scroll inside their own boxes; their
+   * scrollable overflow must not widen the page. `clip` (unlike
+   * `hidden`) does not create a scroll container, so sticky
+   * elements keep working. `hidden` is declared first as the
+   * fallback for older Safari, which ignores `clip`; where `clip`
+   * is supported it wins (Phase 5.2 hardening: iOS still scrolled
+   * sideways with clip alone, so main.page and .wrap clip too). */
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-x: clip;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* Contain sideways overflow at the page shell as well as the root:
+ * a rail's scrollable overflow then stops here instead of reaching
+ * the document, on engines where root-level clipping is unreliable
+ * (older iOS Safari in particular). */
+main.page {
+  overflow-x: clip;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+.wordmark,
+.foot-brand,
+.legal-brand {
+  font-family: var(--font-archivo-narrow), "Archivo Narrow", sans-serif;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 20px 64px;
+  /* Same containment as main.page, one level closer to the rails. */
+  overflow-x: clip;
+}

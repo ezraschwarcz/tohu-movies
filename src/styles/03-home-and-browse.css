@@ -1,0 +1,471 @@
+/* Hero banner, browse chips and grid, film cards, star ratings. */
+
+/* ---------- Hero ---------- */
+.hero {
+  margin: 22px 0 8px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background: #0c0b09;
+  min-height: 420px;
+  display: flex;
+  align-items: flex-end;
+  box-shadow: var(--shadow);
+}
+
+.hero img.bg {
+  /* Fill positioning, formerly supplied by next/image's fill prop:
+     the hero background is a plain <img> now (see Hero.tsx). */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+.hero .shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(8, 7, 5, 0.94) 8%,
+    rgba(8, 7, 5, 0.55) 55%,
+    rgba(8, 7, 5, 0.25) 100%
+  );
+}
+
+.hero-in {
+  position: relative;
+  padding: 34px;
+  /* Text stays in the left 600px; the prev/next arrows live at the
+   * bottom right (below), so the two can never overlap. */
+  max-width: 600px;
+  color: var(--hero-ink);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.hero.fading .hero-in {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.hero h1 {
+  font-size: clamp(44px, 7vw, 76px);
+  line-height: 0.95;
+  margin: 0 0 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.hero p.syn {
+  font-size: 16.5px;
+  line-height: 1.55;
+  margin: 0 0 18px;
+  color: #e8e2d2;
+  max-width: 52ch;
+}
+
+.hero .meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #e9a83a;
+  color: #1a1405;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 26px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.play-btn:hover {
+  background: #f2b854;
+}
+
+.play-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.hero .free {
+  margin-left: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #cfc7b2;
+}
+
+.hero-nav {
+  /* Bottom right, above the dots: the old mid-height side arrows
+   * could sit on top of a long title or synopsis (Phase 5.2 fix).
+   * Text is capped at 600px on the left, so this corner is always
+   * clear. Mobile keeps its top-corner arrows (media query below). */
+  position: absolute;
+  top: auto;
+  bottom: 64px;
+  transform: none;
+  z-index: 3;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(247, 242, 231, 0.4);
+  background: rgba(8, 7, 5, 0.5);
+  color: #f7f2e7;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.hero-nav:hover {
+  background: rgba(8, 7, 5, 0.8);
+}
+
+.hero-nav:active {
+  transform: scale(0.94);
+}
+
+.hero-nav.prev {
+  left: auto;
+  right: 70px;
+}
+
+.hero-nav.next {
+  right: 16px;
+  left: auto;
+}
+
+.hero-dots {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  z-index: 3;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.hero-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(247, 242, 231, 0.45);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hero-dot.active {
+  background: #e9a83a;
+  transform: scale(1.25);
+}
+
+.hero-count {
+  position: absolute;
+  left: 20px;
+  bottom: 14px;
+  z-index: 3;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(247, 242, 231, 0.85);
+}
+
+.syn-toggle {
+  background: none;
+  border: none;
+  color: #e9a83a;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 8px 4px;
+  margin: 0 0 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(233, 168, 58, 0.5);
+  -webkit-tap-highlight-color: transparent;
+  display: none;
+}
+
+.syn-toggle:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---------- Browse: chips, sort, grid ---------- */
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
+  margin: 34px 0 4px;
+}
+
+.section-head h2 {
+  font-size: 30px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+.now-count {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.browse-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 20px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: var(--chip);
+  color: var(--chip-ink);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease,
+    transform 0.15s ease;
+}
+
+.chip:hover {
+  transform: translateY(-1px);
+}
+
+.chip:active {
+  transform: scale(0.96);
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.sort-control {
+  margin-left: auto;
+}
+
+.sort-control select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.sort-control select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.filter-note {
+  font-size: 14px;
+  color: var(--ink2);
+  margin: 0 0 16px;
+}
+
+.reset-filters {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.empty {
+  padding: 34px 10px;
+  color: var(--ink2);
+  font-size: 15px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.empty.show {
+  display: block;
+}
+
+/* ---------- Film card ---------- */
+.card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.card h3,
+.card .m,
+.card .g {
+  display: block;
+}
+
+.card h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 11px 0 4px;
+  line-height: 1.25;
+  font-family: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.card h3 a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card h3 a:hover {
+  color: var(--accent);
+}
+
+.card .m {
+  color: var(--ink2);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.card .g {
+  font-size: 12.5px;
+  color: var(--ink2);
+  margin-top: 2px;
+}
+
+/* Landscape cards: the still is a 16:9 video frame shown as-is, with
+ *  14px rounded corners. The portrait (2:3) center crop was reverted
+ *  Nov 11, 2026 — it belongs on the hero on mobile only, not on the
+ *  cards. Plain <img>, not next/image: the Mux still URL carries
+ *  ?width=...&time=... query params, which the /_next/image optimizer
+ *  rejects. */
+
+.card:hover .play-ic,
+.card:focus-visible .play-ic {
+  opacity: 1;
+}
+
+.play-ic span {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #e9a83a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-ic svg {
+  width: 20px;
+  height: 20px;
+  fill: #1a1405;
+  margin-left: 2px;
+}
+
+/* ---------- Star ratings ---------- */
+.stars {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1px;
+  margin-top: 9px;
+}
+
+.stars .star-btn {
+  background: none;
+  border: none;
+  padding: 5px 3px;
+  font-size: 21px;
+  line-height: 1;
+  /* Empty stars must stay visible: at least 4.5:1 on the dark page. */
+  color: #8d8676;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease, transform 0.12s ease;
+}
+
+.stars .star-btn.filled {
+  color: var(--accent);
+}
+
+.stars .star-btn:hover {
+  transform: scale(1.18);
+}
+
+.stars .star-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.stars-label,
+.stars-avg {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  margin-left: 7px;
+  line-height: 1.3;
+}
+
+.stars-avg {
+  white-space: nowrap;
+}
+
+.stars-avg::before {
+  content: "·";
+  margin-right: 7px;
+  opacity: 0.6;
+}
+
+.stars.on-dark .star-btn {
+  color: rgba(247, 242, 231, 0.55);
+}
+
+.stars.on-dark .star-btn.filled {
+  color: #e9a83a;
+}
+
+.stars.on-dark .stars-label,
+.stars.on-dark .stars-avg {
+  color: #a79f8d;
+}

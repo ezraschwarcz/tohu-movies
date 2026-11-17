@@ -74,10 +74,13 @@ function AuthArea() {
   const menuRef = useRef<HTMLSpanElement | null>(null);
   const pathname = usePathname();
 
-  // Close on route change.
-  useEffect(() => {
+  // Close on route change (adjusted while drawing, so the menu never
+  // shows open on the new page for a moment).
+  const [menuPath, setMenuPath] = useState(pathname);
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
     setOpen(false);
-  }, [pathname]);
+  }
 
   // Close on outside click or Escape while open.
   useEffect(() => {
@@ -270,6 +273,7 @@ export default function Header() {
             if (pathname === "/") {
               e.preventDefault();
               window.scrollTo(0, 0);
+              // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full reload on purpose: fresh banner lineup
               window.location.assign("/");
             }
           }}

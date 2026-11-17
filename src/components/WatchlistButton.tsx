@@ -25,11 +25,15 @@ export default function WatchlistButton({
   const [saved, setSaved] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Clear what was loaded for the previous person when someone signs
+  // out or a different member signs in (adjusted while drawing).
+  const [loadedFor, setLoadedFor] = useState<string | null>(user?.id ?? null);
+  if (loadedFor !== (user?.id ?? null)) {
+    setLoadedFor(user?.id ?? null);
+    setSaved(null);
+  }
   useEffect(() => {
-    if (!user) {
-      setSaved(null);
-      return;
-    }
+    if (!user) return;
     let cancelled = false;
     const userId = user.id;
     async function load() {

@@ -19,3 +19,8 @@ mobile/dist/
 npm-debug.log*
 *.log
 .DS_Store
+
+# Test output
+test-results/
+playwright-report/
+blob-report/

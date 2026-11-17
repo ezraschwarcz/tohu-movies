@@ -80,6 +80,7 @@ export default function AccountSafety({
     } catch {
       // The account is gone; the session is already invalid.
     }
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full reload on purpose: nothing of the deleted account may stay in memory
     window.location.assign("/?account=deleted");
   }
 

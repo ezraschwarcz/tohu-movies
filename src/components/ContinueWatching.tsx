@@ -38,11 +38,15 @@ export default function ContinueWatching() {
   const { loading, user } = useAuth();
   const [entries, setEntries] = useState<ContinueWatchingEntry[]>([]);
 
+  // Clear what was loaded for the previous person when someone signs
+  // out or a different member signs in (adjusted while drawing).
+  const [loadedFor, setLoadedFor] = useState<string | null>(user?.id ?? null);
+  if (loadedFor !== (user?.id ?? null)) {
+    setLoadedFor(user?.id ?? null);
+    setEntries([]);
+  }
   useEffect(() => {
-    if (!user) {
-      setEntries([]);
-      return;
-    }
+    if (!user) return;
     let cancelled = false;
     const userId = user.id;
     async function load() {

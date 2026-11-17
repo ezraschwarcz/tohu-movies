@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ageFromBirthdate, isAgeVerified, setAgeVerified } from "@/lib/ageGate";
 import type { Film } from "@/lib/types";
+import { useHydrated } from "@/lib/clientState";
 
 /** Age gate for R rated films, matching the live site: a modal with an
  *  optional birthdate field and an "I confirm I am 18 or older" button.
@@ -25,9 +26,8 @@ export function AgeGateModal({
   // inside whichever card or banner opened it. Drawn in place, it was
   // layered and clipped by that parent, so on phones it could sit
   // half hidden behind the content below it.
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   useEffect(() => {
-    setMounted(true);
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {

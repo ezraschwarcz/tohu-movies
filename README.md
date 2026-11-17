@@ -132,9 +132,43 @@ first visit, with no rebuild and no code change.
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm run build      # production build (also runs the type check and lint)
+npm run build      # production build
 npm start
+npm run lint       # ESLint
+npm run typecheck  # TypeScript
+npm test           # browser tests (Playwright), desktop and phone
 ```
+
+## Checks
+
+Every pull request runs these automatically on GitHub (all open source; see
+`.github/workflows/checks.yml`). A red X on the pull request means one
+failed; click **Details** to see which and why.
+
+| Check | What it catches |
+| --- | --- |
+| ESLint, TypeScript | Mistakes in the code, wrong types |
+| Knip | Files, exports and packages nothing uses |
+| Playwright | Pages, sign-in-only pages and the control room not working, on desktop and phone |
+| axe (inside the Playwright tests) | Accessibility failures on the main pages |
+| Gitleaks | Passwords or private keys saved into the code by mistake |
+| OSV-Scanner | Known security problems in packages, site and phone app |
+| Semgrep | Common security mistakes in the code |
+
+Every Monday, `.github/workflows/live-site.yml` checks the live site with
+pa11y (accessibility), Lighthouse (speed, search basics) and linkinator
+(broken links). Start it any time from **Actions → Live site checks →
+Run workflow**.
+
+The tests use a stand-in database (`tests/mock/server.mjs`), never the real
+one. It can play a signed-out visitor, a member or an admin. To run the
+tests on your own computer: `npx playwright install chromium`, then
+`npm test`.
+
+Accepted exceptions are written down where the tool reads them, each with
+a reason: `.gitleaks.toml` (public keys), `osv-scanner.toml` (two
+build-tool advisories with no fix yet, until Feb 2027), `knip.json`, and
+the excluded rules in the Semgrep step.
 
 Environment variables (optional; the app falls back to the known public
 values so it works out of the box):
@@ -186,7 +220,7 @@ src/
   app/
     layout.tsx            Root layout: fonts, metadata, AdSense script
     page.tsx              Home (hero + continue watching + grid), revalidate 60s
-    globals.css           Design system (light/dark, from the live site)
+    globals.css           Imports the styles in src/styles, in order
     films/[slug]/page.tsx Film detail: generateStaticParams + dynamicParams
     login/page.tsx        Sign in / sign up (server page, form in HTML)
     auth/callback/route.ts Magic-link / email-confirmation callback
@@ -200,7 +234,8 @@ src/
     AuthProvider.tsx      Signed-in state (user, profile, isAdmin)
     LoginForm.tsx         Sign in (magic link / password) and sign up
     CommentsSection.tsx   Approved comments + submit (signed-in only)
-    AdminPanel.tsx        Pending comments + Add film form
+    AdminPanel.tsx        Control room tabs; each tab is in components/admin/
+    ProfileForm.tsx       Profile settings; each screen is in components/profile/
     WatchlistButton.tsx   Save / remove a film from the watchlist
     ContinueWatching.tsx  Continue watching row (signed-in users)
     SiteProvider.tsx      Search state shared by header and grid
@@ -226,6 +261,9 @@ src/
     site.ts               Public constants (URLs, keys, copy)
     thumbTimes.ts         Poster still times per film (55 entries)
     ageGate.ts            Age verification helpers (localStorage)
+    clientState.ts        Browser-only values (screen size, saved settings)
+  styles/                 The stylesheet, split by area (01- to 15-, in order)
+tests/                    Playwright tests and the stand-in database
 public/
   favicon.svg             The logo as an SVG favicon
   logo-512.png            The logo at 512x512 (sharing cards, icons)

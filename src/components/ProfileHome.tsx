@@ -175,7 +175,6 @@ export function ProfileBody({
             <li key={r.film_slug}>
               <Link href={`/films/${r.film_slug}`}>
                 {art ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={art} alt="" loading="lazy" />
                 ) : (
                   <span className="ph-noart" />

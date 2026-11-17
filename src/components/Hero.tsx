@@ -6,12 +6,14 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { formatRuntime, posterUrl } from "@/lib/films";
 import { posterZoomFor } from "@/lib/posterZoom";
 import { coverArtFor, posterFocusY } from "@/lib/posters";
 import type { Film } from "@/lib/types";
 import { useAgeGate } from "./AgeGate";
+import { useMediaQuery } from "@/lib/clientState";
 
 /** Rotating hero: six films chosen at random from the whole catalog on
  *  every page load, rotating every 6
@@ -24,6 +26,20 @@ import { useAgeGate } from "./AgeGate";
 const ROTATE_MS = 7000;
 
 /** Six films at random from the whole catalog, in random order. */
+/** One lineup per list of films for this page load: drawn the first
+ *  time it is asked for in the browser, then kept, so the banner does not
+ *  reshuffle while the visitor is looking at it. */
+const lineups = new WeakMap<Film[], Film[]>();
+function lineupFor(films: Film[]): Film[] {
+  let lineup = lineups.get(films);
+  if (!lineup) {
+    lineup = pickRandom(films);
+    lineups.set(films, lineup);
+  }
+  return lineup;
+}
+const noSubscribe = () => () => {};
+
 function pickRandom(films: Film[], count = 6): Film[] {
   const pool = [...films];
   for (let i = pool.length - 1; i > 0; i--) {
@@ -39,10 +55,7 @@ export default function Hero({ films }: { films: Film[] }) {
   // repeats). Until the draw has happened the hero shows an empty
   // frame of the same size, rather than flashing one film and then
   // swapping to another.
-  const [featured, setFeatured] = useState<Film[] | null>(null);
-  useEffect(() => {
-    setFeatured(pickRandom(films));
-  }, [films]);
+  const featured = useSyncExternalStore(noSubscribe, () => lineupFor(films), () => null);
   // Fetch all six pictures as soon as the lineup is known, in the
   // shape this screen will show (cover art on phones, wide still
   // otherwise), so moving to the next film swaps the picture at once
@@ -63,7 +76,7 @@ export default function Hero({ films }: { films: Film[] }) {
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const [expanded, setExpanded] = useState(false);
   const [needsToggle, setNeedsToggle] = useState(false);
   const synRef = useRef<HTMLParagraphElement | null>(null);
@@ -96,14 +109,12 @@ export default function Hero({ films }: { films: Film[] }) {
   // motion. Hovering with a mouse no longer pauses it: the banner is
   // most of the screen, so the pointer is nearly always over it.
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    if (mq.matches || paused || total <= 1) return;
+    if (reducedMotion || paused || total <= 1) return;
     timer.current = setTimeout(() => goTo(index + 1), ROTATE_MS);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [index, paused, total, goTo]);
+  }, [index, paused, reducedMotion, total, goTo]);
 
   useEffect(() => {
     function onVisibility() {

@@ -1,0 +1,12 @@
+# OSV-Scanner settings. Each ignored advisory needs a reason and an end
+# date, after which it is reported again so someone looks at it.
+
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2027-02-17
+reason = "picomatch: slowdown on crafted file patterns. Only used by lint and build tools on a developer's machine; no fixed release exists yet (4.0.7 is the latest)."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-02-17
+reason = "minimatch: slowdown on crafted file patterns. Only used by the phone app's build tools; not shipped in the app."

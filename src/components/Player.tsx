@@ -184,13 +184,13 @@ export default function Player({
   useEffect(() => {
     if (!showUpNext || !nextFilm) return;
     if (nextFilm.rating === "R" && !isAgeVerified()) return;
-    if (secondsLeft <= 0) {
-      playNextNow();
-      return;
-    }
+    // Count down once a second; on the last second, play the next film.
     const t = window.setTimeout(
-      () => setSecondsLeft((s) => Math.max(0, s - 1)),
-      1000,
+      () => {
+        if (secondsLeft <= 1) playNextNow();
+        else setSecondsLeft((s) => Math.max(0, s - 1));
+      },
+      secondsLeft <= 0 ? 0 : 1000,
     );
     return () => window.clearTimeout(t);
     // playNextNow is re-created each render; the timeout only needs
@@ -198,12 +198,14 @@ export default function Player({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showUpNext, secondsLeft, nextFilm]);
 
-  // A new film means a new end screen state.
-  useEffect(() => {
+  // A new film means a new end screen state (adjusted while drawing).
+  const [stateFor, setStateFor] = useState(film.slug);
+  if (stateFor !== film.slug) {
+    setStateFor(film.slug);
     setShowUpNext(false);
     setSecondsLeft(UP_NEXT_SECONDS);
     setResumeAt(null);
-  }, [film.slug]);
+  }
 
   function resumeNow() {
     const p = playerRef.current;

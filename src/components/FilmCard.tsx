@@ -57,7 +57,9 @@ export default function FilmCard({
           href={`/films/${film.slug}`}
           className="poster"
           onClick={open}
-          aria-label={`Watch ${film.title}`}
+          // The Top 10 numeral is visible, so it is part of the name too
+          // (people using voice control say what they see).
+          aria-label={rank ? `Number ${rank}: Watch ${film.title}` : `Watch ${film.title}`}
         >
           {official ? (
             // Official cover art: shown whole, with nothing set over

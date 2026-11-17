@@ -1,0 +1,179 @@
+/* Sign-in, comments, watchlist, first admin screens. */
+
+/* ---------- Phase 2: auth, comments, admin, watchlist ---------- */
+.auth-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 6px;
+  flex: 0 0 auto;
+}
+
+.auth-link {
+  white-space: nowrap;
+}
+
+.auth-wrap {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+}
+
+.auth-wrap h1 {
+  font-size: 34px;
+  font-weight: 900;
+  margin: 0 0 10px;
+}
+
+.auth-intro {
+  color: var(--ink2);
+  font-size: 15.5px;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+.auth-form,
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: block;
+}
+
+.field > span {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="password"],
+.field input[type="number"],
+.field input[type="date"],
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: 8px;
+  padding: 13px 18px;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.07);
+}
+
+.btn-primary:disabled {
+  cursor: wait;
+}
+
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-ghost.danger:hover {
+  border-color: #b3382e;
+  color: #b3382e;
+}
+
+.btn-ghost:disabled,
+.btn-primary:disabled {
+  opacity: 0.6;
+}
+
+.form-error {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #b3382e;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.form-note {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 0;
+}
+
+.form-note a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.auth-foot {
+  margin-top: 22px;
+  font-size: 14px;
+}
+
+.auth-foot a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* A text button that reads like a link (e.g. "Forgot password?"). */
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}

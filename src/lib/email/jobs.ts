@@ -63,26 +63,6 @@ export function currentFriday(now = new Date()): string | null {
   return d.toISOString().slice(0, 10);
 }
 
-/** The next Friday strictly after today (Central), as YYYY-MM-DD. */
-export function nextFriday(now = new Date()): string {
-  for (let i = 0; i < 8; i++) {
-    const day = new Date(now.getTime() + i * 86400000);
-    const weekday = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/Chicago",
-      weekday: "short",
-    }).format(day);
-    if (weekday === "Fri") {
-      return new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Chicago",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(day);
-    }
-  }
-  return new Date().toISOString().slice(0, 10);
-}
-
 /** The hour (UTC) the daily cron runs; see vercel.json. */
 const NEW_FILMS_HOUR_UTC = 15;
 

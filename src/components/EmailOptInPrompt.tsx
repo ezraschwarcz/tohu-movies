@@ -81,12 +81,15 @@ export function EmailOptInCard({
 export default function EmailOptInPrompt() {
   const { loading, user } = useAuth();
   const pathname = usePathname();
-  const [show, setShow] = useState(false);
+  // The prompt belongs to the page and person it was shown for: moving
+  // to another page or signing out hides it without an extra draw.
+  const [shownFor, setShownFor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const userId = user?.id ?? null;
+  const showKey = `${userId}|${pathname}`;
+  const show = shownFor === showKey;
 
   useEffect(() => {
-    setShow(false);
     if (loading || !userId || !SHOW_ON.has(pathname)) return;
     let cancelled = false;
     const timer = window.setTimeout(async () => {
@@ -101,7 +104,7 @@ export default function EmailOptInPrompt() {
       );
       if (cancelled || !row) return;
       if (row.optin_asked_at || row.friday_pick || row.new_films) return;
-      setShow(true);
+      setShownFor(`${userId}|${pathname}`);
     }, DELAY_MS);
     return () => {
       cancelled = true;
@@ -122,7 +125,7 @@ export default function EmailOptInPrompt() {
       })
       .eq("user_id", userId);
     setBusy(false);
-    setShow(false);
+    setShownFor(null);
   }
 
   if (!show) return null;

@@ -19,6 +19,7 @@ import { firstTouch } from "@/lib/attribution";
 import GoogleButton, { GOOGLE_CLIENT_ID } from "./GoogleButton";
 import { trackSignupEvent } from "@/lib/track";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/site";
+import { useHydrated, useStoredValue } from "@/lib/clientState";
 
 /** One door for signing in and signing up.
  *
@@ -70,13 +71,21 @@ export default function AuthFlow({
 }) {
   const router = useRouter();
   const dest = safeNext(next);
-  const [step, setStep] = useState<Step>("email");
-  const [email, setEmail] = useState("");
+  // A password-reset link opens straight on the new-password step.
+  const [step, setStep] = useState<Step>(
+    urlMessage === "password-reset" ? "password" : "email",
+  );
+  // The email field starts with the address last used in this browser;
+  // once the visitor types, their text wins (null means "not typed").
+  const lastEmail = useStoredValue(LAST_EMAIL_KEY) ?? "";
+  const [typedEmail, setEmail] = useState<string | null>(null);
+  const email = typedEmail ?? lastEmail;
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
-  const [passkeySupported, setPasskeySupported] = useState(false);
+  const hydrated = useHydrated();
+  const passkeySupported = hydrated && typeof window.PublicKeyCredential !== "undefined";
   const [googleOn, setGoogleOn] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   // Google's on-page button (names Tohu, never leaves the site) when
@@ -98,13 +107,6 @@ export default function AuthFlow({
   const finished = useRef(false);
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(LAST_EMAIL_KEY);
-      if (saved) setEmail(saved);
-    } catch {
-      // ignore
-    }
-    setPasskeySupported(typeof window.PublicKeyCredential !== "undefined");
     trackSignupEvent("page_open");
     // Show "Continue with Google" only once Google sign-in has been
     // switched on in Supabase, so the button never leads to an error.
@@ -116,8 +118,7 @@ export default function AuthFlow({
         if (s?.external?.google) setGoogleOn(true);
       })
       .catch(() => {});
-    if (urlMessage === "password-reset") setStep("password");
-  }, [urlMessage]);
+  }, []);
 
   useEffect(() => {
     if (resendIn <= 0) return;

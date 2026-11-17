@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAgeVerified } from "@/lib/ageGate";
+import { AGE_VERIFIED_KEY } from "@/lib/ageGate";
+import { useHydrated, useStoredValue } from "@/lib/clientState";
 import { posterUrl } from "@/lib/films";
 import { trackFilmEvent } from "@/lib/track";
 import type { Film } from "@/lib/types";
@@ -22,24 +23,20 @@ export default function FilmPlayerSection({
   /** Up Next pick for the player's end screen. */
   nextFilm?: Film | null;
 }) {
-  const [allowed, setAllowed] = useState<boolean | null>(
-    film.rating === "R" ? null : true,
-  );
-  const [gateOpen, setGateOpen] = useState(false);
+  // R-rated films wait for the visitor's saved age answer, which only
+  // the browser knows: null means "not known yet", so nothing flashes.
+  const hydrated = useHydrated();
+  const verified = useStoredValue(AGE_VERIFIED_KEY) === "1";
+  const [confirmedNow, setConfirmedNow] = useState(false);
+  const [gateClosedOn, setGateClosedOn] = useState<string | null>(null);
+  const allowed: boolean | null =
+    film.rating !== "R" ? true : !hydrated ? null : verified || confirmedNow;
+  // The age question opens by itself on each R-rated film, until closed.
+  const gateOpen = allowed === false && gateClosedOn !== film.slug;
 
   useEffect(() => {
     trackFilmEvent(film.slug, "open");
   }, [film.slug]);
-
-  useEffect(() => {
-    if (film.rating !== "R") return;
-    if (isAgeVerified()) {
-      setAllowed(true);
-    } else {
-      setAllowed(false);
-      setGateOpen(true);
-    }
-  }, [film.rating, film.slug]);
 
   if (allowed === null) {
     return (
@@ -78,17 +75,16 @@ export default function FilmPlayerSection({
           <AgeGateModal
             filmTitle={film.title}
             onConfirm={() => {
-              setAllowed(true);
-              setGateOpen(false);
+              setConfirmedNow(true);
             }}
-            onCancel={() => setGateOpen(false)}
+            onCancel={() => setGateClosedOn(film.slug)}
           />
         ) : (
           <p style={{ marginTop: 14 }}>
             <button
               type="button"
               className="play-btn"
-              onClick={() => setGateOpen(true)}
+              onClick={() => setGateClosedOn(null)}
             >
               Watch — rated R
             </button>
