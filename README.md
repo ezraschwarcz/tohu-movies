@@ -154,10 +154,30 @@ failed; click **Details** to see which and why.
 | Gitleaks | Passwords or private keys saved into the code by mistake |
 | OSV-Scanner | Known security problems in packages, site and phone app |
 | Semgrep | Common security mistakes in the code |
+| CodeQL | GitHub's own security scan of the code (results under Security, Code scanning) |
+| Database rules (`npm run test:db`) | Every migration runs on a throwaway copy; members, banned members, admins and super admins can only do what they should |
+| Live database check (`npm run test:live`) | From outside, as a visitor: private tables and admin functions on the real database are refused |
 
 Every Monday, `.github/workflows/live-site.yml` checks the live site with
-pa11y (accessibility), Lighthouse (speed, search basics) and linkinator
-(broken links). Start it any time from **Actions → Live site checks →
+pa11y (accessibility), Lighthouse (speed, search basics), linkinator
+(broken links), OWASP ZAP (a passive attack scan; its report is attached to
+the run) and the live database check.
+
+Dependabot (`.github/dependabot.yml`) opens a pull request each Monday with
+package updates, grouped; they go through the same checks.
+
+## Protection on the live site
+
+- **Security headers** (`next.config.ts`): no framing by other sites, HTTPS
+  only, no file-type guessing, a strict referrer rule, and limits on camera,
+  microphone and location. The full Content Security Policy runs in
+  report-only mode; switch it to enforced once its reports are clean.
+- **Error tracking** (Sentry, `src/instrumentation*.ts`): off until
+  `NEXT_PUBLIC_SENTRY_DSN` is set in Vercel. Sends only the error and where
+  it happened: no user details, cookies, headers or request contents.
+- **Uptime**: `/api/health` answers `{"status":"ok"}` when the site and the
+  database respond, and a 503 when the database does not. Point an uptime
+  monitor at it. Start it any time from **Actions → Live site checks →
 Run workflow**.
 
 The tests use a stand-in database (`tests/mock/server.mjs`), never the real
