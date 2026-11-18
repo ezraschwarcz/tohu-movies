@@ -40,3 +40,11 @@ grant select, insert, update, delete on public.comments, public.comment_likes to
 grant select (id, display_name, avatar_preset, avatar_url, created_at, updated_at) on public.profiles to anon, authenticated;
 grant update (display_name, avatar_preset, avatar_url) on public.profiles to authenticated;
 create function public.is_admin() returns boolean language sql stable security definer set search_path = public as $$ select coalesce((select p.is_admin from public.profiles p where p.id = auth.uid()), false) $$;
+-- Supabase's storage helpers and grants, and two functions made in the dashboard.
+create function storage.foldername(name text) returns text[] language sql immutable as $$ select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
+grant usage on schema storage to anon, authenticated;
+grant select, insert, update, delete on storage.objects to anon, authenticated;
+insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true);
+create policy "avatars readable by everyone" on storage.objects for select using (bucket_id = 'avatars');
+create function public.set_updated_at() returns trigger language plpgsql as $$ begin new.updated_at = now(); return new; end $$;
+create function public.handle_new_user() returns trigger language plpgsql security definer as $$ begin insert into public.profiles (id, display_name) values (new.id, coalesce(new.raw_user_meta_data->>'display_name', 'Member')) on conflict do nothing; return new; end $$;

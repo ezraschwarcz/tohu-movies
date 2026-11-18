@@ -90,3 +90,21 @@ test("visitors cannot change films", async () => {
   const r = await call("films?slug=eq.jinn", { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ title: "Jinn" }) });
   nothingVisible(r, "update film");
 });
+
+for (const bucket of ["avatars", "posters"]) {
+  test(`visitors cannot list the files in ${bucket}`, async () => {
+    const res = await fetch(`${URL}/storage/v1/object/list/${bucket}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ prefix: "", limit: 5 }),
+    });
+    const body = await res.json().catch(() => null);
+    const empty = res.ok && Array.isArray(body) && body.length === 0;
+    assert.ok(empty || res.status >= 400, `${bucket}: expected no files, got ${res.status} ${JSON.stringify(body).slice(0, 120)}`);
+  });
+}
+
+test("visitors cannot call the sign-up set-up function", async () => {
+  const r = await call("rpc/handle_new_user", { method: "POST", body: "{}" });
+  assert.ok(r.status >= 400, `handle_new_user: expected refused, got ${r.status}`);
+});

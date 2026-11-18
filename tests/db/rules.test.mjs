@@ -169,3 +169,30 @@ describe("private member data", () => {
     await assert.rejects(as(null, "select email from auth.users"));
   });
 });
+
+describe("security advisor fixes", () => {
+  before(async () => {
+    await db.query(`insert into storage.objects (bucket_id, name) values
+      ('avatars', '${MEMBER}/avatar.jpg'), ('avatars', '${OTHER}/avatar.jpg'), ('posters', 'jinn.jpg')`);
+  });
+  test("nobody can call the sign-up set-up function directly", async () => {
+    await assert.rejects(as(null, "select public.handle_new_user()"));
+    await assert.rejects(as(MEMBER, "select public.handle_new_user()"));
+  });
+  test("set_updated_at has a fixed search path", async () => {
+    const rows = await db.query("select proconfig from pg_proc where proname = 'set_updated_at'");
+    assert.ok(String(rows.rows[0].proconfig).includes("search_path"));
+  });
+  test("a visitor cannot list photo or poster files", async () => {
+    const rows = await as(null, "select name from storage.objects");
+    assert.equal(rows.length, 0);
+  });
+  test("a member sees only their own photo file", async () => {
+    const rows = await as(MEMBER, "select name from storage.objects");
+    assert.deepEqual(rows.map((r) => r.name), [`${MEMBER}/avatar.jpg`]);
+  });
+  test("an admin can see poster files", async () => {
+    const rows = await as(ADMIN, "select name from storage.objects where bucket_id = 'posters'");
+    assert.equal(rows.length, 1);
+  });
+});
