@@ -22,13 +22,15 @@ const archivoNarrow = Archivo_Narrow({
   display: "swap",
 });
 
+const SITE_TITLE = "Tohu Movies — Independent Films, Free to Stream";
+
 const DEFAULT_DESCRIPTION =
   "Independent cinema, handpicked for people who love film. Bold voices and hidden gems, streaming free in HD with captions.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Tohu Movies — Free Independent Films, Streaming Free",
+    default: SITE_TITLE,
     template: "%s | Tohu Movies",
   },
   description: TAGLINE,
@@ -36,7 +38,7 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: "Tohu Movies — Free Independent Films, Streaming Free",
+    title: SITE_TITLE,
     description: DEFAULT_DESCRIPTION,
     images: [
       {
@@ -49,7 +51,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tohu Movies — Free Independent Films, Streaming Free",
+    title: SITE_TITLE,
     description: DEFAULT_DESCRIPTION,
     images: ["/logo-512.png"],
   },
