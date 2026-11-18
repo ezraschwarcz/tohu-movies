@@ -1,6 +1,10 @@
 # Opens a pull request each week with package updates, grouped so there are
 # only a few to review. Every update runs through the same checks as any
 # other change, so a red X means that update needs a closer look.
+#
+# Big version jumps (for example TypeScript 6 to 7, or video.js 8 to 10) are
+# skipped: they can change how things work in ways the checks don't cover, so
+# they are done on purpose, as planned upgrades, not as weekly updates.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -11,6 +15,9 @@ updates:
       time: "08:00"
       timezone: America/Chicago
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -19,10 +26,18 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+  # The building blocks GitHub's checks run on. Their big versions are routine,
+  # so they arrive together, in one pull request a month.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
