@@ -144,7 +144,7 @@ export default async function FilmPage({
         "@id": `${pageUrl}#movie`,
         name: film.title,
         url: pageUrl,
-        description: film.synopsis,
+        description: film.about ?? film.synopsis,
         image: poster,
         datePublished: String(film.year),
         duration: isoDuration,
@@ -243,6 +243,12 @@ export default async function FilmPage({
             <strong>Content warning:</strong> {film.warnings}
           </p>
         )}
+        {film.about ? (
+          <section className="film-about" aria-labelledby="about-film">
+            <h2 id="about-film">About this film</h2>
+            <p>{film.about}</p>
+          </section>
+        ) : null}
       </div>
 
       {upNext.length > 0 ? (

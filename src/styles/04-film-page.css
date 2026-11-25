@@ -99,6 +99,27 @@
   color: var(--ink);
 }
 
+.film-about {
+  margin-top: 26px;
+  max-width: 75ch;
+}
+
+.film-about h2 {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin: 0 0 8px;
+}
+
+.film-about p {
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin: 0;
+}
+
 .warn {
   margin-top: 18px;
   font-size: 13.5px;
