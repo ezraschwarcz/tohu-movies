@@ -12,7 +12,7 @@ import {
   muxStreamUrl,
   posterUrl,
 } from "@/lib/films";
-import { SITE_URL } from "@/lib/site";
+import { LICENSOR, SITE_URL } from "@/lib/site";
 import { getCommentThreads } from "@/lib/comments";
 import { getServerUserId } from "@/lib/supabase/server";
 import CommentsSection from "@/components/CommentsSection";
@@ -236,6 +236,10 @@ export default async function FilmPage({
           <div>
             <dt>Runtime</dt>
             <dd>{formatRuntime(film.runtime_minutes)}</dd>
+          </div>
+          <div>
+            <dt>Licensed from</dt>
+            <dd>{LICENSOR}</dd>
           </div>
         </dl>
         {isSensitive ? null : (

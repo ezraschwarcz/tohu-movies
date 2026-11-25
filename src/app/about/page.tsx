@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage from "@/components/LegalPage";
 import { getFilms } from "@/lib/films";
-import { SITE_URL } from "@/lib/site";
+import { LICENSOR, SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -32,7 +32,7 @@ export default async function AboutPage() {
         across horror, comedy, drama, romance, family, sport and more. They
         are independent productions, many with actors you will recognize,
         that deserve a bigger audience than they got. Every film on Tohu is
-        licensed for streaming.
+        licensed to Tohu Entertainment, LLC for streaming by {LICENSOR}.
       </p>
       <h2>How it is free</h2>
       <p>

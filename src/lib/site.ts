@@ -6,6 +6,10 @@
 export const SITE_URL = "https://www.tohumovies.com";
 export const SITE_NAME = "Tohu Movies";
 
+/** Who licenses the films to Tohu Entertainment, LLC. Shown on every film
+ *  page, the About page and the FAQ. */
+export const LICENSOR = "Freestyle Digital Media, LLC";
+
 export const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ??
   "https://fsyctibngbqjswizwuww.supabase.co";
