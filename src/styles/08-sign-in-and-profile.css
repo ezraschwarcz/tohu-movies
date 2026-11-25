@@ -349,7 +349,7 @@
 
 .signin-prompt {
   font-size: 15px;
-  margin: 0;
+  margin: 4px 0 24px;
 }
 
 .signin-prompt a {
