@@ -18,6 +18,9 @@ export type Film = {
   /** Cover art uploaded from the admin page (a public image address).
    *  Absent on films that use the built-in cover art or a still. */
   poster_url?: string | null;
+  /** Original long description shown as "About this film" on the film
+   *  page. Absent until the film_about database update has run. */
+  about?: string | null;
 };
 
 export type RatingSummary = {

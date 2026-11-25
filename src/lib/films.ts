@@ -71,6 +71,16 @@ export const getFilmBySlug = unstable_cache(
       const url = (art.data as { poster_url?: string | null } | null)
         ?.poster_url;
       if (!art.error && url) film.poster_url = url;
+      // The long description, from a separate, forgiving query: before the
+      // film_about database update has run, the column does not exist and
+      // the page simply renders without it.
+      const about = await supabase
+        .from("films")
+        .select("about")
+        .eq("slug", slug)
+        .maybeSingle();
+      const text = (about.data as { about?: string | null } | null)?.about;
+      if (!about.error && text) film.about = text;
     }
     return film;
   },
