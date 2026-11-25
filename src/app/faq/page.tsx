@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 import JsonLd from "@/components/JsonLd";
-import { SITE_URL } from "@/lib/site";
+import { LICENSOR, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "FAQ: free movies on Tohu, accounts and playback | Tohu Movies",
@@ -17,7 +17,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Is it legal?",
-    a: "Yes. Every film on Tohu is licensed for streaming from its owner or distributor.",
+    a: `Yes. Every film on Tohu is licensed to Tohu Entertainment, LLC for streaming by ${LICENSOR}.`,
   },
   {
     q: "Do I need an account?",
