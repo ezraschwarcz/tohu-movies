@@ -14,9 +14,9 @@
     "mock": "node tests/mock/server.mjs"
   },
   "dependencies": {
-    "@sentry/nextjs": "^11.14.0",
+    "@sentry/nextjs": "^11.16.0",
     "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.119.0",
+    "@supabase/supabase-js": "^2.119.2",
     "@vercel/analytics": "^2.0.1",
     "next": "16.4.6",
     "react": "19.3.1",
@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@electric-sql/pglite": "^0.5.16",
+    "@electric-sql/pglite": "^0.5.17",
     "@playwright/test": "^1.65.1",
     "@types/node": "^20",
     "@types/react": "^19",
